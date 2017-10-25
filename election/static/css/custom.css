@@ -17,8 +17,7 @@ section {
 /* === BACKGROUND === */
 
 .bg {
-    background-color: red;
-    background-image: url("static/media/background.jpg");
+    background-image: url("background.jpg");
     background-position: center center;
     background-size: cover;
     width: 100%;
@@ -28,14 +27,26 @@ section {
 }
 
 .main-container {
+  padding-bottom: 100px;
 }
 
 .candidate {
   width: 100%;
-  border-radius: 5px;
+  border-radius: 7px;
   margin-top: 5px;
 }
 
 .prodeko-blue {
   background-color: #004080;
+}
+
+#deactivate-btn {
+  position: static;
+  margin-right: 10px;
+}
+
+#deactivate {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 2em;
 }
