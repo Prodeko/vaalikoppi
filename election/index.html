@@ -1,0 +1,90 @@
+<!-- {% load staticfiles %} -->
+<!DOCTYPE html>
+<html lang="fi">
+	<head>
+		  <meta charset="utf-8">
+			<meta http-equiv="X-UA-Compatible" content="IE=edge">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<link href="static/css/materialize.min.css" rel="stylesheet">
+			<link href="static/css/materialize.css" rel="stylesheet">
+			<link href="static/css/custom.css" rel="stylesheet">
+      <!--Import Google Icon Font-->
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+      <link href="https://fonts.googleapis.com/css?family=Hind" rel="stylesheet">
+			<title>Prodeko Election</title>
+
+	</head>
+
+    <body>
+      <div class="navbar-fixed" id="top">
+        <nav>
+          <div class="nav-wrapper prodeko-blue">
+            <a href="#top" class="brand-logo center"><strong>AUTH CODE<strong></a>
+          </div>
+        </nav>
+      </div>
+
+      <div class="bg">
+      <div class="container">
+
+        <!-- Avattu äänestys -->
+        <div class="col s12 m10 l12 main-container">
+          <!-- Tähän foor looppi eri äänestyksistä, viimeisin ylimpänä  -->
+          <div class="card blue-grey lighten-5">
+            <div class="card-content blue-grey-text center">
+              <span class="card-title blue-grey-text text-darken-3">Äänestyksen nimi</span>
+              <p>Mediakeisari vuodelle 2017</p>
+            </div>
+            <div class="card-action">
+              <!-- Tähän foor looppi kandidaattien nimistä -->
+              <a class="waves-effect waves-light blue-grey lighten-3 btn-large candidate">Kandidaatin nimi 1</a>
+              <a class="waves-effect waves-light blue-grey darken-2 btn-large candidate">Kandidaatin nimi 2</a>
+              <button class="btn waves-effect waves-light red darken-1 white-text candidate" type="submit" name="action">Äänestä</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avaamaton äänestys -->
+        <div class="col s12 m10 l12 main-container">
+          <!-- Tähän foor looppi eri äänestyksistä, viimeisin ylimpänä  -->
+          <div class="card blue-grey lighten-5">
+            <div class="card-content blue-grey-text center">
+              <span class="card-title blue-grey-text text-darken-3">Äänestyksen nimi</span>
+              <p>Mediakeisari vuodelle 2017</p>
+            </div>
+            <div class="card-action">
+              <!-- Tähän foor looppi kandidaattien nimistä -->
+              <a class="waves-effect waves-light blue-grey darken-2 btn-large candidate">Kandidaatin nimi 1</a>
+              <a class="waves-effect waves-light blue-grey darken-2 btn-large candidate">Kandidaatin nimi 2</a>
+              <a class="btn disabled push-l8 right-align candidate">Äänestä</a>
+            </div>
+          </div>
+
+
+          <!-- Päättynyt äänestys -->
+          <div class="card light-blue darken-4 white-text center">
+            <div class="card-content">
+              <span class="card-title activator">Äänestyksen nimi</span>
+              <p>Valitun kandidaatin nimi</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- {% if not user.is_authenticated %} -->
+
+			<!-- {% endif %} -->
+
+			<!-- {% if user.is_authenticated %} -->
+
+			<!-- {% endif %} -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src="static/js/materialize.min.js"></script>
+      </div>
+
+
+	</body>
+</html>

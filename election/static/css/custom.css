@@ -1,0 +1,41 @@
+html, body { height: 100%; }
+
+body {
+    font-family: "Hind", Sans !important;
+    font-size: 1.2em;
+    color: #1E3553;
+    scroll-behavior: smooth;
+}
+
+section {
+	/*margin-top: -50px;*/
+	padding-top: 80px;
+	background-color: #fafafa;
+	min-height: 100%;
+}
+
+/* === BACKGROUND === */
+
+.bg {
+    background-color: red;
+    background-image: url("static/media/background.jpg");
+    background-position: center center;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: fixed;
+}
+
+.main-container {
+}
+
+.candidate {
+  width: 100%;
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
+.prodeko-blue {
+  background-color: #004080;
+}
