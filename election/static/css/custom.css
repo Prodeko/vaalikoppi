@@ -1,7 +1,7 @@
 html, body { height: 100%; }
 
 body {
-    font-family: "Hind", Sans !important;
+    font-family: 'Raleway', sans-serif;
     font-size: 1.2em;
     color: #1E3553;
     scroll-behavior: smooth;
@@ -50,6 +50,21 @@ section {
 
 #deactivate {
   text-transform: uppercase;
-  font-weight: bold;
+  font-weight: 800;
   font-size: 2em;
+}
+
+.bold-font {
+  font-weight: 700;
+}
+
+#logo {
+  width: 220px;
+  height: 100%;
+  margin: 10px auto 0px auto;
+}
+
+#vaalikoppi-logo {
+  width: 100%;
+
 }

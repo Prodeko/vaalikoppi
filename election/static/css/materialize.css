@@ -5318,7 +5318,7 @@ button.btn-floating {
 
 .fixed-action-btn.toolbar {
   padding: 0;
-  height: 56px;
+  height: 100%;
 }
 
 .fixed-action-btn.toolbar.active > a i {

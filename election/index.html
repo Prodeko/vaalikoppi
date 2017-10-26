@@ -11,7 +11,7 @@
       <!--Import Google Icon Font-->
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-      <link href="https://fonts.googleapis.com/css?family=Hind" rel="stylesheet">
+      <link href="https://fonts.googleapis.com/css?family=Raleway:400,700,800" rel="stylesheet">
 			<title>Prodeko Election</title>
 
 	</head>
@@ -20,15 +20,15 @@
       <div class="navbar-fixed" id="top">
         <nav>
           <div class="nav-wrapper prodeko-blue">
-            <a href="#top" class="brand-logo center" style="margin-top: 4px;"><strong>AUTH CODE<strong></a>
-              <div class="fixed-action-btn toolbar" id="deactivate-btn">
-                <a class="transparent right">
-                  <i class="large material-icons">close</i>
-                </a>
-                <ul>
-                  <li class="waves-effect waves-light red" id="deactivate"><a href="#!">DEAKTIVOI TUNNUS</a></li>
-                </ul>
-              </div>
+            <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="static/css/Vaalikoppi.png" /></div>
+            <div class="fixed-action-btn toolbar" id="deactivate-btn">
+              <a class="transparent right">
+                <i class="large material-icons">close</i>
+              </a>
+              <ul>
+                <li class="waves-effect waves-light red" id="deactivate"><a href="#!">DEAKTIVOI TUNNUS</a></li>
+              </ul>
+            </div>
           </div>
         </nav>
       </div>
@@ -41,14 +41,14 @@
           <!-- Tähän foor looppi eri äänestyksistä, viimeisin ylimpänä  -->
           <div class="card blue-grey lighten-5">
             <div class="card-content grey-text center">
-              <span class="card-title blue-grey-text text-darken-1">Äänestyksen nimi</span>
+              <span class="card-title blue-grey-text text-darken-1 bold-font">Äänestyksen nimi</span>
               <p>Mahdollinen kuvaus virasta.</p>
             </div>
             <div class="card-action">
               <!-- Tähän foor looppi kandidaattien nimistä -->
               <a class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">Kandidaatin nimi 1</a>
               <a class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">Kandidaatin nimi 2</a>
-              <button class="btn waves-effect waves-light red darken-1 white-text candidate" type="submit" name="action">Äänestä</button>
+              <button class="btn waves-effect waves-light red darken-1 white-text candidate bold-font" type="submit" name="action">Äänestä</button>
             </div>
           </div>
 
@@ -63,7 +63,7 @@
               <!-- Tähän foor looppi kandidaattien nimistä -->
               <a class="disabled blue-grey lighten-1 btn-large candidate">Kandidaatin nimi 1</a>
               <a class="disabled blue-grey lighten-1 btn-large candidate">Kandidaatin nimi 2</a>
-              <a class="btn disabled push-l8 right-align candidate">Äänestä</a>
+              <a class="btn disabled push-l8 right-align candidate bold-font">Äänestä</a>
             </div>
           </div>
 
@@ -72,7 +72,7 @@
           <div class="card prodeko-blue white-text center">
             <div class="card-content">
               <p>Äänestyksen nimi</p>
-              <span class="card-title">Valitun henkilön nimi</span>
+              <span class="card-title bold-font">Valitun henkilön nimi</span>
             </div>
           </div>
 
