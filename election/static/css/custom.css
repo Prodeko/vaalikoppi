@@ -68,3 +68,36 @@ section {
   width: 100%;
 
 }
+
+#login-container {
+  width: 100%;
+  height: 100%;
+  background-image: url("Blue.jpg");
+  background-position: center center;
+  background-size: cover;
+  color: white;
+}
+
+.logos {
+  width: 100%;
+  padding-top: 100px;
+  padding-bottom: 75px;
+}
+
+#login-vaalikoppi-logo {
+  max-width: 400px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#login-input-container {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  max-width: 400px;
+}
+
+input {
+  text-align: center;
+}
