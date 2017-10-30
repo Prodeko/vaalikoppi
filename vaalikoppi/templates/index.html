@@ -32,10 +32,14 @@
 	          </div>
 	          <div class="card-action">
 							{% if voting.candidate_set.all %}
+							<form action="{% url 'vaalikoppi:vote' voting.id %}" method="post">
+								{% csrf_token %}
 		            {% for candidate in voting.candidate_set.all %}
-		            <a class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</a>
+		            <input type="radio" name="candidate" style="visibility:visible" id="candidate{{ candidate.id }}" value="{{ candidate.id }}"/>
+								<label for="candidate{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</label><br>
 								{% endfor %}
-							<button class="btn waves-effect waves-light red darken-1 white-text candidate bold-font" type="submit" name="action">Äänestä</button>
+								<input type="submit" value="Vote" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Äänestä</button>
+							</form>
 							{% endif %}
 						</div>
 	        </div>

@@ -18,20 +18,8 @@ class Voting(models.Model):
         self.is_ended = True
         self.save()
 
-    def add_candidate(self, candidate):
-        candidates += candidate
-        self.save()
-
-    def result(self):
-        winner = max(lambda x: x.votes, candidates)
-        return winner.candidate_name
-
     def print_candidates(self):
         return str(candidates)
-
-    def vote(self, candidate):
-        candidate.votes += 1
-        candidate.save()
 
     def __str__(self):
         return self.voting_name
@@ -42,8 +30,9 @@ class Candidate(models.Model):
     candidate_name = models.CharField(max_length=50)
     votes = models.IntegerField(default=0)
 
+    def vote(self):
+        self.votes += 1
+        self.save()
+
     def __str__(self):
         return self.candidate_name
-
-def get_candidates(voting_id):
-    return Candidate.objects.get(voting_id)

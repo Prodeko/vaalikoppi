@@ -7,8 +7,8 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.shortcuts import render
-from django.db.models import Q
-from vaalikoppi.models import Voting, Candidate
+from django.db.models import Q, Max
+from .models import Voting, Candidate
 
 
 # Create your views here.
@@ -28,8 +28,32 @@ def index(request):
     }, context_instance=RequestContext(request))
 
 
-@login_required(login_url='/login/')
-def vote(request, voting_id, candidate_id):
+#@login_required(login_url='/login/')
+def vote(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    try:
+        selected_candidate = voting.candidate_set.get(pk=request.POST['candidate'])
+    except (KeyError, Candidate.DoesNotExist):
+        # Redisplay the question voting form.
+        return render(request, 'vaalikoppi/index.html', {
+            'voting': voting,
+            'error_message': "You didn't select a candidate.",
+        })
+    else:
+        selected_candidate.vote()
+        return redirect('vaalikoppi:index')
+
+def get_candidates(voting_id):
+    return Candidate.objects.get(voting_id)
+
+def results(request, voting_id):
+    votings = Voting.objects.filter(is_ended = True)
+    return render(request, 'index.html', {
+        'votings': votings
+    })
+
+'''
+def result(request, voting_id):
     voting = Voting.objects.get(voting_id)
-    voting.vote(Candidate.objects.get(candidate_id))
-    return HttpResponse("You're voting on question %s." % voting_id)
+    return max(lambda x: x.votes, voting.candidate_set.all)
+'''
