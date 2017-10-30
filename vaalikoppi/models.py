@@ -2,11 +2,12 @@ from django.db import models
 
 # Create your models here.
 
+
 class Voting(models.Model):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
     is_open = models.BooleanField(default=False)
-    candidates = []
+    is_ended = models.BooleanField(default=False)
 
     def open_voting(self):
         self.is_open = True
@@ -14,27 +15,23 @@ class Voting(models.Model):
 
     def close_voting(self):
         self.is_open = False
+        self.is_ended = True
         self.save()
 
-    def add_candidate(self, voting_name, name):
-        candidate = Candidate(voting = self, candidate_name = name)
-        candidate.save()
-        self.candidates += candidate
+    def add_candidate(self, candidate):
+        candidates += candidate
         self.save()
-        return candidate
+
+    def result(self):
+        winner = max(lambda x: x.votes, candidates)
+        return winner.candidate_name
+
+    def print_candidates(self):
+        return str(candidates)
 
     def vote(self, candidate):
         candidate.votes += 1
         candidate.save()
-        return True
-
-    def result(self):
-        votes = list(map(lambda x: (x, x.votes), candidates))
-        winner = max(votes)
-        return winner
-
-    def print_candidates(self):
-        return str(candidates)
 
     def __str__(self):
         return self.voting_name
@@ -44,15 +41,9 @@ class Candidate(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     votes = models.IntegerField(default=0)
+
     def __str__(self):
-        return self.candidate_name + " - " + voting.str()
+        return self.candidate_name
 
-
-
-
-
-
-def create_voting(name):
-    voting = Voting(voting_name = name)
-    voting.save()
-    return voting
+def get_candidates(voting_id):
+    return Candidate.objects.get(voting_id)
