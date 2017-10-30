@@ -31,8 +31,8 @@
 	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
 	          </div>
 	          <div class="card-action">
-							{% if voting.candidates %}
-		            {% for candidate in voting.candidates %}
+							{% if voting.candidate_set.all %}
+		            {% for candidate in voting.candidate_set.all %}
 		            <a class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</a>
 								{% endfor %}
 							<button class="btn waves-effect waves-light red darken-1 white-text candidate bold-font" type="submit" name="action">Äänestä</button>
@@ -44,7 +44,7 @@
 
       <!-- Avaamaton äänestys -->
         {% if closed_votings %}
-					{% for voting in open_votings %}
+					{% for voting in closed_votings %}
 	        <div class="card grey lighten-3">
 	          <div class="card-content blue-grey-text text-lighten-1 center">
 	            <span class="card-title blue-grey-text text-lighten-1">{{ voting.voting_name }}</span>
@@ -63,7 +63,7 @@
 
 
         <!-- Päättynyt äänestys -->
-				{% if closed_votings %}
+				{% if ended_votings %}
 					{% for voting in ended_votings %}
 	        <div class="card prodeko-blue white-text center">
 	          <div class="card-content">

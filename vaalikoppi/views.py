@@ -16,9 +16,9 @@ from django.http import HttpResponse
 
 
 def index(request):
-    closed_votings = Candidate.objects.filter(voting__is_open = False, voting__is_ended = False)
-    open_votings = Candidate.objects.filter(voting__is_open = True, voting__is_ended = False)
-    ended_votings = Candidate.objects.filter(voting__is_open = False, voting__is_ended = True)
+    closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
+    open_votings = Voting.objects.filter(is_open = True, is_ended = False)
+    ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
 
 
     return render_to_response('index.html', {
