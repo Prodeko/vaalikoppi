@@ -25,7 +25,7 @@ def index(request):
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
-    }, context_instance=RequestContext(request))
+    }, RequestContext(request))
 
 
 #@login_required(login_url='/login/')
