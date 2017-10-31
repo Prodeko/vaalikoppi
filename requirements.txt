@@ -1,0 +1,10 @@
+Django==1.11
+django-pipeline
+futures
+PyMySQL
+mysqlclient
+djangorestframework
+markdown
+django-filter
+django-audit-log
+unicodecsv
