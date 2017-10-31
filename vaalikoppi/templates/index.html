@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 
 	{% block body %}
   <div class="bg">
 		<div class="navbar-fixed" id="top">
       <nav>
         <div class="nav-wrapper prodeko-blue">
-          <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="static/css/Vaalikoppi.png" /></div>
+          <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
           <div class="fixed-action-btn toolbar" id="deactivate-btn">
             <a class="transparent right">
               <i class="large material-icons">close</i>
@@ -38,7 +38,7 @@
 		            <input type="radio" name="candidate" style="visibility:visible" id="candidate{{ candidate.id }}" value="{{ candidate.id }}"/>
 								<label for="candidate{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</label><br>
 								{% endfor %}
-								<input type="submit" value="Vote" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Äänestä</button>
+								<input type="submit" value="Äänestä" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font" />
 							</form>
 							{% endif %}
 						</div>
@@ -55,8 +55,8 @@
 	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
 	          </div>
 	          <div class="card-action">
-							{% if voting.candidates %}
-								{% for candidate in voting.candidates %}
+							{% if voting.candidate_set.all %}
+								{% for candidate in voting.candidate_set.all %}
 		            <a class="disabled blue-grey lighten-1 btn-large candidate">{{ candidate.candidate_name }}</a>
 								{% endfor %}
 							{% endif %}
