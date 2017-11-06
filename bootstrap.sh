@@ -5,8 +5,8 @@ apt-get update
 
 # --- python ---
 
-# set default python version to 3.4
-ln -sf /usr/bin/python3.6 /usr/bin/python
+# set default python version to 3.5 (doesn't necessarily help)
+ln -sf /usr/bin/python3.5 /usr/bin/python
 
 # install pip
 apt-get install -y python3-pip
@@ -57,12 +57,12 @@ mysql -uroot -pvagrant -e "CREATE DATABASE election;"
 pip3 install -r /vagrant/requirements.txt
 
 # tasks
-cd /vagrant && python manage.py syncdb --noinput
-cd /vagrant && python manage.py migrate
+cd /vagrant && python3 manage.py syncdb --noinput
+cd /vagrant && python3 manage.py migrate
 
 # Run server and static file watcher in screen
-su - vagrant -c "cd /vagrant && screen -S server -d -m python manage.py runserver 0.0.0.0:8000"
-su - vagrant -c "cd /vagrant && screen -S watcher -d -m python manage.py watchstatic"
+su - ubuntu -c "cd /vagrant && screen -S server -d -m python3 manage.py runserver 0.0.0.0:8000"
+su - ubuntu -c "cd /vagrant && screen -S watcher -d -m python3 manage.py watchstatic"
 
 # --- restart apache ---
 
