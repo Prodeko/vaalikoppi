@@ -9,39 +9,44 @@ from django.contrib import messages
 from django.shortcuts import render
 from django.db.models import Q, Max
 from .models import Voting, Candidate
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
 from django.http import HttpResponse
+from django.http import JsonResponse
 
 
 def index(request):
+    return render(request, 'index.html')
+
+def votings(request):
+
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
     open_votings = Voting.objects.filter(is_open = True, is_ended = False)
     ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
 
 
-    return render_to_response('index.html', {
+    return render(request, 'votings.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
-    }, RequestContext(request))
-
+    })
 
 #@login_required(login_url='/login/')
+# Ei toiminu ilman tätä, pitäis tutkia
+@csrf_exempt
 def vote(request, voting_id):
     voting = get_object_or_404(Voting, pk=voting_id)
     try:
         selected_candidate = voting.candidate_set.get(pk=request.POST['candidate'])
     except (KeyError, Candidate.DoesNotExist):
         # Redisplay the question voting form.
-        return render(request, 'vaalikoppi/index.html', {
-            'voting': voting,
-            'error_message': "You didn't select a candidate.",
-        })
+        return JsonResponse({'error':'candidate does not exist'},status=400)
     else:
         selected_candidate.vote()
-        return redirect('vaalikoppi:index')
+		# Ei jostain syystä toiminu redirect('votings'), pitäis tutkia
+        return JsonResponse({'status':'success'},status=200)
 
 def get_candidates(voting_id):
     return Candidate.objects.get(voting_id)
