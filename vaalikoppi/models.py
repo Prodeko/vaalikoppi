@@ -1,4 +1,5 @@
 from django.db import models
+import datetime
 
 # Create your models here.
 
@@ -36,3 +37,26 @@ class Candidate(models.Model):
 
     def __str__(self):
         return self.candidate_name
+
+		
+class Usertoken(models.Model):
+    token = models.CharField(max_length=50, unique=True)
+    created = models.DateTimeField(auto_now=False, auto_now_add=True)
+    activated = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+    invalidated = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+
+    def activate(self):
+        self.activated = timezone.now
+
+    def invalidate(self):
+        self.invalidated = timezone.now
+
+    def __str__(self):
+        return self.token
+		
+		
+class Tokenusage(models.Model):
+    token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    vote_timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
+	
