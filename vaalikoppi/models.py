@@ -1,5 +1,6 @@
 from django.db import models
 import datetime
+import uuid
 
 # Create your models here.
 
@@ -29,11 +30,6 @@ class Voting(models.Model):
 class Candidate(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
-    votes = models.IntegerField(default=0)
-
-    def vote(self):
-        self.votes += 1
-        self.save()
 
     def __str__(self):
         return self.candidate_name
@@ -42,8 +38,8 @@ class Candidate(models.Model):
 class Usertoken(models.Model):
     token = models.CharField(max_length=50, unique=True)
     created = models.DateTimeField(auto_now=False, auto_now_add=True)
-    activated = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
-    invalidated = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True)
+    activated = models.BooleanField(default=False)
+    invalidated = models.BooleanField(default=False)
 
     def activate(self):
         self.activated = timezone.now
@@ -55,8 +51,27 @@ class Usertoken(models.Model):
         return self.token
 		
 		
-class Tokenusage(models.Model):
+class TokenMapping(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
-    vote_timestamp = models.DateTimeField(auto_now=False, auto_now_add=True)
-	
+
+    def get_uuid(self):
+        return self.uuid
+		
+    def get_token(self):
+        return self.token
+
+    def __str__(self):
+        return self.uuid
+		
+		
+class Vote(models.Model):
+    uuid = models.ForeignKey(TokenMapping, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+
+    def get_uuid(self):
+        return self.uuid
+
+    def get_candidate(self):
+        return self.candidate

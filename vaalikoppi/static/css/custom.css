@@ -14,6 +14,15 @@ section {
 	min-height: 100%;
 }
 
+.invisible {
+	visibility: hidden;
+}
+
+.token-input-field {
+	font-size: x-large !important;
+	font-weight: bold;
+}
+
 /* === BACKGROUND === */
 
 .bg {
@@ -101,3 +110,17 @@ section {
 input {
   text-align: center;
 }
+
+#main-login-prompt {
+	display: none;
+}
+
+#main-login-prompt .token-input-field {
+	padding-top: 2em;
+}
+
+#main-login-prompt .wrong-token-warning {
+	color: red;
+}
+
+

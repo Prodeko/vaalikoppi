@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+  <div class="bg">
+		<div class="navbar-fixed" id="top">
+      <nav>
+        <div class="nav-wrapper prodeko-blue">
+          <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
+          <div class="fixed-action-btn toolbar" id="deactivate-btn">
+            <a class="transparent right">
+              <i class="large material-icons">close</i>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+	<div  class="container main-container">
+		{% csrf_token %}
+		<div class="card blue-grey lighten-5">
+	         <div class="card-action center">
+				<button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="generateTokens(100)">Generoi 100 koodia</button>
+			</div>
+	    </div>
+		
+		<div class="card blue-grey lighten-5">
+			<div class="card-content blue-grey-text text-lighten-1 center">
+	            <span class="card-title blue-grey-text text-lighten-1">Invalidoi koodi</span>
+	            <input type="text" id="invalidate-token-field" size="50">
+	          </div>
+	         <div class="card-action center">
+				<button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text red candidate bold-font" onclick="invalidateToken()">Invalidoi</button>
+			</div>
+	    </div>
+	
+	</div>
+</div>
+
+
+    <!-- {% if not user.is_authenticated %} -->
+
+		<!-- {% endif %} -->
+
+		<!-- {% if user.is_authenticated %} -->
+
+		<!-- {% endif %} -->
+
+{% endblock %}

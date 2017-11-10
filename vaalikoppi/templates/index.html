@@ -21,17 +21,42 @@
 
 	<div  class="container main-container">
 		
-		<div class="card blue-grey lighten-5">
+		<div id="voting-list-updater" class="card blue-grey lighten-5">
 	         <div class="card-action center">
 				<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList()">Päivitä luettelo</button>
 			</div>
 	    </div>
 	
+		<div id="main-login-prompt">
+			<div class="card blue-grey lighten-5">
+				<div class="card-content blue-grey-text text-lighten-1 center">
+					<span class="card-title blue-grey-text text-lighten-1">Syötä koodi kirjautuaksesi sisään</span>
+					<input type="text" id="type-token-field" class="token-input-field" size="50">
+					<span class="wrong-token-warning invisible">Virheellinen koodi</span>
+				  </div>
+				 <div class="card-action center">
+					<button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="submitToken()">Kirjaudu</button>
+				</div>
+			</div>
+		</div>
+		
 		<div id="voting-list-area">
 		</div>
 	</div>
 </div>
 
+<script type="text/javascript">
+$(document).ready(function() {
+
+	checkVoterStatus(function(voterStatus) {
+		if (voterStatus[0] === true) {
+			refreshVotingList();	
+		} else {
+			toggleLoginPrompt();
+		}
+	});	
+});
+</script>
 
     <!-- {% if not user.is_authenticated %} -->
 
