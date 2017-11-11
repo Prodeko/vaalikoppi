@@ -14,6 +14,7 @@ from django.core.files import File
 import random
 import os.path
 from django.conf import settings
+from django.db import connection
 
 # Create your views here.
 from django.http import HttpResponse
@@ -22,6 +23,7 @@ from django.http import JsonResponse
 
 def index(request):
     return render(request, 'index.html')
+
 
 def votings(request):
 
@@ -40,21 +42,36 @@ def votings(request):
 def admin_tokens(request):
     return render(request, 'admin-tokens.html')
 
+def admin_votings(request):
+    return render(request, 'admin-votings.html')
 
 #@login_required(login_url='/login/')
-# Ei toiminu ilman tätä, pitäis tutkia
 @csrf_exempt
 def vote(request, voting_id):
-    voting = get_object_or_404(Voting, pk=voting_id)
-    try:
-        selected_candidate = voting.candidate_set.get(pk=request.POST['candidate'])
-    except (KeyError, Candidate.DoesNotExist):
-        # Redisplay the question voting form.
-        return JsonResponse({'message':'candidate does not exist'}, status=400)
+
+    session_var_name = 'cur_token'
+    voting_obj = get_object_or_404(Voting, pk=voting_id)
+    token_obj = Usertoken.objects.get(token = request.session[session_var_name])
+	
+    if request.POST.get('candidate'):
+        candidate = request.POST.get('candidate')
     else:
-        selected_candidate.vote()
-		# Ei jostain syystä toiminu redirect('votings'), pitäis tutkia
-        return JsonResponse({'message':'success'}, status=200)
+        return JsonResponse({'message':'candidate not provided'}, status=400)
+
+    candidate_obj = get_object_or_404(Candidate, pk=candidate)
+    
+    try:
+        mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
+    except (TokenMapping.DoesNotExist):
+        return JsonResponse({'message':'no uuid for token'}, status=403)
+    
+    cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+    if len(cur_votes) >= voting_obj.max_votes:
+         return JsonResponse({'message':'too many votes for this voting'}, status=403)
+		 
+    Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
+	
+    return JsonResponse({'message':'success'}, status=200)
 
 def get_candidates(voting_id):
     return Candidate.objects.get(voting_id)
@@ -148,3 +165,50 @@ def user_login(request):
         return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
     
     return JsonResponse({'message':'invalid token'}, status=403)
+	
+@csrf_exempt
+def open_voting(request, voting_id):
+
+    voting_obj = get_object_or_404(Voting, pk=voting_id)
+
+    if voting_obj.is_open == True or voting_obj.is_ended == True:
+        return JsonResponse({'message':'voting is open or has ended'}, status=403)
+
+    active_tokens = Usertoken.objects.all().filter(activated=True, invalidated=False)
+    
+    for cur_token in active_tokens:
+        TokenMapping(token=cur_token, voting=voting_obj).save()
+    
+    voting_obj.open_voting()
+    return JsonResponse({'message':'voting opened'}, status=200)
+	
+@csrf_exempt
+def close_voting(request, voting_id):
+
+    voting_obj = get_object_or_404(Voting, pk=voting_id)
+
+    if voting_obj.is_open == False or voting_obj.is_ended == True:
+        return JsonResponse({'message':'voting is not open or has ended'}, status=403)
+    
+    for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
+        cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+        if len(cur_votes) > voting_obj.max_votes:
+            return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
+
+    voting_obj.close_voting()
+    TokenMapping.objects.all().filter(voting=voting_obj).delete()
+	
+    return JsonResponse({'message':'voting opened'}, status=200)
+	
+@csrf_exempt
+def admin_voting_list(request):
+
+    closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
+    open_votings = Voting.objects.filter(is_open = True, is_ended = False)
+    ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
+	
+    return render(request, 'admin-voting-list.html', {
+        'closed_votings': closed_votings,
+        'open_votings': open_votings,
+        'ended_votings': ended_votings,
+    })

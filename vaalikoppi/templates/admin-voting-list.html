@@ -1,0 +1,59 @@
+		{% csrf_token %}
+		<!-- Avattu äänestys -->
+        {% if open_votings %}
+			{% for voting in open_votings %}
+	        <div class="card blue-grey lighten-5">
+	          <div class="card-content grey-text center">
+	            <span class="card-title blue-grey-text text-darken-1 bold-font">Auki: {{ voting.voting_name }}</span>
+	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
+				{% csrf_token %}
+	          </div>
+	          <div class="card-action">
+					{% if voting.candidate_set.all %}
+					<div id="voting-form-{{ voting.id }}">
+						<ul>
+						{% for candidate in voting.candidate_set.all %}
+							<li>{{ candidate.candidate_name }}</li>
+						{% endfor %}
+						</ul>
+					</div>
+					{% endif %}
+					<button onclick="closeVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Sulje äänestys</button>
+				</div>
+	        </div>
+				{% endfor %}
+			{% endif %}
+
+      <!-- Avaamaton äänestys -->
+        {% if closed_votings %}
+					{% for voting in closed_votings %}
+	        <div class="card grey lighten-3">
+	          <div class="card-content blue-grey-text text-lighten-1 center">
+	            <span class="card-title blue-grey-text text-lighten-1">Avaamaton: {{ voting.voting_name }}</span>
+	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
+	          </div>
+	          <div class="card-action">
+				{% if voting.candidate_set.all %}
+					{% for candidate in voting.candidate_set.all %}
+		            <a class="disabled blue-grey lighten-1 btn-large candidate">{{ candidate.candidate_name }}</a>
+						{% endfor %}
+					{% endif %}
+					
+					<button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Avaa äänestys</button>
+	          </div>
+	        </div>
+				{% endfor %}
+			{% endif %}
+
+
+        <!-- Päättynyt äänestys -->
+				{% if ended_votings %}
+					{% for voting in ended_votings %}
+	        <div class="card prodeko-blue white-text center">
+	          <div class="card-content">
+	            <p>{{ voting.voting_name }}</p>
+	            <span class="card-title bold-font"></span>
+	          </div>
+	        </div>
+					{% endfor %}
+				{% endif %}

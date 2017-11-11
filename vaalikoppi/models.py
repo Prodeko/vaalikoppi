@@ -8,6 +8,7 @@ import uuid
 class Voting(models.Model):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
+    max_votes = models.IntegerField(default=1)
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
 
@@ -67,8 +68,9 @@ class TokenMapping(models.Model):
 		
 		
 class Vote(models.Model):
-    uuid = models.ForeignKey(TokenMapping, on_delete=models.CASCADE)
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    uuid = models.CharField(max_length=200)
+    candidate = models.ForeignKey(Candidate, on_delete=models.PROTECT)
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
 
     def get_uuid(self):
         return self.uuid

@@ -11,19 +11,16 @@
             <a class="transparent right">
               <i class="large material-icons">close</i>
             </a>
-            <ul>
-              <li class="waves-effect waves-light red" id="deactivate">DEAKTIVOI TUNNUS</li>
-            </ul>
           </div>
         </div>
       </nav>
     </div>
 
-	<div  class="container main-container">
-		
+	<div class="container main-container">
+	
 		<div id="voting-list-updater" class="card blue-grey lighten-5">
 	         <div class="card-action center">
-				<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList()">Päivitä luettelo</button>
+				<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList(true)">Päivitä luettelo</button>
 			</div>
 	    </div>
 		
@@ -37,13 +34,7 @@
 <script type="text/javascript">
 $(document).ready(function() {
 
-	checkVoterStatus(function(voterStatus) {
-		if (voterStatus[0] === true) {
-			refreshVotingList();	
-		} else {
-			toggleLoginPrompt();
-		}
-	});	
+	refreshVotingList(true);
 });
 </script>
 

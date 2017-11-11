@@ -3,7 +3,7 @@
 // Tarvii jQueryn
 
 
-
+SITE_ROOT_PATH = '/vaalikoppi/';
 
 function vote(votingId) {
 	
@@ -22,7 +22,7 @@ function vote(votingId) {
 	
 	form.find('input, button').prop('disabled', true);
 	
-	var query = $.post(votingId + '/vote/',
+	var query = $.post(SITE_ROOT_PATH + 'votings/' + votingId + '/vote/',
 		{ candidate : selectedCandidateId }
 	).done(function(data) {
 	}).fail(function(data) {
@@ -33,24 +33,23 @@ function vote(votingId) {
 	
 }
 
-function refreshVotingList() {
+function refreshVotingList(admin = false) {
 	
 	var votingArea = $('#voting-list-area');
 	
-	var query = $.get('votings/', function(data) {
+	var query = $.get(SITE_ROOT_PATH + (admin ? 'admin/' : '' ) + 'votings/list/', function(data) {
 		votingArea.html(data);
 	})
 	.fail(function() {
 		alert('Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.');
 	});
-	
 }
 
 function generateTokens(count) {
 	
 	$('#generate-tokens-button').prop('disabled', true);
 	
-	var query = $.post('generate/',
+	var query = $.post(SITE_ROOT_PATH + 'generate/',
 		{ count : count }
 	).done(function(data) {
 		alert('Koodien generointi onnistui.');
@@ -71,7 +70,7 @@ function invalidateToken() {
 	
 	$('#invalidate-code-button').prop('disabled', true);
 	
-	var query = $.post('invalidate/',
+	var query = $.post(SITE_ROOT_PATH + 'invalidate/',
 		{ token : token }
 	).done(function(data) {
 		alert('Koodin invalidointi onnistui.');
@@ -85,7 +84,7 @@ function invalidateToken() {
 // Just for the UI. Everything is validated in the back-end...
 function checkVoterStatus(callback) {
 	
-	var query = $.getJSON('user/status/')
+	var query = $.getJSON(SITE_ROOT_PATH + 'user/status/')
 	.done(function(data) {
 		try {
 			// No token/non-active token
@@ -114,7 +113,7 @@ function submitToken() {
 	
 	warning.addClass('invisible');
 	
-	var query = $.post('user/login/',
+	var query = $.post(SITE_ROOT_PATH + 'user/login/',
 		{ token : token }
 	).done(function(data) {
 		toggleLoginPrompt();
@@ -129,4 +128,22 @@ function submitToken() {
 function toggleLoginPrompt() {
 	$('#main-login-prompt').toggle();
 	$('#voting-list-updater, #voting-list-area').fadeToggle();
+}
+
+function closeVoting(votingId) {
+	
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + votingId + '/close/').done(function(data) {
+		refreshVotingList(true);
+	}).fail(function(data) {
+		alert('Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!');
+	});
+}
+
+function openVoting(votingId) {
+	
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + votingId + '/open/').done(function(data) {
+		refreshVotingList(true);
+	}).fail(function(data) {
+		alert('Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!');
+	});
 }
