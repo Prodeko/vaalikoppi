@@ -1,7 +1,11 @@
 from django.contrib import admin
 
-from .models import Voting, Candidate
+from .models import *
 
 
 admin.site.register(Voting)
 admin.site.register(Candidate)
+admin.site.register(Usertoken)
+admin.site.register(TokenMapping)
+admin.site.register(Vote)
+admin.site.register(VotingResult)

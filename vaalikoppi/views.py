@@ -39,7 +39,20 @@ def votings(request):
 
 @login_required
 def admin_tokens(request):
-    return render(request, 'admin-tokens.html')
+
+    all_tokens = Usertoken.objects.all()
+    token_count = all_tokens.count()
+    new_tokens = Usertoken.objects.filter(activated = False, invalidated = False).count()
+    active_tokens = Usertoken.objects.filter(activated = True, invalidated = False).count()
+    invalid_tokens = Usertoken.objects.filter(invalidated = True).count()
+
+    return render(request, 'admin-tokens.html', {
+        'tokens': all_tokens,
+        'token_count': token_count,
+        'new_tokens': new_tokens,
+        'active_tokens': active_tokens,
+        'invalid_tokens': invalid_tokens,
+    })
 
 @login_required
 def admin_votings(request):
@@ -199,7 +212,7 @@ def close_voting(request, voting_id):
     for cur_candidate in Candidate.objects.all().filter(voting = voting_obj):
         cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
         VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
-	
+
     return JsonResponse({'message':'voting closed'}, status=200)
 
 @csrf_exempt
