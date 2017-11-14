@@ -24,7 +24,6 @@ from django.http import JsonResponse
 def index(request):
     return render(request, 'index.html')
 
-
 def votings(request):
 
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
@@ -38,10 +37,11 @@ def votings(request):
         'ended_votings': ended_votings,
     })
 
-
+@login_required
 def admin_tokens(request):
     return render(request, 'admin-tokens.html')
 
+@login_required
 def admin_votings(request):
     return render(request, 'admin-votings.html')
 
@@ -52,25 +52,25 @@ def vote(request, voting_id):
     session_var_name = settings.USER_TOKEN_VAR
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     token_obj = Usertoken.objects.get(token = request.session[session_var_name])
-	
+
     if request.POST.get('candidate'):
         candidate = request.POST.get('candidate')
     else:
         return JsonResponse({'message':'candidate not provided'}, status=400)
 
     candidate_obj = get_object_or_404(Candidate, pk=candidate)
-    
+
     try:
         mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
     except (TokenMapping.DoesNotExist):
         return JsonResponse({'message':'no uuid for token'}, status=403)
-    
+
     cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
     if len(cur_votes) >= voting_obj.max_votes:
          return JsonResponse({'message':'too many votes for this voting'}, status=403)
-		 
+
     Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
-	
+
     return JsonResponse({'message':'success'}, status=200)
 
 def get_candidates(voting_id):
@@ -83,29 +83,31 @@ def results(request, voting_id):
     })
 
 @csrf_exempt
+@login_required
 def generate_tokens(request):
 
     count = 1
-	
+
     if request.POST.get('count'):
         count = int(request.POST.get('count'))
 
     with open(os.path.join(settings.BASE_DIR, 'wordlist.txt')) as f:
-        words = [x.strip() for x in f] 
-    
+        words = [x.strip() for x in f]
+
     random_gen = random.SystemRandom()
     word_count = 4
-	
+
     for i in range(0, count):
 
         separator_int = random_gen.randint(0,9)
         cur_token = str(separator_int).join(random_gen.sample(words, word_count))
         Usertoken(token=cur_token).save()
-    
+
     return JsonResponse({'message':'success'}, status=200)
-	
+
 
 @csrf_exempt
+@login_required
 def invalidate_token(request):
 
     if request.POST.get('token'):
@@ -119,8 +121,8 @@ def invalidate_token(request):
     token_obj.save()
 
     return JsonResponse({'message':'success'}, status=200)
-	
-	
+
+
 @csrf_exempt
 def user_status(request):
 
@@ -133,12 +135,12 @@ def user_status(request):
             token_obj = Usertoken.objects.get(token = cur_token)
         except (Usertoken.DoesNotExist):
             return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-        
+
         return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
 
     else:
         return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-        
+
 @csrf_exempt
 def user_login(request):
 
@@ -150,17 +152,18 @@ def user_login(request):
         return JsonResponse({'message':'token not provided'}, status=400)
 
     token_obj = get_object_or_404(Usertoken, token=token)
-	
+
     if token_obj.invalidated == False:
         token_obj.activated = True
         token_obj.save()
         request.session[session_var_name] = token_obj.token
-		
+
         return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
-    
+
     return JsonResponse({'message':'invalid token'}, status=403)
-	
+
 @csrf_exempt
+@login_required
 def open_voting(request, voting_id):
 
     voting_obj = get_object_or_404(Voting, pk=voting_id)
@@ -169,21 +172,22 @@ def open_voting(request, voting_id):
         return JsonResponse({'message':'voting is open or has ended'}, status=403)
 
     active_tokens = Usertoken.objects.all().filter(activated=True, invalidated=False)
-    
+
     for cur_token in active_tokens:
         TokenMapping(token=cur_token, voting=voting_obj).save()
-    
+
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
-	
+
 @csrf_exempt
+@login_required
 def close_voting(request, voting_id):
 
     voting_obj = get_object_or_404(Voting, pk=voting_id)
 
     if voting_obj.is_open == False or voting_obj.is_ended == True:
         return JsonResponse({'message':'voting is not open or has ended'}, status=403)
-    
+
     for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
         cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
         if len(cur_votes) > voting_obj.max_votes:
@@ -191,23 +195,23 @@ def close_voting(request, voting_id):
 
     voting_obj.close_voting()
     TokenMapping.objects.all().filter(voting=voting_obj).delete()
-	
+
     for cur_candidate in Candidate.objects.all().filter(voting = voting_obj):
         cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
-        VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()        
+        VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 	
     return JsonResponse({'message':'voting closed'}, status=200)
-	
+
 @csrf_exempt
+@login_required
 def admin_voting_list(request):
 
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
     open_votings = Voting.objects.filter(is_open = True, is_ended = False)
     ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
-	
+
     return render(request, 'admin-voting-list.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-	
