@@ -136,3 +136,9 @@ STATIC_ROOT = '/vaalikoppi/static/'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
+
+
+# Login URL -> Go to home page
+
+LOGIN_URL = '/admin/'
+LOGIN_REDIRECT_URL = '/vaalikoppi/admin/'
