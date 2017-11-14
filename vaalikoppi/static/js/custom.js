@@ -49,7 +49,7 @@ function generateTokens(count) {
 	
 	$('#generate-tokens-button').prop('disabled', true);
 	
-	var query = $.post(SITE_ROOT_PATH + 'generate/',
+	var query = $.post(SITE_ROOT_PATH + 'admin/tokens/generate/',
 		{ count : count }
 	).done(function(data) {
 		alert('Koodien generointi onnistui.');
