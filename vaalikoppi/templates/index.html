@@ -9,10 +9,10 @@
           <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
           <div class="fixed-action-btn toolbar" id="deactivate-btn">
             <a class="transparent right">
-              <i class="large material-icons">close</i>
+              <i class="large material-icons">fingerprint</i>
             </a>
             <ul>
-              <li class="waves-effect waves-light red" id="deactivate">DEAKTIVOI TUNNUS</li>
+              <li class="waves-effect waves-light prodeko-blue" id="token">KOODI</li>
             </ul>
           </div>
         </div>
@@ -46,13 +46,5 @@ $(document).ready(function() {
 	});
 });
 </script>
-
-    <!-- {% if not user.is_authenticated %} -->
-
-		<!-- {% endif %} -->
-
-		<!-- {% if user.is_authenticated %} -->
-
-		<!-- {% endif %} -->
 
 {% endblock %}
