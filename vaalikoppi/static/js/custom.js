@@ -9,12 +9,15 @@ function vote(votingId) {
 
 	var form = $('#voting-form-' + votingId);
 	var selectedCandidateId = form.find('input[name=candidate]:checked').val();
+	var candidateId = form.find('input[name=candidate]:checked').attr('id')
+	var candidateName = form.find('label[for=' + candidateId + ']').text()
+	console.log(candidateName)
 
 	if (selectedCandidateId == null) {
 		return;
 	}
 
-	var confirmation = confirm('Haluatko varmasti antaa äänesi?');
+	var confirmation = confirm('Olet äänestämässä ehdokasta: ' + candidateName);
 
 	if (!confirmation) {
 		return;
