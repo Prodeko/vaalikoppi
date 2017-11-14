@@ -77,3 +77,9 @@ class Vote(models.Model):
 
     def get_candidate(self):
         return self.candidate
+
+# Voting results are freezed in this table AFTER the voting has ended.
+class VotingResult(models.Model):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    candidate_name = models.CharField(max_length=50)
+    vote_count = models.IntegerField(default=0)

@@ -49,7 +49,7 @@ def admin_votings(request):
 @csrf_exempt
 def vote(request, voting_id):
 
-    session_var_name = 'cur_token'
+    session_var_name = settings.USER_TOKEN_VAR
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     token_obj = Usertoken.objects.get(token = request.session[session_var_name])
 	
@@ -113,10 +113,7 @@ def invalidate_token(request):
     else:
         return JsonResponse({'message':'token not provided'}, status=400)
 
-    try:
-        token_obj = Usertoken.objects.get(token = token)
-    except (Usertoken.DoesNotExist):
-        return JsonResponse({'message':'token does not exist'}, status=404)
+    token_obj = get_object_or_404(Usertoken, token=token)
 
     token_obj.invalidated = True
     token_obj.save()
@@ -127,7 +124,7 @@ def invalidate_token(request):
 @csrf_exempt
 def user_status(request):
 
-    session_var_name = 'cur_token'
+    session_var_name = settings.USER_TOKEN_VAR
 
     if session_var_name in request.session:
         cur_token = request.session[session_var_name]
@@ -145,18 +142,15 @@ def user_status(request):
 @csrf_exempt
 def user_login(request):
 
-    session_var_name = 'cur_token'
+    session_var_name = settings.USER_TOKEN_VAR
 
     if request.POST.get('token'):
         token = request.POST.get('token')
     else:
         return JsonResponse({'message':'token not provided'}, status=400)
 
-    try:
-        token_obj = Usertoken.objects.get(token = token)
-    except (Usertoken.DoesNotExist):
-        return JsonResponse({'message':'token does not exist'}, status=401)
-
+    token_obj = get_object_or_404(Usertoken, token=token)
+	
     if token_obj.invalidated == False:
         token_obj.activated = True
         token_obj.save()
@@ -198,7 +192,11 @@ def close_voting(request, voting_id):
     voting_obj.close_voting()
     TokenMapping.objects.all().filter(voting=voting_obj).delete()
 	
-    return JsonResponse({'message':'voting opened'}, status=200)
+    for cur_candidate in Candidate.objects.all().filter(voting = voting_obj):
+        cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
+        VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()        
+	
+    return JsonResponse({'message':'voting closed'}, status=200)
 	
 @csrf_exempt
 def admin_voting_list(request):
@@ -212,3 +210,4 @@ def admin_voting_list(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
+	
