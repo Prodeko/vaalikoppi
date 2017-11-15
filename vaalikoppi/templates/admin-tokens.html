@@ -71,8 +71,9 @@
       <table class="highlight bordered" id="searchTable">
         <thead>
           <tr>
+            <th>#</th>
             <th>Koodi</th>
-            <th>Otettu käyttöön</th>
+            <th>Aktivoitu</th>
             <th>Mitätöity</th>
             <th></th>
             <th></th>
@@ -81,6 +82,7 @@
         <tbody>
         {% for usertoken in tokens %}
           <tr>
+            <td>{{ usertoken.pk }}</td>
             <td>{{ usertoken.token }}</td>
             <td>{{ usertoken.activated }}</td>
             <td>{{ usertoken.invalidated }}</td>
