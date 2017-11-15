@@ -16,7 +16,7 @@
       </nav>
     </div>
 
-    <div  class="container main-container">
+    <div class="container main-container">
 
     {% if not tokens %}
     <div class="card blue-grey lighten-5">
@@ -38,8 +38,8 @@
       <table class="highlight bordered">
         <thead>
           <tr>
-              <th>Token type</th>
-              <th>Token count</th>
+              <th>Koodin tila</th>
+              <th>Lukumäärä</th>
           </tr>
         </thead>
         <tbody>
@@ -111,20 +111,6 @@
       </div>
     </div>
     {% endif %}
-
-
-
-		<div class="card blue-grey lighten-5">
-			<div class="card-content blue-grey-text text-lighten-1 center">
-	       <span class="card-title blue-grey-text text-lighten-1">Invalidoi koodi</span>
-         <input type="text" id="invalidate-token-field" size="50">
-	    </div>
-	    <div class="card-action center">
-				<button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text red candidate bold-font" onclick="invalidateToken()">Invalidoi</button>
-			</div>
-	  </div>
-	</div>
-</div>
 
 
     <!-- {% if not user.is_authenticated %} -->

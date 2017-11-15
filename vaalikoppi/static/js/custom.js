@@ -56,6 +56,7 @@ function generateTokens(count) {
 		{ count : count }
 	).done(function(data) {
 		alert('Koodien generointi onnistui.');
+		location.reload();
 	}).fail(function(data) {
 		alert('Koodien generointi epäonnistui.');
 	});
@@ -79,7 +80,7 @@ function invalidateToken(code, number) {
 			{ token : token }
 		).done(function(data) {
 			alert('Koodin invalidointi onnistui.');
-			location.reload()
+			location.reload();
 		}).fail(function(data) {
 			alert('Koodin invalidointi epäonnistui. Tarkista koodi.');
 		});
@@ -106,7 +107,7 @@ function activateToken(code, number) {
 			{ token : token }
 		).done(function(data) {
 			alert('Koodin aktivointi onnistui.');
-			location.reload()
+			location.reload();
 		}).fail(function(data) {
 			alert('Koodin aktivointi epäonnistui. Tarkista koodi.');
 		});

@@ -56,7 +56,7 @@ def admin_tokens(request):
 def admin_votings(request):
     return render(request, 'admin-votings.html')
 
-#@login_required(login_url='/login/')
+@login_required
 @csrf_exempt
 def vote(request, voting_id):
 
@@ -83,6 +83,17 @@ def vote(request, voting_id):
     Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
 
     return JsonResponse({'message':'success'}, status=200)
+
+@csrf_exempt
+@login_required
+def voting_results(request):
+
+    votings = VotingResult.objects.all()
+
+    return render(request, 'voting_results.html', {
+        'votings': votings,
+    })
+
 
 def get_candidates(voting_id):
     return Candidate.objects.get(voting_id)

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+
+<div class="bg">
+  <div class="navbar-fixed" id="top">
+    <nav>
+      <div class="nav-wrapper prodeko-blue">
+        <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
+        <div class="fixed-action-btn toolbar" id="deactivate-btn">
+          <a class="transparent right">
+            <i class="large material-icons">fingerprint</i>
+          </a>
+          <ul>
+            <li class="waves-effect waves-light prodeko-blue" id="token_div"></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+  <div class="container main-container">
+    <div class="card blue-grey lighten-5">
+      {% if votings %}
+      <table class="highlight bordered">
+        <thead>
+          <tr>
+              <th>Äänestys</th>
+              <th>Ehdokas</th>
+              <th>Äänimäärä</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in votings %}
+          <tr>
+            <td>{{ result.voting }}</td>
+            <td>{{ result.candidate_name }}</td>
+            <td>{{ result.vote_count }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <span>Ei valmistuneita äänestyksiä.</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
