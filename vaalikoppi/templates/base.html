@@ -28,12 +28,11 @@
 	<nav>
 		<div class="nav-wrapper">
 			<ul id="nav-mobile" class="right hide-on-med-and-down">
-				<ul class="drowdown-menu">
-			  	<li><a href="{% url 'admin:index' %}" target="_blank">Django Admin</a></li>
-					<li><a href="{% url 'vaalikoppi:admin_votings' %}">Äänestykset</a></li>
-					<li><a href="{% url 'vaalikoppi:admin_voting_results' %}">Tulokset</a></li>
-			  	<li><a href="{% url 'vaalikoppi:admin_tokens' %}">Koodit</a></li>
-				</ul>
+				<li><a href="{% url 'vaalikoppi:index' %}" target="_blank">Etusivu</a></li>
+		  	<li><a href="{% url 'admin:index' %}" target="_blank">Django Admin</a></li>
+				<li><a href="{% url 'vaalikoppi:admin_votings' %}">Äänestykset</a></li>
+				<li><a href="{% url 'vaalikoppi:admin_voting_results' %}">Tulokset</a></li>
+		  	<li><a href="{% url 'vaalikoppi:admin_tokens' %}">Koodit</a></li>
 			</ul>
 		</div>
 	</nav>
