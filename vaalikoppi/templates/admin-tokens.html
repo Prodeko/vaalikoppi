@@ -35,44 +35,52 @@
 
     {% if tokens %}
     <div class="card blue-grey lighten-5">
-      <table class="highlight bordered">
-        <thead>
-          <tr>
-              <th>Koodin tila</th>
-              <th>Lukumäärä</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Kaikki koodit</td>
-            <td>{{ tokens|length }}</td>
-          </tr>
-          <tr>
-            <td>Aktivoimattomat koodit</td>
-            <td>{{ new_tokens }}</td>
-          </tr>
-          <tr>
-            <td>Aktiiviset koodit</td>
-            <td>{{ active_tokens }}</td>
-          </tr>
-          <tr>
-            <td>Mitätöidyt koodit</td>
-            <td>{{ invalid_tokens }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="card-content text-lighten-1">
+        <table class="highlight bordered">
+          <thead>
+            <tr>
+                <th>Koodin tila</th>
+                <th>Lukumäärä</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Kaikki koodit</td>
+              <td>{{ tokens|length }}</td>
+            </tr>
+            <tr>
+              <td>Aktivoimattomat koodit</td>
+              <td>{{ new_tokens }}</td>
+            </tr>
+            <tr>
+              <td>Aktiiviset koodit</td>
+              <td>{{ active_tokens }}</td>
+            </tr>
+            <tr>
+              <td>Mitätöidyt koodit</td>
+              <td>{{ invalid_tokens }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card blue-grey lighten-5">
       <div class="card-content blue-grey-text text-lighten-1">
-        <span class="card-title blue-grey-text text-lighten-1">Koodit</span>
-        <input type="text" id="searchInput" onkeyup="searchFunction()" placeholder="Etsi koodia..">
+        <span class="card-title center blue-grey-text text-lighten-1">Hallitse koodeja</span>
+        <div class="card-content">
+          <input type="text" id="searchInput"
+            onkeyup="searchFunction()" placeholder="Etsi koodia.."
+            style="box-sizing:border-box">
+        </div>
       </div>
+
+      <div class="card-content text-lighten-1">
       <table class="highlight bordered" id="searchTable">
         <thead>
           <tr>
-            <th>#</th>
             <th>Koodi</th>
+            <th>#</th>
             <th>Aktivoitu</th>
             <th>Mitätöity</th>
             <th></th>
@@ -82,8 +90,8 @@
         <tbody>
         {% for usertoken in tokens %}
           <tr>
-            <td>{{ usertoken.pk }}</td>
             <td>{{ usertoken.token }}</td>
+            <td>{{ usertoken.pk }}</td>
             <td>{{ usertoken.activated }}</td>
             <td>{{ usertoken.invalidated }}</td>
             <td>
@@ -111,6 +119,7 @@
         </tbody>
       </table>
       </div>
+    </div>
     </div>
     {% endif %}
 
