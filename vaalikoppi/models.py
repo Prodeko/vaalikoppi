@@ -35,7 +35,7 @@ class Candidate(models.Model):
     def __str__(self):
         return self.candidate_name
 
-		
+
 class Usertoken(models.Model):
     token = models.CharField(max_length=50, unique=True)
     created = models.DateTimeField(auto_now=False, auto_now_add=True)
@@ -50,8 +50,8 @@ class Usertoken(models.Model):
 
     def __str__(self):
         return self.token
-		
-		
+
+
 class TokenMapping(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
@@ -59,14 +59,14 @@ class TokenMapping(models.Model):
 
     def get_uuid(self):
         return self.uuid
-		
+
     def get_token(self):
         return self.token
 
     def __str__(self):
         return self.uuid
-		
-		
+
+
 class Vote(models.Model):
     uuid = models.CharField(max_length=200)
     candidate = models.ForeignKey(Candidate, on_delete=models.PROTECT)

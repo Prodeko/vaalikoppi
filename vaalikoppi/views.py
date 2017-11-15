@@ -41,14 +41,12 @@ def votings(request):
 def admin_tokens(request):
 
     all_tokens = Usertoken.objects.all()
-    token_count = all_tokens.count()
     new_tokens = Usertoken.objects.filter(activated = False, invalidated = False).count()
     active_tokens = Usertoken.objects.filter(activated = True, invalidated = False).count()
     invalid_tokens = Usertoken.objects.filter(invalidated = True).count()
 
     return render(request, 'admin-tokens.html', {
         'tokens': all_tokens,
-        'token_count': token_count,
         'new_tokens': new_tokens,
         'active_tokens': active_tokens,
         'invalid_tokens': invalid_tokens,
@@ -131,6 +129,22 @@ def invalidate_token(request):
     token_obj = get_object_or_404(Usertoken, token=token)
 
     token_obj.invalidated = True
+    token_obj.save()
+
+    return JsonResponse({'message':'success'}, status=200)
+
+@csrf_exempt
+@login_required
+def activate_token(request):
+
+    if request.POST.get('token'):
+        token = request.POST.get('token')
+    else:
+        return JsonResponse({'message':'token not provided'}, status=400)
+
+    token_obj = get_object_or_404(Usertoken, token=token)
+
+    token_obj.activated = True
     token_obj.save()
 
     return JsonResponse({'message':'success'}, status=200)

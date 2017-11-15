@@ -25,13 +25,16 @@
   <body>
 
 	{% if user.is_superuser %}
-	<nav class="navbar">
-	<ul class="nav navbar-nav navbar-right">
-		<ul class="drowdown-menu">
-	  	<li><a href="{% url 'admin:index' %}" target="_blank">Django Admin</a></li>
-			<li><a href="{% url 'vaalikoppi:admin_votings' %}">Äänestykset</a></li>
-	  	<li><a href="{% url 'vaalikoppi:admin_tokens' %}">Tokenit</a></li>
-		</ul>
+	<nav>
+		<div class="nav-wrapper">
+			<ul id="nav-mobile" class="right hide-on-med-and-down">
+				<ul class="drowdown-menu">
+			  	<li><a href="{% url 'admin:index' %}" target="_blank">Django Admin</a></li>
+					<li><a href="{% url 'vaalikoppi:admin_votings' %}">Äänestykset</a></li>
+			  	<li><a href="{% url 'vaalikoppi:admin_tokens' %}">Koodit</a></li>
+				</ul>
+			</ul>
+		</div>
 	</nav>
 	{% endif %}
 

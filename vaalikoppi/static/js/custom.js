@@ -63,25 +63,58 @@ function generateTokens(count) {
 	$('#generate-tokens-button').prop('disabled', false);
 }
 
-function invalidateToken() {
+function invalidateToken(code, number) {
 
-	var token = $('#invalidate-token-field').val();
+	if (confirm('Haluatko varmasti mitätöidä koodin ' + code +'? Tehtyä mitätöintiä ei voi peruuttaa.')) {
 
-	if (token.length < 1) {
-		return;
+		var token = code;
+
+		if (token.length < 1) {
+			return;
+		}
+
+		$('#invalidate-token-button-'+number).prop('disabled', true);
+
+		var query = $.post(SITE_ROOT_PATH + 'admin/tokens/invalidate/',
+			{ token : token }
+		).done(function(data) {
+			alert('Koodin invalidointi onnistui.');
+			location.reload()
+		}).fail(function(data) {
+			alert('Koodin invalidointi epäonnistui. Tarkista koodi.');
+		});
+
+		$('#invalidate-token-button-'+number).prop('disabled', false);
+
+	} else {
+			return;
 	}
+}
 
-	$('#invalidate-code-button').prop('disabled', true);
+function activateToken(code, number) {
 
-	var query = $.post(SITE_ROOT_PATH + 'invalidate/',
-		{ token : token }
-	).done(function(data) {
-		alert('Koodin invalidointi onnistui.');
-	}).fail(function(data) {
-		alert('Koodin invalidointi epäonnistui. Tarkista koodi.');
-	});
+	if (confirm('Haluatko varmasti aktivoida koodin ' + code +'?')) {
+		var token = code;
 
-	$('#invalidate-token-button').prop('disabled', false);
+		if (token.length < 1) {
+			return;
+		}
+
+		$('#activate-token-button-'+number).prop('disabled', true);
+
+		var query = $.post(SITE_ROOT_PATH + 'admin/tokens/activate/',
+			{ token : token }
+		).done(function(data) {
+			alert('Koodin aktivointi onnistui.');
+			location.reload()
+		}).fail(function(data) {
+			alert('Koodin aktivointi epäonnistui. Tarkista koodi.');
+		});
+
+		$('#activate-token-button-'+number).prop('disabled', false);
+	} else {
+			return;
+	}
 }
 
 // Just for the UI. Everything is validated in the back-end...
@@ -150,4 +183,27 @@ function openVoting(votingId) {
 	}).fail(function(data) {
 		alert('Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!');
 	});
+}
+
+// Hakutaulukon funktioi
+
+function searchFunction() {
+  // Declare variables
+  var input, filter, table, tr, td, i;
+  input = document.getElementById("searchInput");
+  filter = input.value.toUpperCase();
+  table = document.getElementById("searchTable");
+  tr = table.getElementsByTagName("tr");
+
+  // Loop through all table rows, and hide those who don't match the search query
+  for (i = 0; i < tr.length; i++) {
+    td = tr[i].getElementsByTagName("td")[0];
+    if (td) {
+      if (td.innerHTML.toUpperCase().indexOf(filter) > -1) {
+        tr[i].style.display = "";
+      } else {
+        tr[i].style.display = "none";
+      }
+    }
+  }
 }

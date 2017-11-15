@@ -16,7 +16,16 @@
       </nav>
     </div>
 
-	<div  class="container main-container">
+    <div  class="container main-container">
+
+    {% if not tokens %}
+    <div class="card blue-grey lighten-5">
+      <div class="card-content blue-grey-text text-lighten-1 center">
+        <span class="card-title blue-grey-text text-lighten-1">Luo ensin koodit.</span>
+      </div>
+    </div>
+    {% endif %}
+
 		{% csrf_token %}
 		<div class="card blue-grey lighten-5">
 	     <div class="card-action center">
@@ -24,7 +33,7 @@
 			 </div>
 	  </div>
 
-    {% if token_count > 0 %}
+    {% if tokens %}
     <div class="card blue-grey lighten-5">
       <table class="highlight bordered">
         <thead>
@@ -35,25 +44,75 @@
         </thead>
         <tbody>
           <tr>
-            <td>All tokens</td>
-            <td>{{ token_count }}</td>
+            <td>Kaikki koodit</td>
+            <td>{{ tokens|length }}</td>
           </tr>
           <tr>
-            <td>Unused tokens</td>
+            <td>Aktivoimattomat koodit</td>
             <td>{{ new_tokens }}</td>
           </tr>
           <tr>
-            <td>Active tokens</td>
+            <td>Aktiiviset koodit</td>
             <td>{{ active_tokens }}</td>
           </tr>
           <tr>
-            <td>Invalidated tokens</td>
+            <td>Mitätöidyt koodit</td>
             <td>{{ invalid_tokens }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <div class="card blue-grey lighten-5">
+      <div class="card-content blue-grey-text text-lighten-1">
+        <span class="card-title blue-grey-text text-lighten-1">Koodit</span>
+        <input type="text" id="searchInput" onkeyup="searchFunction()" placeholder="Etsi koodia..">
+      </div>
+      <table class="highlight bordered" id="searchTable">
+        <thead>
+          <tr>
+            <th>Koodi</th>
+            <th>Otettu käyttöön</th>
+            <th>Mitätöity</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for usertoken in tokens %}
+          <tr>
+            <td>{{ usertoken.token }}</td>
+            <td>{{ usertoken.activated }}</td>
+            <td>{{ usertoken.invalidated }}</td>
+            <td>
+              {% if not usertoken.activated %}
+              <button id="activate-token-button-{{ forloop.counter }}"
+              class="btn waves-effect waves-light darken-1 white-text green candidate bold-font"
+              onclick="activateToken('{{ usertoken.token }}',{{ forloop.counter }})">
+              Aktivoi
+              </button>
+              {% else %}
+              <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Aktivoitu</button>
+              {% endif %}
+            </td>
+            <td>
+              {% if not usertoken.invalidated %}
+              <button id="invalidate-token-button-{{ forloop.counter }}"
+              class="btn waves-effect waves-light darken-1 white-text red candidate bold-font"
+              onclick="invalidateToken('{{ usertoken.token }}',{{ forloop.counter }})">Mitätöi</button>
+              {% else %}
+              <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Ei käytössä</button>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    </div>
     {% endif %}
+
+
 
 		<div class="card blue-grey lighten-5">
 			<div class="card-content blue-grey-text text-lighten-1 center">
