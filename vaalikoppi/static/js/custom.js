@@ -119,23 +119,19 @@ function activateToken(code, number) {
 
 // Just for the UI. Everything is validated in the back-end...
 function checkVoterStatus(callback) {
-
 	var query = $.getJSON(SITE_ROOT_PATH + 'user/status/')
 	.done(function(data) {
 		try {
 			// No token/non-active token
 			if (data.status === 0) {
-				callback([ false, '' ]);
+				callback(false);
 			} else if (data.status === 1) {
-				if (data.activated === true && data.invalidated === false) {
-					$('#token_div').html(data.token);
-					callback([ true, data.token ]);
-				} else {
-					callback([ false, data.token ]);
-				}
-			} else throw new Exception();
+				callback(true)
+			} else {
+				throw new Exception();
+			} 
 		} catch (err) {
-			callback([ false, '' ]);
+			callback(false);
 		}
 	})
 	.fail(function() {

@@ -81,45 +81,6 @@ def votings(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-
-@csrf_exempt
-def user_status(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if session_var_name in request.session:
-        cur_token = request.session[session_var_name]
-
-        try:
-            token_obj = Usertoken.objects.get(token = cur_token)
-        except (Usertoken.DoesNotExist):
-            return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-        return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
-
-    else:
-        return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-@csrf_exempt
-def user_login(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if request.POST.get('token'):
-        token = request.POST.get('token')
-    else:
-        return JsonResponse({'message':'token not provided'}, status=400)
-
-    token_obj = get_object_or_404(Usertoken, token=token)
-
-    if token_obj.invalidated == False:
-        token_obj.activated = True
-        token_obj.save()
-        request.session[session_var_name] = token_obj.token
-
-        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
-
-    return JsonResponse({'message':'invalid token'}, status=403)
     
 @csrf_exempt
 def vote(request, voting_id):
@@ -158,16 +119,36 @@ def voting_results(request):
 
     return render(request, 'voting_results.html', {
         'votings': votings,
-    })
-
-
-def get_candidates(voting_id):
+    })    
     
-    if (is_valid_token(request) == False):
-        return JsonRespose('message', 'Could not return candidates due to non-eligible token.', status = 401)
-        
-    return Candidate.objects.get(voting_id)
+@csrf_exempt
+def user_status(request):
 
+    if (is_valid_token(request) == True):
+        return JsonResponse({'status' : 1, 'message':'Token is active and valid.'}, status = 200)
+        
+    return JsonResponse({'status' : 0, 'message': 'Token does not exist, is not active or has been invalidated.'}, status = 200)
+
+@csrf_exempt
+def user_login(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+
+    if request.POST.get('token'):
+        token = request.POST.get('token')
+    else:
+        return JsonResponse({'message':'token not provided'}, status=400)
+
+    token_obj = get_object_or_404(Usertoken, token=token)
+
+    if token_obj.invalidated == False:
+        token_obj.activated = True
+        token_obj.save()
+        request.session[session_var_name] = token_obj.token
+
+        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
+
+    return JsonResponse({'message':'invalid token'}, status=403)
     
 @login_required
 def admin_tokens(request):
@@ -243,47 +224,6 @@ def activate_token(request):
     token_obj.save()
 
     return JsonResponse({'message':'success'}, status=200)
-
-
-@csrf_exempt
-def user_status(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if session_var_name in request.session:
-        cur_token = request.session[session_var_name]
-
-        try:
-            token_obj = Usertoken.objects.get(token = cur_token)
-        except (Usertoken.DoesNotExist):
-            return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-        return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
-
-    else:
-        return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-@csrf_exempt
-def user_login(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if request.POST.get('token'):
-        token = request.POST.get('token')
-    else:
-        return JsonResponse({'message':'token not provided'}, status=400)
-
-    token_obj = get_object_or_404(Usertoken, token=token)
-
-    if token_obj.invalidated == False:
-        token_obj.activated = True
-        token_obj.save()
-        request.session[session_var_name] = token_obj.token
-
-        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
-
-    return JsonResponse({'message':'invalid token'}, status=403)
-
 
 @csrf_exempt
 @login_required

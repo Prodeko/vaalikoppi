@@ -36,9 +36,8 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-
 	checkVoterStatus(function(voterStatus) {
-		if (voterStatus[0] === true) {
+		if (voterStatus === true) {
 			refreshVotingList();
 		} else {
 			toggleLoginPrompt();
