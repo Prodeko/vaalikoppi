@@ -11,7 +11,6 @@ function vote(votingId) {
 	var selectedCandidateId = form.find('input[name=candidate]:checked').val();
 	var candidateId = form.find('input[name=candidate]:checked').attr('id')
 	var candidateName = form.find('label[for=' + candidateId + ']').text()
-	console.log(candidateName)
 
 	if (selectedCandidateId == null) {
 		return;

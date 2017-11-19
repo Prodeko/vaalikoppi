@@ -243,7 +243,69 @@ def activate_token(request):
     token_obj.save()
 
     return JsonResponse({'message':'success'}, status=200)
-    
+
+
+@csrf_exempt
+def user_status(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+
+    if session_var_name in request.session:
+        cur_token = request.session[session_var_name]
+
+        try:
+            token_obj = Usertoken.objects.get(token = cur_token)
+        except (Usertoken.DoesNotExist):
+            return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
+
+        return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
+
+    else:
+        return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
+
+@csrf_exempt
+def user_login(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+
+    if request.POST.get('token'):
+        token = request.POST.get('token')
+    else:
+        return JsonResponse({'message':'token not provided'}, status=400)
+
+    token_obj = get_object_or_404(Usertoken, token=token)
+
+    if token_obj.invalidated == False:
+        token_obj.activated = True
+        token_obj.save()
+        request.session[session_var_name] = token_obj.token
+
+        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
+
+    return JsonResponse({'message':'invalid token'}, status=403)
+
+
+@csrf_exempt
+@login_required
+def create_voting(request):
+    voting_name = request.POST.get('voting_name')
+    voting_description = request.POST.get('voting_description')
+    max_votes = request.POST.get('max_votes')
+    voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
+    voting_obj.save()
+    return render(request, 'admin-voting-list.html', {
+    'new_voting': voting_obj
+    })
+
+@csrf_exempt
+@login_required
+def add_candidate(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    candidate_name = request.POST.get('candidate_name')
+    candidate = Candidate(voting=voting, candidate_name=candidate_name)
+    candidate.save()
+    return render(request, 'admin-voting-list', {})
+
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):
@@ -258,6 +320,7 @@ def open_voting(request, voting_id):
     for cur_token in active_tokens:
         TokenMapping(token=cur_token, voting=voting_obj).save()
 
+    voting_obj.uneditable()
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
 
