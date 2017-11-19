@@ -200,6 +200,28 @@ def user_login(request):
 
     return JsonResponse({'message':'invalid token'}, status=403)
 
+
+@csrf_exempt
+@login_required
+def create_voting(request):
+    voting_name = request.POST.get('voting_name')
+    voting_description = request.POST.get('voting_description')
+    max_votes = request.POST.get('max_votes')
+    voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
+    voting_obj.save()
+    return render(request, 'admin-voting-list.html', {
+    'new_voting': voting_obj
+    })
+
+@csrf_exempt
+@login_required
+def add_candidate(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    candidate_name = request.POST.get('candidate_name')
+    candidate = Candidate(voting=voting, candidate_name=candidate_name)
+    candidate.save()
+    return render(request, 'admin-voting-list', {})
+
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):
@@ -214,6 +236,7 @@ def open_voting(request, voting_id):
     for cur_token in active_tokens:
         TokenMapping(token=cur_token, voting=voting_obj).save()
 
+    voting_obj.uneditable()
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
 
