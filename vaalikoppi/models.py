@@ -11,7 +11,6 @@ class Voting(models.Model):
     max_votes = models.IntegerField(default=1)
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
-    editable = models.BooleanField(default=True)
 
     def uneditable(self):
         self.editable = False
@@ -36,6 +35,7 @@ class Voting(models.Model):
 class Candidate(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
+    empty_candidate = models.BooleanField(default=False)
 
     def __str__(self):
         return self.candidate_name

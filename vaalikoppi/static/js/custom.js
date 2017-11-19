@@ -8,15 +8,27 @@ SITE_ROOT_PATH = '/vaalikoppi/';
 function vote(votingId) {
 
 	var form = $('#voting-form-' + votingId);
-	var selectedCandidateId = form.find('input[name=candidate]:checked').val();
-	var candidateId = form.find('input[name=candidate]:checked').attr('id')
-	var candidateName = form.find('label[for=' + candidateId + ']').text()
-
-	if (selectedCandidateId == null) {
+	var maxVotes;
+	var chosenCandidates = [];
+	
+	try {
+		maxVotes = parseInt(form.attr('data-voting-max-votes'));
+	} catch (err) {
+		alert('Äänestyksen tiedot eivät ole latautuneet oikein. Päivitä sivu.');
 		return;
 	}
 
-	var confirmation = confirm('Olet äänestämässä ehdokasta: ' + candidateName);
+	form.find('input[name=candidate]:checked').each(function() {
+		var curId = $(this).attr('value');
+		var curName = form.find('label[for=candidate-v-' + votingId + '-' + curId + ']').text();
+		chosenCandidates.push({'id' : curId, 'name' : curName});
+	});
+
+	var confirmation = confirm('Olet äänestämässä ' + (chosenCandidates.length > 1 ? 'ehdokkaita:\n' : 'ehdokasta:\n' ) + 
+	chosenCandidates.map(function(candi) {
+		return candi.name;
+	})
+	.join(', '));
 
 	if (!confirmation) {
 		return;
@@ -25,13 +37,17 @@ function vote(votingId) {
 	form.find('input, button').prop('disabled', true);
 
 	var query = $.post(SITE_ROOT_PATH + 'votings/' + votingId + '/vote/',
-		{ candidate : selectedCandidateId }
+		{ 
+			candidates : chosenCandidates.map(function(candi) {
+				return candi.id;
+			})
+		}
 	).done(function(data) {
+		$('#voting-list-area').html(data);
 	}).fail(function(data) {
 		alert('Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!');
+		refreshVotingList();
 	});
-
-	refreshVotingList();
 
 }
 
@@ -45,6 +61,17 @@ function refreshVotingList(admin = false) {
 	.fail(function() {
 		alert('Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.');
 	});
+}
+
+function checkboxClick(votingId, candidateId) {
+	
+	var form = $('#voting-form-' + votingId);
+	var maxVotes = parseInt(form.attr('data-voting-max-votes'));
+	
+	if (form.find('input[type=checkbox]:checked').length > maxVotes) {
+		form.find('#candidate-v-' + votingId + '-'+ candidateId).prop('checked', false);
+	}
+	
 }
 
 function generateTokens(count) {

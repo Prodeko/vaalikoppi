@@ -1,28 +1,29 @@
 		<!-- Avattu äänestys -->
         {% if open_votings %}
 					{% for voting in open_votings %}
-	        <div class="card blue-grey lighten-5">
-	          <div class="card-content grey-text center">
-	            <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>
-	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
-	          </div>
-	          <div class="card-action">
-							{% if voting.candidate_set.all %}
-							<div id="voting-form-{{ voting.id }}">
-								{% csrf_token %}
-		            {% for candidate in voting.candidate_set.all %}
-		            <input type="radio" name="candidate" style="visibility:visible" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}"/>
-								<label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</label><br>
-								{% endfor %}
-								<button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Äänestä</button>
-							</div>
-							{% endif %}
+				<div class="card blue-grey lighten-5">
+					<div class="card-content grey-text center">
+						<span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>
+						{% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
+						<p>Ääniä käytettävissä {{ voting.max_votes }} kpl.</p>
+					</div>
+				<div class="card-action">
+					{% if voting.candidate_set.all %}
+					<div id="voting-form-{{ voting.id }}" class="voting-form" data-voting-max-votes="{{ voting.max_votes }}">
+						{% csrf_token %}
+						{% for candidate in voting.candidate_set.all %}
+						<input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="checkboxClick({{ voting.id }}, {{ candidate.id }})">
+						<label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large candidate hoverable">{{ candidate.candidate_name }}</label><br>
+						{% endfor %}
+						<button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Äänestä</button>
+					</div>
+					{% endif %}
 				</div>
 	        </div>
 					{% endfor %}
 				{% endif %}
 
-      <!-- Avaamaton äänestys -->
+      <!-- Avaamaton tai äänestetty äänestys -->
         {% if closed_votings %}
 					{% for voting in closed_votings %}
 	        <div class="card grey lighten-3">
