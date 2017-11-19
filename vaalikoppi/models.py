@@ -11,11 +11,6 @@ class Voting(models.Model):
     max_votes = models.IntegerField(default=1)
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
-    editable = models.BooleanField(default=True)
-
-    def uneditable(self):
-        self.editable = False
-        self.save()
 
     def open_voting(self):
         self.is_open = True
