@@ -48,8 +48,10 @@
 					{% for voting in ended_votings %}
 	        <div class="card prodeko-blue white-text center">
 	          <div class="card-content">
-	            <p>{{ voting.voting_name }}</p>
-	            <span class="card-title bold-font">{{ voting.result }}</span>
+	            <span class="card-title bold-font">{{ voting.voting_name }}</span><hr>
+              {% for result in voting.votingresult_set.all %}
+	            <p><div class="results" style="width:80%;"><span class="bold-font">{{ result.candidate_name }}</span></div><div class="results" style="widht:19%;">{{ result.vote_count }}</div></p>
+              {% endfor %}
 	          </div>
 	        </div>
 					{% endfor %}

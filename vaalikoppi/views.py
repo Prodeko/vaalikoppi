@@ -27,40 +27,40 @@ def get_token_obj(request):
 
     if session_var_name in request.session:
         cur_token = request.session[session_var_name]
-        
+
         try:
             token_obj = Usertoken.objects.get(token = cur_token)
             return token_obj
         except (Usertoken.DoesNotExist):
             return None
-        
+
     return None
-    
+
 def is_valid_token(request):
-    
+
     token_obj = get_token_obj(request)
 
     if (token_obj is not None and token_obj.activated == True and token_obj.invalidated == False):
         return True
 
     return False
-    
+
 def is_eligible_to_vote(request, voting_obj):
 
     if (is_valid_token(request)):
         token_obj = get_token_obj(request)
-        
+
         try:
             mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
         except (TokenMapping.DoesNotExist, TokenMapping.MultipleObjectsReturned):
             return False
         else:
             cur_votes = Vote.objects.filter(uuid=mapping.uuid, voting=voting_obj)
-        
+
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
             if (len(cur_votes) == 0):
                  return True
-    
+
     return False
 
 def index(request):
@@ -86,7 +86,7 @@ def votings(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-    
+
 @csrf_exempt
 def vote(request, voting_id):
 
@@ -149,14 +149,14 @@ def voting_results(request):
 
     return render(request, 'voting_results.html', {
         'votings': votings,
-    })    
-    
+    })
+
 @csrf_exempt
 def user_status(request):
 
     if (is_valid_token(request) == True):
         return JsonResponse({'status' : 1, 'message':'Token is active and valid.'}, status = 200)
-        
+
     return JsonResponse({'status' : 0, 'message': 'Token does not exist, is not active or has been invalidated.'}, status = 200)
 
 @csrf_exempt
@@ -179,7 +179,7 @@ def user_login(request):
         return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
 
     return JsonResponse({'message':'invalid token'}, status=403)
-    
+
 @login_required
 def admin_tokens(request):
 

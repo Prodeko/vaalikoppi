@@ -123,6 +123,12 @@ input {
 	color: red;
 }
 
+.results {
+  display: inline-block;
+  padding: 0;
+  text-align: left;
+}
+
 /* === Searchable table === */
 
 #searchInput {
