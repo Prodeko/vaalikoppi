@@ -21,10 +21,55 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 
 
+def get_token_obj(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+
+    if session_var_name in request.session:
+        cur_token = request.session[session_var_name]
+        
+        try:
+            token_obj = Usertoken.objects.get(token = cur_token)
+            return token_obj
+        except (Usertoken.DoesNotExist):
+            return None
+        
+    return None
+    
+def is_valid_token(request):
+    
+    token_obj = get_token_obj(request)
+
+    if (token_obj is not None and token_obj.activated == True and token_obj.invalidated == False):
+        return True
+
+    return False
+    
+def is_eligible_to_vote(request, voting_obj):
+
+    if (is_valid_token(request)):
+        token_obj = get_token_obj(request)
+        
+        try:
+            mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
+        except (TokenMapping.DoesNotExist, TokenMapping.MultipleObjectsReturned):
+            return False
+        else:
+            cur_votes = Vote.objects.filter(uuid=mapping.uuid, voting=voting_obj)
+        
+            # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
+            if (len(cur_votes) == 0):
+                 return True
+    
+    return False
+
 def index(request):
     return render(request, 'index.html')
 
 def votings(request):
+
+    if (is_valid_token(request) == False):
+        return JsonRespose('message', 'Could not return voting list due to non-eligible token.', status = 401)
 
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
     open_votings = Voting.objects.filter(is_open = True, is_ended = False)
@@ -37,26 +82,45 @@ def votings(request):
         'ended_votings': ended_votings,
     })
 
-@login_required
-def admin_tokens(request):
+@csrf_exempt
+def user_status(request):
 
-    all_tokens = Usertoken.objects.all()
-    new_tokens = Usertoken.objects.filter(activated = False, invalidated = False).count()
-    active_tokens = Usertoken.objects.filter(activated = True, invalidated = False).count()
-    invalid_tokens = Usertoken.objects.filter(invalidated = True).count()
+    session_var_name = settings.USER_TOKEN_VAR
 
-    return render(request, 'admin-tokens.html', {
-        'tokens': all_tokens,
-        'new_tokens': new_tokens,
-        'active_tokens': active_tokens,
-        'invalid_tokens': invalid_tokens,
-    })
+    if session_var_name in request.session:
+        cur_token = request.session[session_var_name]
 
-@login_required
-def admin_votings(request):
-    return render(request, 'admin-votings.html')
+        try:
+            token_obj = Usertoken.objects.get(token = cur_token)
+        except (Usertoken.DoesNotExist):
+            return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
 
-@login_required
+        return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
+
+    else:
+        return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
+
+@csrf_exempt
+def user_login(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+
+    if request.POST.get('token'):
+        token = request.POST.get('token')
+    else:
+        return JsonResponse({'message':'token not provided'}, status=400)
+
+    token_obj = get_object_or_404(Usertoken, token=token)
+
+    if token_obj.invalidated == False:
+        token_obj.activated = True
+        token_obj.save()
+        request.session[session_var_name] = token_obj.token
+
+        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
+
+    return JsonResponse({'message':'invalid token'}, status=403)
+    
 @csrf_exempt
 def vote(request, voting_id):
 
@@ -85,8 +149,10 @@ def vote(request, voting_id):
     return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt
-@login_required
 def voting_results(request):
+
+    if (is_valid_token(request) == False):
+        return JsonRespose('message', 'Could not return voting results due to non-eligible token.', status = 401)
 
     votings = VotingResult.objects.all()
 
@@ -96,13 +162,31 @@ def voting_results(request):
 
 
 def get_candidates(voting_id):
+    
+    if (is_valid_token(request) == False):
+        return JsonRespose('message', 'Could not return candidates due to non-eligible token.', status = 401)
+        
     return Candidate.objects.get(voting_id)
 
-def results(request, voting_id):
-    votings = Voting.objects.filter(is_ended = True)
-    return render(request, 'index.html', {
-        'votings': votings
+    
+@login_required
+def admin_tokens(request):
+
+    all_tokens = Usertoken.objects.all()
+    new_tokens = Usertoken.objects.filter(activated = False, invalidated = False).count()
+    active_tokens = Usertoken.objects.filter(activated = True, invalidated = False).count()
+    invalid_tokens = Usertoken.objects.filter(invalidated = True).count()
+
+    return render(request, 'admin-tokens.html', {
+        'tokens': all_tokens,
+        'new_tokens': new_tokens,
+        'active_tokens': active_tokens,
+        'invalid_tokens': invalid_tokens,
     })
+
+@login_required
+def admin_votings(request):
+    return render(request, 'admin-votings.html')
 
 @csrf_exempt
 @login_required
@@ -159,47 +243,7 @@ def activate_token(request):
     token_obj.save()
 
     return JsonResponse({'message':'success'}, status=200)
-
-
-@csrf_exempt
-def user_status(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if session_var_name in request.session:
-        cur_token = request.session[session_var_name]
-
-        try:
-            token_obj = Usertoken.objects.get(token = cur_token)
-        except (Usertoken.DoesNotExist):
-            return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-        return JsonResponse({'status':1, 'token':cur_token, 'activated':token_obj.activated, 'invalidated':token_obj.invalidated, 'message':'token found'}, status=200)
-
-    else:
-        return JsonResponse({'status':0, 'message':'token does not exist'}, status=200)
-
-@csrf_exempt
-def user_login(request):
-
-    session_var_name = settings.USER_TOKEN_VAR
-
-    if request.POST.get('token'):
-        token = request.POST.get('token')
-    else:
-        return JsonResponse({'message':'token not provided'}, status=400)
-
-    token_obj = get_object_or_404(Usertoken, token=token)
-
-    if token_obj.invalidated == False:
-        token_obj.activated = True
-        token_obj.save()
-        request.session[session_var_name] = token_obj.token
-
-        return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
-
-    return JsonResponse({'message':'invalid token'}, status=403)
-
+    
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):

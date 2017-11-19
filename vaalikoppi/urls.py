@@ -6,7 +6,6 @@ urlpatterns = [
     url(r'^user/status/$', views.user_status, name='user_status'),
     url(r'^user/login/$', views.user_login, name='user_login'),
     url(r'^votings/list/$', views.votings, name='votings'),
-    url(r'^votings/(?P<voting_id>\d+)/results/$', views.results, name="results"),
     url(r'^votings/(?P<voting_id>\d+)/vote/$', views.vote, name="vote"),
     url(r'^admin/tokens/$', views.admin_tokens, name='admin_tokens'),
     url(r'^admin/tokens/generate/$', views.generate_tokens, name='admin_tokens_generate'),
