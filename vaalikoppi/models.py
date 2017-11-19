@@ -12,10 +12,6 @@ class Voting(models.Model):
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
 
-    def uneditable(self):
-        self.editable = False
-        self.save()
-
     def open_voting(self):
         self.is_open = True
         self.save()
