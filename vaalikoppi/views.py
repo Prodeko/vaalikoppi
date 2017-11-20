@@ -269,7 +269,7 @@ def create_voting(request):
     max_votes = request.POST.get('max_votes')
     voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
     voting_obj.save()
-    return JsonResponse({'message':'success'}, status=200)
+    return render(request, 'admin-votings.html')
 
 @csrf_exempt
 @login_required

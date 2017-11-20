@@ -1,18 +1,18 @@
 		{% csrf_token %}
 		<div class="card blue-grey lighten-5">
 		  <div class="card-content grey-text">
-				<form method="post" action="{% url 'create_voting' %}">
+				<form method="post" action="{% url 'vaalikoppi:create_voting' %}">
 			    <span class="card-title blue-grey-text text-darken-1 bold-font">Luo uusi äänestys</span>
 			    <div class="input-field col s3">
-			      <input id="voting_name" type="text" class="validate" required>
+			      <input id="voting_name" name="voting_name" type="text" class="validate" required>
 			      <label for="voting_name">Äänestyksen nimi</label>
 			    </div>
 			    <div class="input-field col s3">
-			      <input id="voting_description" type="text">
+			      <input id="voting_description" name="voting_description" type="text">
 			      <label for="voting_description">Kuvaus</label>
 			    </div>
 			    <div class="input-field col s6">
-			      <input id="max_votes" type="number" class="validate">
+			      <input id="max_votes" type="number" name="max_votes" class="validate">
 			      <label for="max_votes">Äänet</label>
 			    </div>
 			    <button class="btn waves-effect waves-light" type="submit" name="action">Luo
