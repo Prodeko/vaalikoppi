@@ -92,38 +92,38 @@ def vote(request, voting_id):
 
     if (is_eligible_to_vote(request, voting_id) == False):
         return JsonResponse({'message':'not allowed to vote in this voting!'}, status=403)
-        
+
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     token_obj = get_token_obj(request)
-    
+
     candidates = []
     candidates_noempty = []
     candidate_objs = []
     empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
-    
+
     if request.POST.getlist('candidates[]'):
         candidates = request.POST.getlist('candidates')
     else:
         return JsonResponse({'message':'candidates not provided'}, status=400)
-       
+
     candidates_noempty = [x for x in candidates if x != empty_candidate.candidate_id]
-    
+
     if (len(candidates_noempty) != len(set(candidates_noempty))):
         return JsonResponse({'message':'multiple votes for same candidate'}, status=400)
-    
+
     empty_votes = voting_obj.max_votes - len(candidates_noempty)
-    
+
     for candi_id in candidates_noempty:
- 
+
         try:
             candidate_obj = Candidate.objects.get(pk = candi_id, voting = voting_obj)
             candidate_objs.append(candidate_obj)
         except (Candidate.DoesNotExist, Candidate.MultipleObjectsReturned):
             return JsonResponse({'message':'no such candidate for this voting'}, status=400)
-            
+
     for i in range(0, empty_votes):
         candidate_objs.append(empty_candidate)
-     
+
     try:
         mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
     except (TokenMapping.DoesNotExist):
@@ -133,7 +133,7 @@ def vote(request, voting_id):
     cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
     if len(cur_votes) != 0:
          return JsonResponse({'message':'already voted in this voting!'}, status=403)
-     
+
     for candidate_obj in candidate_objs:
         Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
 
@@ -263,9 +263,7 @@ def create_voting(request):
     max_votes = request.POST.get('max_votes')
     voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
     voting_obj.save()
-    return render(request, 'admin-voting-list.html', {
-    'new_voting': voting_obj
-    })
+    return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt
 @login_required
@@ -274,7 +272,7 @@ def add_candidate(request, voting_id):
     candidate_name = request.POST.get('candidate_name')
     candidate = Candidate(voting=voting, candidate_name=candidate_name)
     candidate.save()
-    return render(request, 'admin-voting-list', {})
+    return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt
 @login_required
