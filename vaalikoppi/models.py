@@ -1,6 +1,7 @@
 from django.db import models
 import datetime
 import uuid
+from django.db.models import Count, Min, Sum, Avg
 
 # Create your models here.
 
@@ -12,6 +13,18 @@ class Voting(models.Model):
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
 
+    def total_votes(self):
+        return 0
+
+    def winners(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
+
+    def losers(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[self.max_votes:]
+
+    def empty_votes(self):
+        return self.votingresult_set.filter(candidate_name = 'Tyhjä')[0].vote_count
+
     def open_voting(self):
         self.is_open = True
         self.save()
@@ -20,9 +33,6 @@ class Voting(models.Model):
         self.is_open = False
         self.is_ended = True
         self.save()
-
-    def print_candidates(self):
-        return str(candidates)
 
     def __str__(self):
         return self.voting_name
