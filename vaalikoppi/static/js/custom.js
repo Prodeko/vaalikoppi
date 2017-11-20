@@ -190,11 +190,22 @@ function toggleLoginPrompt() {
 	$('#voting-list-updater, #voting-list-area').fadeToggle();
 }
 
+function create_voting() {
+	var voting_name = $('#voting_name').val();
+	var voting_description = $('#voting_description').val();
+	var max_votes = $('#max_votes').val();
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/create/', { voting_name: voting_name, voting_description: voting_description, max_votes: max_votes }).done(function(data) {
+		refreshVotingList(true);
+	}).fail(function(data) {
+		alert('Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!');
+	});
+}
+
 function add_candidate(voting_id) {
 	var form = $('#candidate_name');
-	var candidate_name = $('#candidate_name').val();
+	var candidate = $('#voting-' + voting_id + '-candidate_name').val();
 
-	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + voting_id + '/add/', { candidate_name: candidate_name }).done(function(data) {
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + voting_id + '/add/', { candidate_name: candidate }).done(function(data) {
 		refreshVotingList(true);
 	}).fail(function(data) {
 		alert('Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!');

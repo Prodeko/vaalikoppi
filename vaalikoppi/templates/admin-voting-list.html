@@ -1,24 +1,22 @@
 		{% csrf_token %}
 		<div class="card blue-grey lighten-5">
 		  <div class="card-content grey-text">
-				<form id="create-voting" method="post" action="{% url 'vaalikoppi:create_voting' %}">
-			    <span class="card-title blue-grey-text text-darken-1 bold-font">Luo uusi äänestys</span>
-			    <div class="input-field col s3">
-			      <input id="voting_name" name="voting_name" type="text" class="validate" required>
-			      <label for="voting_name">Äänestyksen nimi</label>
-			    </div>
-			    <div class="input-field col s3">
-			      <input id="voting_description" name="voting_description" type="text">
-			      <label for="voting_description">Kuvaus</label>
-			    </div>
-			    <div class="input-field col s6">
-			      <input id="max_votes" type="number" name="max_votes" class="validate">
-			      <label for="max_votes">Äänet</label>
-			    </div>
-			    <button class="btn waves-effect waves-light wide-button" type="submit" name="action">Luo
-			      <i class="material-icons right">send</i>
-			  </button>
-			</form>
+		    <span class="card-title blue-grey-text text-darken-1 bold-font">Luo uusi äänestys</span>
+		    <div class="input-field col s3">
+		      <input id="voting_name" name="voting_name" type="text" class="validate" required>
+		      <label for="voting_name">Äänestyksen nimi</label>
+		    </div>
+		    <div class="input-field col s3">
+		      <input id="voting_description" name="voting_description" type="text">
+		      <label for="voting_description">Kuvaus</label>
+		    </div>
+		    <div class="input-field col s6">
+		      <input id="max_votes" type="number" name="max_votes" class="validate">
+		      <label for="max_votes">Äänet</label>
+		    </div>
+		    <button class="btn waves-effect waves-light wide-button" onclick="create_voting()" name="action">Luo
+		      <i class="material-icons right">send</i>
+		  	</button>
 		  </div>
 		</div>
 
@@ -63,15 +61,13 @@
 		          	<a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}<a onclick ="remove_candidate({{ candidate.id }})"><i class="material-icons right">close</i></a></a>
 							{% endfor %}
 						{% endif %}
-						<form>
-							<div class="input-field col s2">
-					      <input id="candidate_name" name="candidate_name" type="text" required>
-					      <label for="candidate_name">Ehdokkaan nimi</label>
-					    </div>
-							<button onclick="add_candidate({{ voting.id }})" class="btn waves-effect waves-light wide-button">Lisää
-					      <i class="material-icons right">add</i>
-					  	</button>
-						</form>
+						<div class="input-field col">
+				      <input id="voting-{{ voting.id }}-candidate_name" name="candidate_name" type="text" required>
+				      <label for="candidate_name">Ehdokkaan nimi</label>
+				    </div>
+						<button onclick="add_candidate({{ voting.id }})" class="btn waves-effect waves-light wide-button">Lisää
+				      <i class="material-icons right">add</i>
+					  </button>
 						<button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Avaa äänestys</button>
         	</div>
       	</div>
