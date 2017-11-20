@@ -48,9 +48,9 @@ echo mysql-server mysql-server/root_password_again select "vagrant" | debconf-se
 apt-get install -y mysql-server-5.7 libmysqlclient-dev
 
 # create database
-mysql -uroot -pvagrant -e "CREATE USER 'election'@'localhost' IDENTIFIED BY 'election';"
-mysql -uroot -pvagrant -e "GRANT ALL PRIVILEGES on *.* TO 'election'@'localhost';"
-mysql -uroot -pvagrant -e "CREATE DATABASE election;"
+mysql -uroot -pvagrant -e "CREATE USER 'vaalikoppi'@'localhost' IDENTIFIED BY 'vaalikoppi';"
+mysql -uroot -pvagrant -e "GRANT ALL PRIVILEGES on *.* TO 'vaalikoppi'@'localhost';"
+mysql -uroot -pvagrant -e "CREATE DATABASE vaalikoppi;"
 
 
 # --- Required python modules ---
