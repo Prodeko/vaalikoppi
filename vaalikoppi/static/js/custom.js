@@ -10,7 +10,7 @@ function vote(votingId) {
 	var form = $('#voting-form-' + votingId);
 	var maxVotes;
 	var chosenCandidates = [];
-	
+
 	try {
 		maxVotes = parseInt(form.attr('data-voting-max-votes'));
 	} catch (err) {
@@ -24,7 +24,7 @@ function vote(votingId) {
 		chosenCandidates.push({'id' : curId, 'name' : curName});
 	});
 
-	var confirmation = confirm('Olet äänestämässä ' + (chosenCandidates.length > 1 ? 'ehdokkaita:\n' : 'ehdokasta:\n' ) + 
+	var confirmation = confirm('Olet äänestämässä ' + (chosenCandidates.length > 1 ? 'ehdokkaita:\n' : 'ehdokasta:\n' ) +
 	chosenCandidates.map(function(candi) {
 		return candi.name;
 	})
@@ -37,7 +37,7 @@ function vote(votingId) {
 	form.find('input, button').prop('disabled', true);
 
 	var query = $.post(SITE_ROOT_PATH + 'votings/' + votingId + '/vote/',
-		{ 
+		{
 			candidates : chosenCandidates.map(function(candi) {
 				return candi.id;
 			})
@@ -64,14 +64,14 @@ function refreshVotingList(admin = false) {
 }
 
 function checkboxClick(votingId, candidateId) {
-	
+
 	var form = $('#voting-form-' + votingId);
 	var maxVotes = parseInt(form.attr('data-voting-max-votes'));
-	
+
 	if (form.find('input[type=checkbox]:checked').length > maxVotes) {
 		form.find('#candidate-v-' + votingId + '-'+ candidateId).prop('checked', false);
 	}
-	
+
 }
 
 function generateTokens(count) {
@@ -156,7 +156,7 @@ function checkVoterStatus(callback) {
 				callback(true)
 			} else {
 				throw new Exception();
-			} 
+			}
 		} catch (err) {
 			callback(false);
 		}
@@ -188,6 +188,25 @@ function submitToken() {
 function toggleLoginPrompt() {
 	$('#main-login-prompt').toggle();
 	$('#voting-list-updater, #voting-list-area').fadeToggle();
+}
+
+function add_candidate(voting_id) {
+	var form = $('#candidate_name');
+	var candidate_name = $('#candidate_name').val();
+
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + voting_id + '/add/', { candidate_name: candidate_name }).done(function(data) {
+		refreshVotingList(true);
+	}).fail(function(data) {
+		alert('Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!');
+	});
+}
+
+function remove_candidate(candidate_id) {
+	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + candidate_id + '/remove/').done(function(data) {
+		refreshVotingList(true);
+	}).fail(function(data) {
+		alert('Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!');
+	});
 }
 
 function closeVoting(votingId) {

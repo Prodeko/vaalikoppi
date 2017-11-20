@@ -269,7 +269,7 @@ def create_voting(request):
     max_votes = request.POST.get('max_votes')
     voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
     voting_obj.save()
-    return render(request, 'admin-votings.html')
+    return render_to_response('admin-votings.html', {'message': 'success'})
 
 @csrf_exempt
 @login_required
@@ -278,7 +278,13 @@ def add_candidate(request, voting_id):
     candidate_name = request.POST.get('candidate_name')
     candidate = Candidate(voting=voting, candidate_name=candidate_name)
     candidate.save()
-    return render(request, 'admin-votings.html')
+    return JsonResponse({'message':'success'}, status=200)
+
+@csrf_exempt
+@login_required
+def remove_candidate(request, candidate_id):
+    Candidate.objects.filter(pk=candidate_id).delete()
+    return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt
 @login_required
