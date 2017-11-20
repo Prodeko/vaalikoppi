@@ -71,15 +71,15 @@ def votings(request):
     if (is_valid_token(request) == False):
         return JsonRespose('message', 'Could not return voting list due to non-eligible token.', status = 401)
 
-    closed_votings = list(Voting.objects.filter(is_open = False, is_ended = False))
+    closed_votings = list(Voting.objects.filter(is_open = False, is_ended = False).order_by('-id'))
     open_votings = []
-    ended_votings = list(Voting.objects.filter(is_open = False, is_ended = True))
+    ended_votings = list(Voting.objects.filter(is_open = False, is_ended = True).order_by('-id'))
 
     for voting in Voting.objects.filter(is_open = True, is_ended = False):
         if (is_eligible_to_vote(request, voting) is True):
             open_votings.append(voting)
         else:
-            closed_votings.append(voting)
+            closed_votings.insert(0, voting)
 
     return render(request, 'votings.html', {
         'closed_votings': closed_votings,
@@ -102,11 +102,11 @@ def vote(request, voting_id):
     empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
     
     if request.POST.getlist('candidates[]'):
-        candidates = request.POST.getlist('candidates')
+        candidates = request.POST.getlist('candidates[]')
     else:
         return JsonResponse({'message':'candidates not provided'}, status=400)
-       
-    candidates_noempty = [x for x in candidates if x != empty_candidate.candidate_id]
+    
+    candidates_noempty = [x for x in candidates if x != empty_candidate.id]
     
     if (len(candidates_noempty) != len(set(candidates_noempty))):
         return JsonResponse({'message':'multiple votes for same candidate'}, status=400)
@@ -140,18 +140,6 @@ def vote(request, voting_id):
     return votings(request)
 
 @csrf_exempt
-def voting_results(request):
-
-    if (is_valid_token(request) == False):
-        return JsonRespose('message', 'Could not return voting results due to non-eligible token.', status = 401)
-
-    votings = VotingResult.objects.all()
-
-    return render(request, 'voting_results.html', {
-        'votings': votings,
-    })
-
-@csrf_exempt
 def user_status(request):
 
     if (is_valid_token(request) == True):
@@ -171,15 +159,33 @@ def user_login(request):
 
     token_obj = get_object_or_404(Usertoken, token=token)
 
-    if token_obj.invalidated == False:
-        token_obj.activated = True
-        token_obj.save()
+    if token_obj.activated == True and token_obj.invalidated == False:
         request.session[session_var_name] = token_obj.token
-
         return JsonResponse({'message':'login success', 'token': token_obj.token}, status=200)
 
     return JsonResponse({'message':'invalid token'}, status=403)
 
+@csrf_exempt
+def user_logout(request):
+
+    session_var_name = settings.USER_TOKEN_VAR
+    request.session[session_var_name] = ''
+    
+    if (is_valid_token(request) == False):
+        return JsonResponse({'message':'logged out'}, status=200) 
+    
+    return JsonResponse({'message':'could not log out'}, status=500)
+     
+    
+@login_required
+def voting_results(request):
+
+    votings = VotingResult.objects.all()
+
+    return render(request, 'voting_results.html', {
+        'votings': votings,
+    })
+    
 @login_required
 def admin_tokens(request):
 
@@ -290,7 +296,6 @@ def open_voting(request, voting_id):
     for cur_token in active_tokens:
         TokenMapping(token=cur_token, voting=voting_obj).save()
 
-    voting_obj.uneditable()
     Candidate(candidate_name='Tyhjä', empty_candidate=True, voting=voting_obj).save()
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
