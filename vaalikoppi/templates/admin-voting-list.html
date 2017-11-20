@@ -50,25 +50,33 @@
 			{% endif %}
 
       <!-- Avaamaton äänestys -->
-        {% if closed_votings %}
-					{% for voting in closed_votings %}
-	        <div class="card grey lighten-3">
-	          <div class="card-content blue-grey-text text-lighten-1 center">
-	            <span class="card-title blue-grey-text text-lighten-1">Avaamaton: {{ voting.voting_name }}</span>
-	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
-	          </div>
-	          <div class="card-action">
-				{% if voting.candidate_set.all %}
-					{% for candidate in voting.candidate_set.all %}
-		            <a class="disabled blue-grey lighten-1 btn-large candidate">{{ candidate.candidate_name }}</a>
-						{% endfor %}
-					{% endif %}
-
-					<button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Avaa äänestys</button>
-	          </div>
-	        </div>
-				{% endfor %}
-			{% endif %}
+    	{% if closed_votings %}
+				{% for voting in closed_votings %}
+      	<div class="card grey lighten-3">
+        	<div class="card-content blue-grey-text text-lighten-1 center">
+          	<span class="card-title blue-grey-text text-lighten-1">Avaamaton: {{ voting.voting_name }}</span>
+          	{% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
+						<form method="post" action="{% url 'vaalikoppi:add_candidate' voting.id %}">
+							<div class="input-field col s2">
+					      <input id="candidate_name" name="candidate_name" type="text" required>
+					      <label for="candidate_name">Ehdokkaan nimi</label>
+					    </div>
+							<button class="btn waves-effect waves-light s1" type="submit" name="action">Lisää
+					      <i class="material-icons right">add</i>
+					  	</button>
+						</form>
+        	</div>
+          <div class="card-action">
+						{% if voting.candidate_set.all %}
+							{% for candidate in voting.candidate_set.all %}
+		          	<a class="disabled blue-grey lighten-1 btn-large candidate">{{ candidate.candidate_name }}</a>
+							{% endfor %}
+						{% endif %}
+						<button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text candidate bold-font">Avaa äänestys</button>
+        	</div>
+      	</div>
+			{% endfor %}
+		{% endif %}
 
 
         <!-- Päättynyt äänestys -->

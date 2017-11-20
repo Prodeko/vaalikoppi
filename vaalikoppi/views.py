@@ -105,9 +105,9 @@ def vote(request, voting_id):
         candidates = request.POST.getlist('candidates[]')
     else:
         return JsonResponse({'message':'candidates not provided'}, status=400)
-    
+
     candidates_noempty = [x for x in candidates if x != empty_candidate.id]
-    
+
     if (len(candidates_noempty) != len(set(candidates_noempty))):
         return JsonResponse({'message':'multiple votes for same candidate'}, status=400)
 
@@ -170,13 +170,13 @@ def user_logout(request):
 
     session_var_name = settings.USER_TOKEN_VAR
     request.session[session_var_name] = ''
-    
+
     if (is_valid_token(request) == False):
-        return JsonResponse({'message':'logged out'}, status=200) 
-    
+        return JsonResponse({'message':'logged out'}, status=200)
+
     return JsonResponse({'message':'could not log out'}, status=500)
-     
-    
+
+
 @login_required
 def voting_results(request):
 
@@ -185,7 +185,7 @@ def voting_results(request):
     return render(request, 'voting_results.html', {
         'votings': votings,
     })
-    
+
 @login_required
 def admin_tokens(request):
 
@@ -278,7 +278,7 @@ def add_candidate(request, voting_id):
     candidate_name = request.POST.get('candidate_name')
     candidate = Candidate(voting=voting, candidate_name=candidate_name)
     candidate.save()
-    return JsonResponse({'message':'success'}, status=200)
+    return render(request, 'admin-votings.html')
 
 @csrf_exempt
 @login_required
