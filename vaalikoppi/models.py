@@ -2,6 +2,7 @@ from django.db import models
 import datetime
 import uuid
 from django.db.models import Count, Min, Sum, Avg
+import math
 
 # Create your models here.
 
@@ -14,7 +15,14 @@ class Voting(models.Model):
     is_ended = models.BooleanField(default=False)
 
     def total_votes(self):
-        return 0
+        if self.is_open:
+            return int(math.floor(self.vote_set.count() / self.max_votes))
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                return int(math.floor(result.get('sum') / self.max_votes))
+            else:
+                return 0
 
     def winners(self):
         return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
