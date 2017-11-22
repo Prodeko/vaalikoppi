@@ -50,10 +50,7 @@
 	          <div class="card-content">
 	            <span class="card-title bold-font">{{ voting.voting_name }}</span>
               <hr>
-              {% for result in voting.winners %}
-	            <div style="max-width:400px;margin: 0px auto;"><div class="results" style="width:80%;"><span class="bold-font">{{ result.candidate_name }}</span></div><div class="results" style="widht:19%;">{{ result.vote_count }}</div></div>
-              {% endfor %}
-              {% for result in voting.losers %}
+              {% for result in voting.results %}
 	            <div style="max-width:400px;margin: 0px auto;"><div class="results" style="width:80%;"><span class="bold-font">{{ result.candidate_name }}</span></div><div class="results" style="widht:19%;">{{ result.vote_count }}</div></div>
               {% endfor %}
               <hr>

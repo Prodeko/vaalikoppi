@@ -24,6 +24,9 @@ class Voting(models.Model):
             else:
                 return 0
 
+    def results(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
+
     def winners(self):
         return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
 
