@@ -143,9 +143,9 @@ def vote(request, voting_id):
 def user_status(request):
 
     if (is_valid_token(request) == True):
-        return JsonResponse({'status' : 1, 'message':'Token is active and valid.'}, status = 200)
+        return JsonResponse({'status' : 1, 'token': get_token_obj(request).token, 'message':'Token is active and valid.'}, status = 200)
 
-    return JsonResponse({'status' : 0, 'message': 'Token does not exist, is not active or has been invalidated.'}, status = 200)
+    return JsonResponse({'status' : 0, 'token' : '', 'message': 'Token does not exist, is not active or has been invalidated.'}, status = 200)
 
 @csrf_exempt
 def user_login(request):
