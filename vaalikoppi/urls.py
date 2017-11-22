@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^votings/(?P<voting_id>\d+)/vote/$', views.vote, name="vote"),
     url(r'^admin/tokens/$', views.admin_tokens, name='admin_tokens'),
     url(r'^admin/tokens/generate/$', views.generate_tokens, name='admin_tokens_generate'),
+    url(r'^votings/logout/$', views.user_logout, name='user_logout'),
     url(r'^admin/tokens/invalidate/$', views.invalidate_token, name='admin_tokens_invalidate'),
     url(r'^admin/tokens/activate/$', views.activate_token, name='admin_tokens_activate'),
 	url(r'^admin/votings/$', views.admin_votings, name='admin_votings'),

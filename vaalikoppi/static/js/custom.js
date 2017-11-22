@@ -166,6 +166,19 @@ function checkVoterStatus(callback) {
 	});
 }
 
+function logout() {
+	var query = $.post(SITE_ROOT_PATH + 'votings/logout/', {}
+	).done(function(data) {
+		toggleLoginPrompt();
+	}).fail(function(data) {
+		window.setTimeout(function() {
+		warning.removeClass('invisible');
+		}, 100);
+	});
+
+
+}
+
 function submitToken() {
 
 	var token = $('#type-token-field').val();
