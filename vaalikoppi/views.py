@@ -202,8 +202,9 @@ def admin_tokens(request):
     })
 
 def tokens(request):
+    tokens = Usertoken.objects.filter(activated = False, invalidated = False)
     return render(request, 'tokens.html', {
-        'tokens' = Usertoken.objects.filter(activated = False, invalidated = False).count()
+        'tokens': tokens,
     })
 
 @login_required
