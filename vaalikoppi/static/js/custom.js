@@ -168,9 +168,12 @@ function checkVoterStatus(callback) {
 }
 
 function logout() {
-	var query = $.post(SITE_ROOT_PATH + 'votings/logout/', {}
-	).done(function(data) {
-		toggleLoginPrompt();
+	var query = $.getJSON(SITE_ROOT_PATH + 'user/status/')
+	.done(function(data) {
+		if (data.status === 1) {
+			$.post(SITE_ROOT_PATH + 'user/status/', {'status': 0})
+			toggleLoginPrompt();
+		}
 	}).fail(function(data) {
 		alert("Uloskirjautuminen epäonnistui. Päivitä sivu.")
 	});

@@ -172,7 +172,7 @@ def user_logout(request):
     request.session[session_var_name] = ''
 
     if (is_valid_token(request) == False):
-        return JsonResponse({'message':'logged out'}, status=200)
+        return JsonResponse({'message':'logged out', 'status': 0}, status=200)
 
     return JsonResponse({'message':'could not log out'}, status=500)
 
