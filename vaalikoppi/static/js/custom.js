@@ -153,6 +153,7 @@ function checkVoterStatus(callback) {
 			if (data.status === 0) {
 				callback(false);
 			} else if (data.status === 1) {
+				$('#token_div').html(data.token)
 				callback(true)
 			} else {
 				throw new Exception();
@@ -171,9 +172,7 @@ function logout() {
 	).done(function(data) {
 		toggleLoginPrompt();
 	}).fail(function(data) {
-		window.setTimeout(function() {
-		warning.removeClass('invisible');
-		}, 100);
+		alert("Uloskirjautuminen epäonnistui. Päivitä sivu.")
 	});
 
 
