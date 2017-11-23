@@ -201,6 +201,11 @@ def admin_tokens(request):
         'invalid_tokens': invalid_tokens,
     })
 
+def tokens(request):
+    return render(request, 'tokens.html', {
+        'tokens': Usertoken.objects.all(),
+    })
+
 @login_required
 def admin_votings(request):
     return render(request, 'admin-votings.html')

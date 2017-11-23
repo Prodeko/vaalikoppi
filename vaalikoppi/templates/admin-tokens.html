@@ -7,11 +7,6 @@
       <nav>
         <div class="nav-wrapper prodeko-blue">
           <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
-          <div class="fixed-action-btn toolbar" id="deactivate-btn">
-            <a class="transparent right">
-              <i class="large material-icons">close</i>
-            </a>
-          </div>
         </div>
       </nav>
     </div>
@@ -30,6 +25,7 @@
 		<div class="card blue-grey lighten-5">
 	     <div class="card-action center">
 			      <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
+            <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font">Tulosta koodit</a>
 			 </div>
 	  </div>
 
