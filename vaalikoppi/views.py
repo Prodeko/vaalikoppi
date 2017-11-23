@@ -203,7 +203,7 @@ def admin_tokens(request):
 
 def tokens(request):
     return render(request, 'tokens.html', {
-        'tokens': Usertoken.objects.all(),
+        'tokens' = Usertoken.objects.filter(activated = False, invalidated = False).count()
     })
 
 @login_required
