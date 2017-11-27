@@ -170,6 +170,7 @@ def user_logout(request):
 
     session_var_name = settings.USER_TOKEN_VAR
     request.session[session_var_name] = ''
+    request.session.flush()
 
     if (is_valid_token(request) == False):
         return JsonResponse({'message':'logged out', 'status': 0}, status=200)
@@ -271,7 +272,7 @@ def activate_token(request):
 @login_required
 def invalidate_all_tokens(request):
 
-    Usertoken.objects.all().update(invalidated = True)
+    Usertoken.objects.all().filter(activated = True).update(invalidated = True)
 
     return JsonResponse({'message':'success'}, status=200)
     

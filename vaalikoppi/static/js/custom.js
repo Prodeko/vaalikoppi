@@ -168,11 +168,11 @@ function checkVoterStatus(callback) {
 }
 
 function logout() {
-	var query = $.getJSON(SITE_ROOT_PATH + 'user/status/')
+	var query = $.post(SITE_ROOT_PATH + 'user/logout/')
 	.done(function(data) {
-		if (data.status === 1) {
-			$.post(SITE_ROOT_PATH + 'user/status/', {'status': 0})
-			toggleLoginPrompt();
+		if (data.status === 0) {
+			document.cookie = '';
+			location.reload(true);
 		}
 	}).fail(function(data) {
 		alert("Uloskirjautuminen epäonnistui. Päivitä sivu.")
