@@ -132,7 +132,7 @@ function activateToken(code, number) {
 		var query = $.post(SITE_ROOT_PATH + 'admin/tokens/activate/',
 			{ token : token }
 		).done(function(data) {
-			alert('Koodin aktivointi onnistui.');
+			//alert('Koodin aktivointi onnistui.');
 			location.reload();
 		}).fail(function(data) {
 			alert('Koodin aktivointi epäonnistui. Tarkista koodi.');
@@ -274,4 +274,14 @@ function searchFunction() {
       }
     }
   }
+}
+
+
+function invalidateActiveTokens() {
+	
+	var query = $.post(SITE_ROOT_PATH + 'admin/tokens/invalidate/all/').done(function(data) {
+		location.reload();
+	}).fail(function(data) {
+		alert('Koodien mitätöinti epäonnistui!');
+	});
 }
