@@ -91,7 +91,7 @@ class TokenMapping(models.Model):
 
 class Vote(models.Model):
     uuid = models.CharField(max_length=200)
-    candidate = models.ForeignKey(Candidate, on_delete=models.PROTECT)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
 
     def get_uuid(self):
