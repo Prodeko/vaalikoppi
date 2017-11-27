@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^votings/logout/$', views.user_logout, name='user_logout'),
     url(r'^admin/tokens/print$', views.tokens, name='tokens'),
     url(r'^admin/tokens/invalidate/$', views.invalidate_token, name='admin_tokens_invalidate'),
+    url(r'^admin/tokens/invalidate/all/$', views.invalidate_all_tokens, name='admin_tokens_invalidate_all'),
     url(r'^admin/tokens/activate/$', views.activate_token, name='admin_tokens_activate'),
 	url(r'^admin/votings/$', views.admin_votings, name='admin_votings'),
     url(r'^admin/votings/create/$', views.create_voting, name="create_voting"),

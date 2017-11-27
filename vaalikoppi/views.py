@@ -269,6 +269,14 @@ def activate_token(request):
 
 @csrf_exempt
 @login_required
+def invalidate_all_tokens(request):
+
+    Usertoken.objects.all().update(invalidated = True)
+
+    return JsonResponse({'message':'success'}, status=200)
+    
+@csrf_exempt
+@login_required
 def create_voting(request):
     voting_name = request.POST.get('voting_name')
     voting_description = request.POST.get('voting_description')
