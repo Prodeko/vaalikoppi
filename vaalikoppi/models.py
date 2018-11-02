@@ -23,7 +23,17 @@ class Voting(models.Model):
                 return int(math.floor(result.get('sum') / self.max_votes))
             else:
                 return 0
-
+    
+    def total_votes_abs(self):
+        if self.is_open:
+            return self.vote_set.count()
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                return result.get('sum')
+            else:
+                return 0
+                
     def results(self):
         return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
 
@@ -105,3 +115,9 @@ class VotingResult(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     vote_count = models.IntegerField(default=0)
+    
+    def vote_share(self):
+        total_votes = self.voting.total_votes_abs()
+        if (total_votes > 0):
+            return "{:.1f}".format(round(100 * self.vote_count / total_votes, 1)).replace('.', ',')
+        return "0,0"

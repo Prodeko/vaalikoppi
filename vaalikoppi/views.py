@@ -45,6 +45,9 @@ def is_valid_token(request):
 
     return False
 
+def get_active_tokens(request):
+    return Usertoken.objects.filter(activated = True, invalidated = False)
+    
 def is_eligible_to_vote(request, voting_obj):
 
     if (is_valid_token(request)):
@@ -96,7 +99,7 @@ def votings(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-
+    
 @csrf_exempt
 def vote(request, voting_id):
 
@@ -192,17 +195,17 @@ def user_logout(request):
 def voting_results(request):
 
     votings = VotingResult.objects.all()
-
+    
     return render(request, 'voting_results.html', {
         'votings': votings,
     })
-
+    
 @login_required
 def admin_tokens(request):
 
     all_tokens = Usertoken.objects.all()
     new_tokens = Usertoken.objects.filter(activated = False, invalidated = False).count()
-    active_tokens = Usertoken.objects.filter(activated = True, invalidated = False).count()
+    active_tokens = get_active_tokens(request).count()
     invalid_tokens = Usertoken.objects.filter(invalidated = True).count()
 
     return render(request, 'admin-tokens.html', {
@@ -320,7 +323,7 @@ def open_voting(request, voting_id):
     if voting_obj.is_open == True or voting_obj.is_ended == True:
         return JsonResponse({'message':'voting is open or has ended'}, status=403)
 
-    active_tokens = Usertoken.objects.all().filter(activated=True, invalidated=False)
+    active_tokens = get_active_tokens(request)
 
     for cur_token in active_tokens:
         TokenMapping(token=cur_token, voting=voting_obj).save()
@@ -359,9 +362,11 @@ def admin_voting_list(request):
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
     open_votings = Voting.objects.filter(is_open = True, is_ended = False)
     ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
+    active_tokens_count = get_active_tokens(request).count()
 
     return render(request, 'admin-voting-list.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
+        'active_tokens_count' : active_tokens_count
     })

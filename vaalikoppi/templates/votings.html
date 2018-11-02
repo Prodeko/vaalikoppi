@@ -50,9 +50,15 @@
 	          <div class="card-content">
 	            <span class="card-title bold-font">{{ voting.voting_name }}</span>
               <hr>
-              {% for result in voting.results %}
-	            <div style="max-width:400px;margin: 0px auto;"><div class="results" style="width:80%;"><span class="bold-font">{{ result.candidate_name }}</span></div><div class="results" style="widht:19%;">{{ result.vote_count }}</div></div>
+              <table style="max-width:400px; margin: 0px auto;">
+			  {% for result in voting.results %}
+				<tr>
+					<td class="bold-font" style="width:60%">{{ result.candidate_name }}</td>
+					<td style="width:20%">{{ result.vote_count }}</td>
+					<td style="width:20%">{{ result.vote_share }}&nbsp;%</td>
+				</tr>
               {% endfor %}
+			  </table>
               <hr>
               Tyhjiä: {{ voting.empty_votes }}
 	          </div>

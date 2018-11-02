@@ -27,7 +27,7 @@
 			{% for voting in open_votings %}
 	        <div class="card blue-grey lighten-5">
 	          <div class="card-content grey-text center">
-	            <span class="card-title blue-grey-text text-darken-1 bold-font">Auki: {{ voting.voting_name }}, Äänestänyt: {{ voting.total_votes }}</span>
+	            <span class="card-title blue-grey-text text-darken-1 bold-font">Auki: {{ voting.voting_name }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
 	            {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
 				{% csrf_token %}
 	          </div>
