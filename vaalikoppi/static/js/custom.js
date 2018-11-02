@@ -304,3 +304,22 @@ function invalidateActiveTokens() {
 		alert('Koodien mitätöinti epäonnistui!');
 	});
 }
+
+function playSound(buttonEle, sound) {
+	
+	var soundState = $(buttonEle).data('playing');
+	var track = 'drums';
+	if (sound == 'doubling') {
+		track = 'doubling';
+	}
+	var trackEle = $('#sound-track-' + track).get(0);
+	
+	if (soundState == 0) {
+		trackEle.play();
+		$(buttonEle).data('playing', 1);
+	} else {
+		trackEle.pause();
+		trackEle.currentTime = 0;
+		$(buttonEle).data('playing', 0);
+	}
+}

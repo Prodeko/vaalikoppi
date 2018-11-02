@@ -7,6 +7,20 @@
 	{% include 'admin-navbar.html' %}
 
 	<div class="container main-container">
+		<div id="voting-sound-panel" class="card blue-grey lighten-4">
+		
+		<audio id="sound-track-drums">
+			<source src="{% static 'music/rummut.mp3' %}" type="audio/mpeg">
+		</audio>
+		<audio id="sound-track-doubling">
+			<source src="{% static 'music/tuplaus.mp3' %}" type="audio/mpeg">
+		</audio>
+		
+		<div class="card-action center">
+			<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(this, 'drums')">Rumpujen pärinää</button>
+			<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(this, 'doubling')">Tuplaus</button>
+		</div>
+	</div>
 		{% include 'voting-list.html' %}
 	</div>
 </div>
