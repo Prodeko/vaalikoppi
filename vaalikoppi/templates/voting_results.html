@@ -4,21 +4,7 @@
 {% block body %}
 
 <div class="bg">
-  <div class="navbar-fixed" id="top">
-    <nav>
-      <div class="nav-wrapper prodeko-blue">
-        <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
-        <div class="fixed-action-btn toolbar" id="deactivate-btn">
-          <a class="transparent right">
-            <i class="large material-icons">fingerprint</i>
-          </a>
-          <ul>
-            <li class="waves-effect waves-light prodeko-blue" id="token_div"></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </div>
+  {% include 'admin-navbar.html' %}
   <div class="container main-container">
     <div class="card blue-grey lighten-5">
       {% if votings %}

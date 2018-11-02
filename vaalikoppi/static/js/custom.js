@@ -71,7 +71,6 @@ function checkboxClick(votingId, candidateId) {
 	if (form.find('input[type=checkbox]:checked').length > maxVotes) {
 		form.find('#candidate-v-' + votingId + '-'+ candidateId).prop('checked', false);
 	}
-
 }
 
 function generateTokens(count) {
@@ -92,56 +91,68 @@ function generateTokens(count) {
 
 function invalidateToken(code, number) {
 
-	if (confirm('Haluatko varmasti mitätöidä koodin ' + code +'? Tehtyä mitätöintiä ei voi peruuttaa.')) {
-
-		var token = code;
-
-		if (token.length < 1) {
-			return;
-		}
-
-		$('#invalidate-token-button-'+number).prop('disabled', true);
-
-		var query = $.post(SITE_ROOT_PATH + 'admin/tokens/invalidate/',
-			{ token : token }
-		).done(function(data) {
-			alert('Koodin invalidointi onnistui.');
-			location.reload();
-		}).fail(function(data) {
-			alert('Koodin invalidointi epäonnistui. Tarkista koodi.');
-		});
-
-		$('#invalidate-token-button-'+number).prop('disabled', false);
-
-	} else {
-			return;
+	var invalidateButton = $('#invalidate-token-button-'+number);
+	var clickedState = invalidateButton.data('clicked');
+	
+	// Require two clicks to activate code
+	if (clickedState == '0') {
+		
+		invalidateButton.html('Mitätöi?');
+		invalidateButton.addClass('orange');
+		invalidateButton.removeClass('red');
+		invalidateButton.data('clicked', '1');
+		return;
 	}
+
+	var token = code;
+
+	if (token.length < 1) {
+		return;
+	}
+
+	invalidateButton.prop('disabled', true);
+
+	var query = $.post(SITE_ROOT_PATH + 'admin/tokens/invalidate/',
+		{ token : token }
+	).done(function(data) {
+		// alert('Koodin mitätöinti onnistui.');
+		location.reload();
+	}).fail(function(data) {
+		alert('Koodin mitätöinti epäonnistui. Tarkista koodi.');
+	});
 }
 
 function activateToken(code, number) {
 
-	if (confirm('Haluatko varmasti aktivoida koodin ' + code +'?')) {
-		var token = code;
-
-		if (token.length < 1) {
-			return;
-		}
-
-		$('#activate-token-button-'+number).prop('disabled', true);
-
-		var query = $.post(SITE_ROOT_PATH + 'admin/tokens/activate/',
-			{ token : token }
-		).done(function(data) {
-			//alert('Koodin aktivointi onnistui.');
-			location.reload();
-		}).fail(function(data) {
-			alert('Koodin aktivointi epäonnistui. Tarkista koodi.');
-		});
-
-		$('#activate-token-button-'+number).prop('disabled', false);
-	} else {
-			return;
+	var activateButton = $('#activate-token-button-'+number);
+	var clickedState = activateButton.data('clicked');
+	
+	// Require two clicks to activate code
+	if (clickedState == '0') {
+		
+		activateButton.html('Aktivoi?');
+		activateButton.addClass('orange');
+		activateButton.removeClass('green');
+		activateButton.data('clicked', '1');
+		return;
 	}
+	
+	var token = code;
+
+	if (token.length < 1) {
+		return;
+	}
+
+	activateButton.prop('disabled', true);
+
+	var query = $.post(SITE_ROOT_PATH + 'admin/tokens/activate/',
+		{ token : token }
+	).done(function(data) {
+		//alert('Koodin aktivointi onnistui.');
+		location.reload();
+	}).fail(function(data) {
+		alert('Koodin aktivointi epäonnistui. Tarkista koodi.');
+	});
 }
 
 // Just for the UI. Everything is validated in the back-end...
@@ -153,8 +164,8 @@ function checkVoterStatus(callback) {
 			if (data.status === 0) {
 				callback(false);
 			} else if (data.status === 1) {
-				$('#token_div').html(data.token)
-				callback(true)
+				$('#token_div').html(data.token);
+				callback(true);
 			} else {
 				throw new Exception();
 			}
@@ -177,25 +188,30 @@ function logout() {
 	}).fail(function(data) {
 		alert("Uloskirjautuminen epäonnistui. Päivitä sivu.")
 	});
-
-
 }
 
 function submitToken() {
 
 	var token = $('#type-token-field').val();
-	var warning = $('#main-login-prompt .wrong-token-warning');
+	var notificationArea = $('#login-notification-area');
 
-	warning.addClass('invisible');
+	notificationArea.removeClass('wrong-token-warning');
+	notificationArea.addClass('loading-token-notification');
+	notificationArea.html('Ladataan...');
 
 	var query = $.post(SITE_ROOT_PATH + 'user/login/',
 		{ token : token }
 	).done(function(data) {
-		toggleLoginPrompt();
-		refreshVotingList();
+		/* toggleLoginPrompt();
+		// Below adds the token to the top bar
+		checkVoterStatus();
+		refreshVotingList(); */
+		location.reload();
 	}).fail(function(data) {
 		window.setTimeout(function() {
-			warning.removeClass('invisible');
+			notificationArea.removeClass('loading-token-notification');
+			notificationArea.addClass('wrong-token-warning');
+			notificationArea.html('Virheellinen koodi');
 		}, 100);
 	});
 }
@@ -275,7 +291,6 @@ function searchFunction() {
     }
   }
 }
-
 
 function invalidateActiveTokens() {
 	

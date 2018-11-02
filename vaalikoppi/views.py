@@ -64,7 +64,17 @@ def is_eligible_to_vote(request, voting_obj):
     return False
 
 def index(request):
-    return render(request, 'index.html')
+    
+    info_dict = {
+        'is_valid_token' : False,
+        'user_token' : 'EI KOODIA'
+    }
+    
+    if (is_valid_token(request)):
+        info_dict['is_valid_token'] = True
+        info_dict['user_token'] = get_token_obj(request).token
+    
+    return render(request, 'index.html', info_dict)
 
 def votings(request):
 

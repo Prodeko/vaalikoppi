@@ -117,12 +117,12 @@ input {
   text-align: center;
 }
 
-#main-login-prompt {
-	display: none;
-}
-
 #main-login-prompt .token-input-field {
 	padding-top: 2em;
+}
+
+#main-login-prompt .loading-token-notification {
+	color: #26a69a;
 }
 
 #main-login-prompt .wrong-token-warning {
@@ -168,4 +168,8 @@ input {
 #searchTable tr.header, #searchTable tr:hover {
     /* Add a grey background color to the table header and on hover */
     background-color: #f1f1f1;
+}
+
+#searchTable button.btn {
+	width: 10em;
 }
