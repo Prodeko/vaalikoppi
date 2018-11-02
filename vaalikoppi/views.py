@@ -337,7 +337,8 @@ def open_voting(request, voting_id):
 def close_voting(request, voting_id):
 
     voting_obj = get_object_or_404(Voting, pk=voting_id)
-
+    not_voted_tokens = []
+    
     if voting_obj.is_open == False or voting_obj.is_ended == True:
         return JsonResponse({'message':'voting is not open or has ended'}, status=403)
 
@@ -345,7 +346,9 @@ def close_voting(request, voting_id):
         cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
         if len(cur_votes) > voting_obj.max_votes:
             return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
-
+        if (len(cur_votes) == 0):
+            not_voted_tokens.append(mapping.get_token().token)
+        
     voting_obj.close_voting()
     TokenMapping.objects.all().filter(voting=voting_obj).delete()
 
@@ -353,7 +356,7 @@ def close_voting(request, voting_id):
         cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
         VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 
-    return JsonResponse({'message':'voting closed'}, status=200)
+    return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
 
 @csrf_exempt
 @login_required

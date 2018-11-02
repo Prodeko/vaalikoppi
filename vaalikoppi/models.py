@@ -54,7 +54,7 @@ class Voting(models.Model):
         self.is_open = False
         self.is_ended = True
         self.save()
-
+        
     def __str__(self):
         return self.voting_name
 

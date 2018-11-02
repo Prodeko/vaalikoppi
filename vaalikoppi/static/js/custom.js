@@ -255,6 +255,10 @@ function closeVoting(votingId) {
 
 	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + votingId + '/close/').done(function(data) {
 		refreshVotingList(true);
+		
+		if (data.not_voted_tokens && data.not_voted_tokens.length > 0) {
+			alert('Äänestämättä jäivät koodit:\n' + data.not_voted_tokens.join('\n'));
+		}
 	}).fail(function(data) {
 		alert('Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!');
 	});
