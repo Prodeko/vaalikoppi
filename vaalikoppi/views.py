@@ -36,18 +36,43 @@ def get_token_obj(request):
 
     return None
 
-def is_valid_token(request):
-
-    token_obj = get_token_obj(request)
+def is_valid_token_obj(request, token_obj):
 
     if (token_obj is not None and token_obj.activated == True and token_obj.invalidated == False):
         return True
 
     return False
+    
+def is_valid_token(request):
+
+    token_obj = get_token_obj(request)
+    return is_valid_token_obj(request, token_obj)
 
 def get_active_tokens(request):
     return Usertoken.objects.filter(activated = True, invalidated = False)
+
+def get_eligible_active_tokens(request, voting_obj_list):
     
+    eligible_tokens = []
+    
+    for voting_obj in voting_obj_list:
+    
+        votes_given = Vote.objects.filter(voting=voting_obj)
+        active_mappings = TokenMapping.objects.filter(voting=voting_obj)
+        cur_eligible_tokens = []
+        
+        for mapping in active_mappings:
+            cur_token = mapping.token
+            cur_votes = votes_given.filter(uuid=mapping.uuid, voting=voting_obj)
+            
+            if (is_valid_token_obj(request, cur_token) and len(cur_votes) == 0):
+                cur_eligible_tokens.append(cur_token)
+            
+        eligible_tokens.append(cur_eligible_tokens)
+        
+    return zip(voting_obj_list, eligible_tokens)
+   
+# A bit double logic here, should be refactored
 def is_eligible_to_vote(request, voting_obj):
 
     if (is_valid_token(request)):
@@ -362,14 +387,16 @@ def close_voting(request, voting_id):
 @login_required
 def admin_voting_list(request):
 
-    closed_votings = Voting.objects.filter(is_open = False, is_ended = False)
-    open_votings = Voting.objects.filter(is_open = True, is_ended = False)
-    ended_votings = Voting.objects.filter(is_open = False, is_ended = True)
-    active_tokens_count = get_active_tokens(request).count()
-
+    closed_votings = Voting.objects.filter(is_open = False, is_ended = False).order_by('-id')
+    open_votings = Voting.objects.filter(is_open = True, is_ended = False).order_by('-id')
+    ended_votings = Voting.objects.filter(is_open = False, is_ended = True).order_by('-id')
+    active_tokens_count = len(get_active_tokens(request))
+    open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
+    
     return render(request, 'admin-voting-list.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
-        'active_tokens_count' : active_tokens_count
+        'active_tokens_count' : active_tokens_count,
+        'open_votings_eligible_token_counts' : open_votings_eligible_token_counts
     })

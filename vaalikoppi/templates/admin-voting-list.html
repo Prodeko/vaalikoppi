@@ -23,8 +23,8 @@
 
 
 		<!-- Avattu äänestys -->
-    {% if open_votings %}
-			{% for voting in open_votings %}
+    {% if open_votings_eligible_token_counts %}
+			{% for voting, eligible_token_count in open_votings_eligible_token_counts %}
 	        <div class="card blue-grey lighten-5">
 	          <div class="card-content grey-text center">
 	            <span class="card-title blue-grey-text text-darken-1 bold-font">Auki: {{ voting.voting_name }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
@@ -75,8 +75,8 @@
 		{% endif %}
 
 
-        <!-- Päättynyt äänestys -->
-				{% if ended_votings %}
+        <!-- Päättynyt äänestys, vanha -->
+				{% if False %}
 					{% for voting in ended_votings %}
 	        <div class="card prodeko-blue white-text center">
 	          <div class="card-content">
@@ -86,3 +86,26 @@
 	        </div>
 					{% endfor %}
 				{% endif %}
+				
+		<!-- Päättynyt äänestys -->
+			{% if ended_votings %}
+				{% for voting in ended_votings %}
+				<div class="card prodeko-blue white-text center">
+				  <div class="card-content">
+					<span class="card-title bold-font">{{ voting.voting_name }},  äänestäneitä: {{ voting.total_votes }}</span>
+				  <hr>
+				  <table style="max-width:400px; margin: 0px auto;">
+				  {% for result in voting.results %}
+					<tr>
+						<td class="bold-font" style="width:60%">{{ result.candidate_name }}</td>
+						<td style="width:20%">{{ result.vote_count }}</td>
+						<td style="width:20%">{{ result.vote_share }}&nbsp;%</td>
+					</tr>
+				  {% endfor %}
+				  </table>
+				  <hr>
+				  Tyhjiä: {{ voting.empty_votes }}<br>
+				  </div>
+				</div>
+				{% endfor %}
+			{% endif %}		

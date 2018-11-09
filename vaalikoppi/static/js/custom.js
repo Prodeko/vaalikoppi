@@ -4,6 +4,7 @@
 
 
 SITE_ROOT_PATH = '/vaalikoppi/';
+SOUND_STATE = 0;
 
 function vote(votingId) {
 
@@ -256,6 +257,11 @@ function closeVoting(votingId) {
 	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + votingId + '/close/').done(function(data) {
 		refreshVotingList(true);
 		
+		// If a sound is already playing, reveal the result with a badum-tss sound
+		if (SOUND_STATE !== 0) {
+			playSound(3);
+		}
+		
 		if (data.not_voted_tokens && data.not_voted_tokens.length > 0) {
 			alert('Äänestämättä jäivät koodit:\n' + data.not_voted_tokens.join('\n'));
 		}
@@ -305,21 +311,25 @@ function invalidateActiveTokens() {
 	});
 }
 
-function playSound(buttonEle, sound) {
+function stopAllSounds() {
+	$('.sound-track').each(function() {
+		$(this).get(0).pause();
+		$(this).get(0).currentTime = 0;
+	});
+}
+
+function playSound(trackNo) {
 	
-	var soundState = $(buttonEle).data('playing');
-	var track = 'drums';
-	if (sound == 'doubling') {
-		track = 'doubling';
-	}
-	var trackEle = $('#sound-track-' + track).get(0);
+	var tracks = ['drums', 'doubling', 'badumtss'];
+	var chosenTrack = tracks[trackNo - 1];
+	var trackEle = $('#sound-track-' + trackNo).get(0);
 	
-	if (soundState == 0) {
+	stopAllSounds();
+	
+	if (SOUND_STATE !== trackNo) {
 		trackEle.play();
-		$(buttonEle).data('playing', 1);
+		SOUND_STATE = trackNo;
 	} else {
-		trackEle.pause();
-		trackEle.currentTime = 0;
-		$(buttonEle).data('playing', 0);
+		SOUND_STATE = 0;
 	}
 }
