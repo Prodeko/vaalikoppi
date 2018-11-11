@@ -95,7 +95,8 @@ def index(request):
     
     info_dict = {
         'is_valid_token' : False,
-        'user_token' : 'EI KOODIA'
+        'user_token' : 'EI KOODIA',
+        'nocache_rand' : random.randint(10000, 99999)
     }
     
     if (is_valid_token(request)):
