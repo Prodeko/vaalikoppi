@@ -1,6 +1,5 @@
 Django==1.11
 django-pipeline
-futures
 PyMySQL
 mysqlclient
 djangorestframework

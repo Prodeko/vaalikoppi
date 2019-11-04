@@ -23,7 +23,7 @@ class Voting(models.Model):
                 return int(math.floor(result.get('sum') / self.max_votes))
             else:
                 return 0
-    
+
     def total_votes_abs(self):
         if self.is_open:
             return self.vote_set.count()
@@ -33,7 +33,7 @@ class Voting(models.Model):
                 return result.get('sum')
             else:
                 return 0
-                
+
     def results(self):
         return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
 
@@ -54,12 +54,137 @@ class Voting(models.Model):
         self.is_open = False
         self.is_ended = True
         self.save()
-        
+
+    def __str__(self):
+        return self.voting_name
+
+
+class VotingTransferable(models.Model):
+    voting_name = models.CharField(max_length=50)
+    voting_description = models.CharField(max_length=200, blank=True)
+    # no need for max_votes
+    # max_votes = models.IntegerField(default=1)
+    is_open = models.BooleanField(default=False)
+    is_ended = models.BooleanField(default=False)
+
+    def total_votes(self):
+        if self.is_open:
+            # TODO max_votes no more needed, change to match no. of cands
+            return int(self.vote_set.count() / self.max_votes)
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                # TODO same changes as 4 rows upwards
+                return int(math.floor(result.get('sum') / self.max_votes))
+            else:
+                return 0
+
+    def total_votes_abs(self):
+        if self.is_open:
+            return self.vote_set.count()
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                return result.get('sum')
+            else:
+                return 0
+
+    def results(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
+
+    def winners(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
+
+    def losers(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[self.max_votes:]
+
+    def empty_votes(self):
+        return self.votingresult_set.filter(candidate_name = 'Tyhjä')[0].vote_count
+
+    def open_voting(self):
+        self.is_open = True
+        self.save()
+
+    def close_voting(self):
+        self.is_open = False
+        self.is_ended = True
+        self.save()
+
+    def __str__(self):
+        return self.voting_name
+
+
+class VotingRoundTransferable(models.Model):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    round = models.IntegerField(default=0)
+
+    def total_votes(self):
+        if voting.is_open:
+            # TODO max_votes no more needed, change to match no. of cands
+            return int(voting.vote_set.count() / self.max_votes)
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                # TODO same changes as 4 rows upwards
+                return int(math.floor(result.get('sum') / self.max_votes))
+            else:
+                return 0
+
+    def total_votes_abs(self):
+        if self.is_open:
+            return self.vote_set.count()
+        else:
+            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            if result:
+                return result.get('sum')
+            else:
+                return 0
+
+    def results(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
+
+    def winners(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
+
+    def losers(self):
+        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[self.max_votes:]
+
+    def empty_votes(self):
+        return self.votingresult_set.filter(candidate_name = 'Tyhjä')[0].vote_count
+
+    def open_voting(self):
+        self.is_open = True
+        self.save()
+
+    def close_voting(self):
+        self.is_open = False
+        self.is_ended = True
+        self.save()
+
     def __str__(self):
         return self.voting_name
 
 
 class Candidate(models.Model):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    candidate_name = models.CharField(max_length=50)
+    empty_candidate = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.candidate_name
+
+
+class CandidateTransferable(models.Model):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    candidate_name = models.CharField(max_length=50)
+    empty_candidate = models.BooleanField(default=False)
+    has_dropped =
+
+    def __str__(self):
+        return self.candidate_name
+
+
+class CandidateTransferable(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     empty_candidate = models.BooleanField(default=False)
@@ -99,6 +224,14 @@ class TokenMapping(models.Model):
         return self.uuid
 
 
+class VoteGroupTransferable(models.Model):
+    uuid = models.CharField(max_length=200)
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+
+    def get_uuid(self):
+        return self.uuid
+
+
 class Vote(models.Model):
     uuid = models.CharField(max_length=200)
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
@@ -110,12 +243,41 @@ class Vote(models.Model):
     def get_candidate(self):
         return self.candidate
 
+
+class VoteTransferable(models.Model):
+    uuid = models.CharField(max_length=200)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    preference = models.IntegerField(default=0)
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    votegroup = models.ForeignKey(VoteGroupTransferable, on_delete=models.CASCADE)
+
+    def get_uuid(self):
+        return self.uuid
+
+    def get_candidate(self):
+        return self.candidate
+
+    def get_votegroup(self):
+        return self.votegroup
+
 # Voting results are freezed in this table AFTER the voting has ended.
 class VotingResult(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     vote_count = models.IntegerField(default=0)
-    
+
+    def vote_share(self):
+        total_votes = self.voting.total_votes_abs()
+        if (total_votes > 0):
+            return "{:.1f}".format(round(100 * self.vote_count / total_votes, 1)).replace('.', ',')
+        return "0,0"
+
+
+class VotingResultTransferable(models.Model):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    candidate_name = models.CharField(max_length=50)
+    vote_count = models.IntegerField(default=0)
+
     def vote_share(self):
         total_votes = self.voting.total_votes_abs()
         if (total_votes > 0):
