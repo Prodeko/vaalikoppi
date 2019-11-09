@@ -51,6 +51,79 @@ function vote(votingId) {
 	});
 
 }
+  
+
+function voteTransferableElection(votingId) {
+
+	var form = $('#voting-form-' + votingId);
+	var maxVotes;
+	var chosenCandidates = [];
+
+	try {
+		maxVotes = parseInt(form.attr('data-voting-max-votes'));
+	} catch (err) {
+		alert('Äänestyksen tiedot eivät ole latautuneet oikein. Päivitä sivu.');
+		return;
+	}
+
+	form.find('p').each(function() {
+		var curId = $(this).attr('value');
+		var curName = form.find('label[value=candidate-v-' + votingId + '-' + curId + ']').text();
+		var position = $(this).text()
+		chosenCandidates.push({'id' : curId, 'name' : curName, 'position': position});
+	});
+	console.log(chosenCandidates);
+
+	chosenCandidates = chosenCandidates.sort(compareChosenCandidates);
+
+	// TODO: Remove comma separators in confirmation modal
+	var confirmation = confirm('Olet äänestämässä ' + (chosenCandidates.length > 1 ? 'ehdokkaita:\n' : 'ehdokasta:\n' ) +
+	chosenCandidates.map(function(candi) {
+		if (candi.position !== "-") {
+			return candi.position + ". " + candi.name;
+		}
+		else {
+			return "";
+		}
+	}));
+
+	if (!confirmation) {
+		return;
+	}
+
+	form.find('input, button').prop('disabled', true);
+
+	var query = $.post(SITE_ROOT_PATH + 'votings/' + votingId + '/vote/',
+		{
+			candidates : chosenCandidates.map(function(candi) {
+				return candi.id;
+			})
+		}
+	).done(function(data) {
+		$('#voting-list-area').html(data);
+	}).fail(function(data) {
+		alert('Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!');
+		refreshVotingList();
+	});
+
+}
+
+// used to sort candidates by position in transferable election confirmation modal
+function compareChosenCandidates( a, b ) {
+	if (a.position.charAt(0) == '(') {
+		return -1;
+	}
+	if (b.position.charAt(0) == '(') {
+		return 1;
+	}
+	if ( a.position < b.position ){
+	  return -1;
+	}
+	if ( a.position > b.position ){
+	  return 1;
+	}
+	return 0;
+  }
 
 function refreshVotingList(admin = false) {
 
@@ -343,6 +416,9 @@ $(document).ready(function () {
 		var candidate = $(this).attr("value");
 		var votingId = $(this).parent().parent().attr("id").substr(12);
 		var candidateCount = $(this).parent().parent().find("label").length;
+		if ($('#' + candidate).text() != "-") {
+			return;
+		}
 		if (currentVotingId !== votingId) {
 			votes = new Array()
 			currentVotingId = votingId
