@@ -333,3 +333,38 @@ function playSound(trackNo) {
 		SOUND_STATE = 0;
 	}
 }
+$(document).ready(function () {
+
+	var currentVotingId = -1;
+	var votes = [];
+	var votesGiven = 0;
+
+	$(document).on ("click", ".transfer-vote-candidate", function () {
+		var candidate = $(this).attr("value");
+		var votingId = $(this).parent().parent().attr("id").substr(12);
+		var candidateCount = $(this).parent().parent().find("label").length;
+		if (currentVotingId !== votingId) {
+			votes = new Array()
+			currentVotingId = votingId
+			votesGiven = 0;
+		}
+		if (votesGiven < candidateCount) {
+			votesGiven += 1
+			$('#' + candidate).text(votesGiven);
+		}
+		else {
+
+		}
+	});
+
+	$(document).on("click", ".clear-vote", function () {
+		var votingId = $(this).parent().attr("id").substr(12);
+		$(this).parent().find("p").each(function() {
+			$(this).text('-')
+		});
+		votes = new Array();
+		votesGiven = 0;
+		currentVotingId = -1;
+	});
+
+  });
