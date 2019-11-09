@@ -178,7 +178,6 @@ class CandidateTransferable(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     empty_candidate = models.BooleanField(default=False)
-    has_dropped =
 
     def __str__(self):
         return self.candidate_name
