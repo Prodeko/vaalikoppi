@@ -163,6 +163,9 @@ input {
   padding: 0;
   text-align: left;
   font-size: 1.2rem;
+}
+
+.transfer-election .results {
   cursor: pointer;
 }
 
@@ -239,10 +242,15 @@ input {
 }
 
 .result-table {
+  max-width: 500px;
+  margin: 15px auto;
+}
+
+.transfer-election .result-table {
   grid-area: results-table;
   width: 100%;
-  margin: 0;
   border-left: solid 2px whitesmoke;
+  margin: 0;
 }
 
 .candidate {
@@ -256,9 +264,12 @@ input {
 
 .candidate .candidate-name {
   width: 70%;
-  padding-left: 20px;
   font-weight: bold;
   text-align: left;
+}
+
+.transfer-election .candidate-name {
+  padding-left: 20px;
 }
 
 .empty-votes {

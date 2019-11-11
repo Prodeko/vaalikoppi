@@ -75,24 +75,23 @@
 
 
 <!-- Päättynyt äänestys -->
-{% if testi_dataa %}
-{% for voting in testi_dataa %}
-<div class="card prodeko-blue white-text center" onclick="expandResults(this)">
+{% if ended_votings %}
+{% for voting in ended_votings %}
+{% if voting.is_transfer %}
+<div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
     <div class="card-title-container">
         <h3 class="card-title bold-font">{{ voting.voting_name }}</h3>
-        {% if voting.is_transfer and voting.results|length > 1 %}
+        {% if voting.results|length > 1 %}
         <i class="expand-results material-icons">chevron_right</i>
         {% endif %}
     </div>
     <div class="results">
         {% for result in voting.results %}
         <div class="result">
-            {% if voting.is_transfer %}
             <div class="voting-round">
                 <span class="round-number">{{ result.round }}.</span>
                 kierros
             </div>
-            {% endif %}
             <table class="result-table">
                 {% for candidate in result.candidates %}
                 <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
@@ -116,5 +115,34 @@
         Tyhjiä: {{ voting.empty_votes }}
     </div>
 </div>
+{% else %}
+<div class="card prodeko-blue white-text center">
+    <div class="card-title-container">
+        <h3 class="card-title bold-font">{{ voting.voting_name }}</h3>
+    </div>
+    <div class="results">
+        <table class="result-table">
+            {% for candidate in voting.results %}
+            <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
+                <td class="candidate-name">
+                    {{ candidate.candidate_name }}
+                    {% if candidate.dropped %}
+                        (pudonnut)
+                    {% elif candidate.elected %}
+                        (valittu)
+                    {% endif %}
+                </td>
+                <td>{{ candidate.vote_count }}</td>
+                <td>{{ candidate.vote_share }}&nbsp;%</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="empty-votes">
+        Tyhjiä: {{ voting.empty_votes }}
+    </div>
+</div>
+
+{% endif %}
 {% endfor %}
 {% endif %}
