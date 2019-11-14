@@ -52,6 +52,52 @@ function vote(votingId) {
 
 }
 
+function voteTransferable(votingId) {
+
+	var form = $('#voting-form-' + votingId);
+	var maxVotes;
+	var chosenCandidates = [];
+
+	try {
+		maxVotes = parseInt(form.attr('data-voting-max-votes'));
+	} catch (err) {
+		alert('Äänestyksen tiedot eivät ole latautuneet oikein. Päivitä sivu.');
+		return;
+	}
+
+	form.find('input[name=candidate]:checked').each(function() {
+		var curId = $(this).attr('value');
+		var curName = form.find('label[for=candidate-v-' + votingId + '-' + curId + ']').text();
+		chosenCandidates.push({'id' : curId, 'name' : curName});
+	});
+
+	var confirmation = confirm('Olet äänestämässä ' + (chosenCandidates.length > 1 ? 'ehdokkaita:\n' : 'ehdokasta:\n' ) +
+	chosenCandidates.map(function(candi) {
+		return candi.name;
+	})
+	.join(', '));
+
+	if (!confirmation) {
+		return;
+	}
+
+	form.find('input, button').prop('disabled', true);
+
+	var query = $.post(SITE_ROOT_PATH + 'votings/' + votingId + '/vote/',
+		{
+			candidates : chosenCandidates.map(function(candi) {
+				return candi.id;
+			})
+		}
+	).done(function(data) {
+		$('#voting-list-area').html(data);
+	}).fail(function(data) {
+		alert('Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!');
+		refreshVotingList();
+	});
+
+}
+
 function refreshVotingList(admin = false) {
 
 	var votingArea = $('#voting-list-area');
@@ -94,10 +140,10 @@ function invalidateToken(code, number) {
 
 	var invalidateButton = $('#invalidate-token-button-'+number);
 	var clickedState = invalidateButton.data('clicked');
-	
+
 	// Require two clicks to activate code
 	if (clickedState == '0') {
-		
+
 		invalidateButton.html('Mitätöi?');
 		invalidateButton.addClass('orange');
 		invalidateButton.removeClass('red');
@@ -127,17 +173,17 @@ function activateToken(code, number) {
 
 	var activateButton = $('#activate-token-button-'+number);
 	var clickedState = activateButton.data('clicked');
-	
+
 	// Require two clicks to activate code
 	if (clickedState == '0') {
-		
+
 		activateButton.html('Aktivoi?');
 		activateButton.addClass('orange');
 		activateButton.removeClass('green');
 		activateButton.data('clicked', '1');
 		return;
 	}
-	
+
 	var token = code;
 
 	if (token.length < 1) {
@@ -256,12 +302,12 @@ function closeVoting(votingId) {
 
 	var query = $.post(SITE_ROOT_PATH + 'admin/votings/' + votingId + '/close/').done(function(data) {
 		refreshVotingList(true);
-		
+
 		// If a sound is already playing, reveal the result with a badum-tss sound
 		if (SOUND_STATE !== 0) {
 			playSound(3);
 		}
-		
+
 		if (data.not_voted_tokens && data.not_voted_tokens.length > 0) {
 			alert('Äänestämättä jäivät koodit:\n' + data.not_voted_tokens.join('\n'));
 		}
@@ -303,7 +349,7 @@ function searchFunction() {
 }
 
 function invalidateActiveTokens() {
-	
+
 	var query = $.post(SITE_ROOT_PATH + 'admin/tokens/invalidate/all/').done(function(data) {
 		location.reload();
 	}).fail(function(data) {
@@ -319,13 +365,13 @@ function stopAllSounds() {
 }
 
 function playSound(trackNo) {
-	
+
 	var tracks = ['drums', 'doubling', 'badumtss'];
 	var chosenTrack = tracks[trackNo - 1];
 	var trackEle = $('#sound-track-' + trackNo).get(0);
-	
+
 	stopAllSounds();
-	
+
 	if (SOUND_STATE !== trackNo) {
 		trackEle.play();
 		SOUND_STATE = trackNo;

@@ -42,7 +42,7 @@ def is_valid_token_obj(request, token_obj):
         return True
 
     return False
-    
+
 def is_valid_token(request):
 
     token_obj = get_token_obj(request)
@@ -52,26 +52,26 @@ def get_active_tokens(request):
     return Usertoken.objects.filter(activated = True, invalidated = False)
 
 def get_eligible_active_tokens(request, voting_obj_list):
-    
+
     eligible_tokens = []
-    
+
     for voting_obj in voting_obj_list:
-    
+
         votes_given = Vote.objects.filter(voting=voting_obj)
         active_mappings = TokenMapping.objects.filter(voting=voting_obj)
         cur_eligible_tokens = []
-        
+
         for mapping in active_mappings:
             cur_token = mapping.token
             cur_votes = votes_given.filter(uuid=mapping.uuid, voting=voting_obj)
-            
+
             if (is_valid_token_obj(request, cur_token) and len(cur_votes) == 0):
                 cur_eligible_tokens.append(cur_token)
-            
+
         eligible_tokens.append(cur_eligible_tokens)
-        
+
     return zip(voting_obj_list, eligible_tokens)
-   
+
 # A bit double logic here, should be refactored
 def is_eligible_to_vote(request, voting_obj):
 
@@ -92,17 +92,17 @@ def is_eligible_to_vote(request, voting_obj):
     return False
 
 def index(request):
-    
+
     info_dict = {
         'is_valid_token' : False,
         'user_token' : 'EI KOODIA',
         'nocache_rand' : random.randint(10000, 99999)
     }
-    
+
     if (is_valid_token(request)):
         info_dict['is_valid_token'] = True
         info_dict['user_token'] = get_token_obj(request).token
-    
+
     return render(request, 'index.html', info_dict)
 
 def votings(request):
@@ -125,7 +125,7 @@ def votings(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-    
+
 @csrf_exempt
 def vote(request, voting_id):
 
@@ -138,6 +138,61 @@ def vote(request, voting_id):
     candidates = []
     candidates_noempty = []
     candidate_objs = []
+    empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
+
+    if request.POST.getlist('candidates[]'):
+        candidates = request.POST.getlist('candidates[]')
+    else:
+        return JsonResponse({'message':'candidates not provided'}, status=400)
+
+    candidates_noempty = [x for x in candidates if x != empty_candidate.id]
+
+    if (len(candidates_noempty) != len(set(candidates_noempty))):
+        return JsonResponse({'message':'multiple votes for same candidate'}, status=400)
+
+    empty_votes = voting_obj.max_votes - len(candidates_noempty)
+
+    for candi_id in candidates_noempty:
+
+        try:
+            candidate_obj = Candidate.objects.get(pk = candi_id, voting = voting_obj)
+            candidate_objs.append(candidate_obj)
+        except (Candidate.DoesNotExist, Candidate.MultipleObjectsReturned):
+            return JsonResponse({'message':'no such candidate for this voting'}, status=400)
+
+    for i in range(0, empty_votes):
+        candidate_objs.append(empty_candidate)
+
+    try:
+        mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
+    except (TokenMapping.DoesNotExist):
+        return JsonResponse({'message':'no uuid for token'}, status=403)
+
+    # Double-check...
+    cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+    if len(cur_votes) != 0:
+         return JsonResponse({'message':'already voted in this voting!'}, status=403)
+
+    for candidate_obj in candidate_objs:
+        Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
+
+    return votings(request)
+
+@csrf_exempt
+def vote_transferable(request, voting_id):
+    ## NEED TO CHECK THAT POSTS CORRECTLY
+    if (is_eligible_to_vote(request, voting_id) == False):
+        return JsonResponse({'message':'not allowed to vote in this voting!'}, status=403)
+
+    voting_obj = get_object_or_404(Voting, pk=voting_id)
+    token_obj = get_token_obj(request)
+
+    candidates = []
+    candidates_noempty = []
+    candidate_objs = []
+    vote_objs = []
+    votes_noempty = []
+    votes = []
     empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
     if request.POST.getlist('candidates[]'):
@@ -221,11 +276,11 @@ def user_logout(request):
 def voting_results(request):
 
     votings = VotingResult.objects.all()
-    
+
     return render(request, 'voting_results.html', {
         'votings': votings,
     })
-    
+
 @login_required
 def admin_tokens(request):
 
@@ -314,7 +369,7 @@ def invalidate_all_tokens(request):
     Usertoken.objects.all().filter(activated = True).update(invalidated = True)
 
     return JsonResponse({'message':'success'}, status=200)
-    
+
 @csrf_exempt
 @login_required
 def create_voting(request):
@@ -364,7 +419,7 @@ def close_voting(request, voting_id):
 
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     not_voted_tokens = []
-    
+
     if voting_obj.is_open == False or voting_obj.is_ended == True:
         return JsonResponse({'message':'voting is not open or has ended'}, status=403)
 
@@ -374,7 +429,7 @@ def close_voting(request, voting_id):
             return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
         if (len(cur_votes) == 0):
             not_voted_tokens.append(mapping.get_token().token)
-        
+
     voting_obj.close_voting()
     TokenMapping.objects.all().filter(voting=voting_obj).delete()
 
@@ -393,7 +448,7 @@ def admin_voting_list(request):
     ended_votings = Voting.objects.filter(is_open = False, is_ended = True).order_by('-id')
     active_tokens_count = len(get_active_tokens(request))
     open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
-    
+
     return render(request, 'admin-voting-list.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
