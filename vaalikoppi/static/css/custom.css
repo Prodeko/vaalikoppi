@@ -1,38 +1,50 @@
-html, body { height: 100%; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  border: none;
+  height: 100%;
+}
 
 body {
-    font-family: 'Raleway', sans-serif;
-    font-size: 1.2em;
-    color: #1E3553;
-    scroll-behavior: smooth;
+  font-family: "Raleway", sans-serif;
+  font-size: 1.2em;
+  color: #1e3553;
+  scroll-behavior: smooth;
 }
 
 section {
-	/*margin-top: -50px;*/
-	padding-top: 80px;
-	background-color: #fafafa;
-	min-height: 100%;
+  /*margin-top: -50px;*/
+  padding-top: 80px;
+  background-color: #fafafa;
+  min-height: 100%;
 }
 
 .invisible {
-	visibility: hidden;
+  visibility: hidden;
 }
 
 .token-input-field {
-	font-size: x-large !important;
-	font-weight: bold;
+  font-size: x-large !important;
+  font-weight: bold;
 }
 
 /* === BACKGROUND === */
 
 .bg {
-    background-image: url("background-compressed.jpg");
-    background-position: center center;
-    background-size: cover;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    position: fixed;
+  background-image: url("background-compressed.jpg");
+  background-position: center center;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  position: fixed;
 }
 
 .main-container {
@@ -79,9 +91,12 @@ section {
   margin: 10px auto 0px auto;
 }
 
+#token_div {
+  font-size: 2vh;
+}
+
 #vaalikoppi-logo {
   width: 100%;
-
 }
 
 #login-container {
@@ -118,21 +133,193 @@ input {
 }
 
 #main-login-prompt .token-input-field {
-	padding-top: 2em;
+  padding-top: 2em;
 }
 
 #main-login-prompt .loading-token-notification {
-	color: #26a69a;
+  color: #26a69a;
 }
 
 #main-login-prompt .wrong-token-warning {
-	color: red;
+  color: red;
+}
+
+/* === VOTING LISTING === */
+
+.card-title-container {
+  padding: 10px 10px 5px;
+  position: relative;
+  border-bottom: solid 1px white;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.3em !important;
+  text-align: center;
 }
 
 .results {
-  display: inline-block;
+  width: 100%;
   padding: 0;
   text-align: left;
+  font-size: 1.2rem;
+}
+
+.transfer-election .results {
+  cursor: pointer;
+}
+
+.expand-results {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 7px;
+  bottom: 0;
+  right: 10px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.expanded .expand-results {
+  transform: rotate(90deg);
+}
+
+.result {
+  display: none;
+  grid-template-columns: 15% 1fr;
+  grid-template-areas: "voting-round results-table";
+  gap: 5px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 15px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.result:first-child {
+  display: grid;
+  background: initial;
+  color: white;
+}
+
+.expanded .result {
+  display: grid;
+  border-bottom: solid 1px rgba(255, 255, 255, 0.2);
+}
+
+.expanded .result:last-child {
+  border: none;
+}
+
+.voting-round {
+  grid-area: voting-round;
+  display: grid;
+  grid-template-rows: auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-size: 0.8em;
+}
+
+.round-number {
+  height: auto;
+  font-size: 3em;
+  font-weight: bold;
+  text-align: center;
+  clear: both;
+  line-height: 1em;
+}
+
+.elected {
+  color: lightgreen;
+}
+
+.dropped {
+  color: #d6c2c2;
+  font-weight: normal;
+}
+
+.result-table {
+  max-width: 500px;
+  margin: 15px auto;
+}
+
+.transfer-election .result-table {
+  grid-area: results-table;
+  width: 100%;
+  border-left: solid 2px whitesmoke;
+  margin: 0;
+}
+
+.candidate {
+  text-align: center;
+}
+
+.candidate td {
+  width: 15%;
+  padding: 5px;
+}
+
+.candidate .candidate-name {
+  width: 70%;
+  font-weight: bold;
+  text-align: left;
+}
+
+.transfer-election .candidate-name {
+  padding-left: 20px;
+}
+
+.empty-votes {
+  padding: 10px;
+  font-size: 0.8em;
+  text-align: center;
+  width: 100%;
+  border-top: solid 1px white;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 800px) {
+  .results {
+    font-size: 0.9rem;
+    padding-bottom: 0;
+  }
+
+  .result {
+    grid-template-areas:
+      "voting-round"
+      "results-table";
+    grid-template-columns: 100%;
+    grid-auto-rows: auto;
+  }
+  .result:first {
+    font-size: 1.2em;
+  }
+  .result-table {
+    border-left: none;
+  }
+  .candidate-name {
+    padding: 0;
+  }
+  .voting-round {
+    grid-template-columns: auto auto;
+    column-gap: 5px;
+    justify-content: left;
+    font-size: inherit;
+  }
+  .voting-round * {
+    font-size: inherit;
+    text-align: left;
+    width: auto;
+    margin-left: 5px;
+    font-weight: normal;
+  }
+  .empty-votes {
+    font-size: 0.8em;
+  }
 }
 
 /* === Searchable table === */
@@ -141,35 +328,37 @@ input {
   /*  background-image: url('/css/searchicon.png'); /* Add a search icon to input */
   /*  background-position: 10px 12px; /* Position the search icon */
   /*  background-repeat: no-repeat; /* Do not repeat the icon image */
-    width: 100%; /* Full-width */
-    font-size: 16px; /* Increase font-size */
-    padding: 12px 20px 12px 40px; /* Add some padding */
-    border: 1px solid #ddd; /* Add a grey border */
-    margin-bottom: 12px; /* Add some space below the input */
+  width: 100%; /* Full-width */
+  font-size: 16px; /* Increase font-size */
+  padding: 12px 20px 12px 40px; /* Add some padding */
+  border: 1px solid #ddd; /* Add a grey border */
+  margin-bottom: 12px; /* Add some space below the input */
 }
 
 #searchTable {
-    border-collapse: collapse; /* Collapse borders */
-    width: 100%; /* Full-width */
-    border: 1px solid #ddd; /* Add a grey border */
-    font-size: 18px; /* Increase font-size */
+  border-collapse: collapse; /* Collapse borders */
+  width: 100%; /* Full-width */
+  border: 1px solid #ddd; /* Add a grey border */
+  font-size: 18px; /* Increase font-size */
 }
 
-#searchTable th, #searchTable td {
-    text-align: left; /* Left-align text */
-    padding: 12px; /* Add padding */
+#searchTable th,
+#searchTable td {
+  text-align: left; /* Left-align text */
+  padding: 12px; /* Add padding */
 }
 
 #searchTable tr {
-    /* Add a bottom border to all table rows */
-    border-bottom: 1px solid #ddd;
+  /* Add a bottom border to all table rows */
+  border-bottom: 1px solid #ddd;
 }
 
-#searchTable tr.header, #searchTable tr:hover {
-    /* Add a grey background color to the table header and on hover */
-    background-color: #f1f1f1;
+#searchTable tr.header,
+#searchTable tr:hover {
+  /* Add a grey background color to the table header and on hover */
+  background-color: #f1f1f1;
 }
 
 #searchTable button.btn {
-	width: 10em;
+  width: 10em;
 }
