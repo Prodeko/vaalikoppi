@@ -1,10 +1,9 @@
-from django.db import models
 import datetime
-import uuid
-from django.db.models import Count, Min, Sum, Avg
 import math
+import uuid
 
-# Create your models here.
+from django.db import models
+from django.db.models import Avg, Count, Min, Sum
 
 
 class Voting(models.Model):
@@ -18,33 +17,39 @@ class Voting(models.Model):
         if self.is_open:
             return int(math.floor(self.vote_set.count() / self.max_votes))
         else:
-            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            result = self.votingresult_set.aggregate(sum=Sum("vote_count"))
             if result:
-                return int(math.floor(result.get('sum') / self.max_votes))
+                return int(math.floor(result.get("sum") / self.max_votes))
             else:
                 return 0
-    
+
     def total_votes_abs(self):
         if self.is_open:
             return self.vote_set.count()
         else:
-            result = self.votingresult_set.aggregate(sum=Sum('vote_count'))
+            result = self.votingresult_set.aggregate(sum=Sum("vote_count"))
             if result:
-                return result.get('sum')
+                return result.get("sum")
             else:
                 return 0
-                
+
     def results(self):
-        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')
+        return self.votingresult_set.exclude(candidate_name="Tyhjä").order_by(
+            "-vote_count"
+        )
 
     def winners(self):
-        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[:self.max_votes]
+        return self.votingresult_set.exclude(candidate_name="Tyhjä").order_by(
+            "-vote_count"
+        )[: self.max_votes]
 
     def losers(self):
-        return self.votingresult_set.exclude(candidate_name = 'Tyhjä').order_by('-vote_count')[self.max_votes:]
+        return self.votingresult_set.exclude(candidate_name="Tyhjä").order_by(
+            "-vote_count"
+        )[self.max_votes :]
 
     def empty_votes(self):
-        return self.votingresult_set.filter(candidate_name = 'Tyhjä')[0].vote_count
+        return self.votingresult_set.filter(candidate_name="Tyhjä")[0].vote_count
 
     def open_voting(self):
         self.is_open = True
@@ -54,7 +59,7 @@ class Voting(models.Model):
         self.is_open = False
         self.is_ended = True
         self.save()
-        
+
     def __str__(self):
         return self.voting_name
 
@@ -110,14 +115,17 @@ class Vote(models.Model):
     def get_candidate(self):
         return self.candidate
 
+
 # Voting results are freezed in this table AFTER the voting has ended.
 class VotingResult(models.Model):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     vote_count = models.IntegerField(default=0)
-    
+
     def vote_share(self):
         total_votes = self.voting.total_votes_abs()
-        if (total_votes > 0):
-            return "{:.1f}".format(round(100 * self.vote_count / total_votes, 1)).replace('.', ',')
+        if total_votes > 0:
+            return "{:.1f}".format(
+                round(100 * self.vote_count / total_votes, 1)
+            ).replace(".", ",")
         return "0,0"
