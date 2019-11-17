@@ -91,6 +91,15 @@ def is_eligible_to_vote(request, voting_obj):
 
     return False
 
+def transfer_election_has_result(request, voting_obj):
+    candidates = CandidateTransferable.objects.all().filter(voting = voting_obj)
+
+    for candi in candidates:
+        if (candi.has_dropped == False and candi.chosen == False):
+            return False
+
+    return True
+
 def index(request):
 
     info_dict = {
@@ -187,6 +196,7 @@ def vote_transferable(request, voting_id):
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     token_obj = get_token_obj(request)
 
+    # check these
     candidates = []
     candidates_noempty = []
     candidate_objs = []
@@ -389,11 +399,23 @@ def add_candidate(request, voting_id):
     candidate.save()
     return JsonResponse({'message':'success'}, status=200)
 
+## TODO Check This
+
+@csrf_exempt
+@login_required
+def add_candidate_transferable(request, voting_id):
+    voting = get_object_or_404(Voting, pk=voting_id)
+    candidate_name = request.POST.get('candidate_name')
+    candidate = Candidate(voting=voting, candidate_name=candidate_name)
+    candidate.save()
+    return JsonResponse({'message':'success'}, status=200)
+
 @csrf_exempt
 @login_required
 def remove_candidate(request, candidate_id):
     Candidate.objects.filter(pk=candidate_id).delete()
     return JsonResponse({'message':'success'}, status=200)
+
 
 @csrf_exempt
 @login_required
@@ -412,6 +434,35 @@ def open_voting(request, voting_id):
     Candidate(candidate_name='Tyhjä', empty_candidate=True, voting=voting_obj).save()
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
+
+# TODO checked
+
+@csrf_exempt
+@login_required
+def close_voting_transferable(request, voting_id):
+
+    voting_obj = get_object_or_404(Voting, pk=voting_id)
+    not_voted_tokens = []
+
+    if voting_obj.is_open == False or voting_obj.is_ended == True:
+        return JsonResponse({'message':'voting is not open or has ended'}, status=403)
+
+    for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
+        cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+        if len(cur_votes) > voting_obj.max_votes:
+            return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
+        if (len(cur_votes) == 0):
+            not_voted_tokens.append(mapping.get_token().token)
+
+    voting_obj.close_voting()
+
+    quota = len(TokenMapping.objects.all().filter(voting=voting_obj))/(voting_obj.max_votes + 1) + 1
+
+    TokenMapping.objects.all().filter(voting=voting_obj).delete()
+
+    while not transfer_election_has_result(request, voting_obj):
+        #to do implement iterative LookupError
+        continue
 
 @csrf_exempt
 @login_required
