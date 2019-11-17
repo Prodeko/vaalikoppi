@@ -164,7 +164,7 @@ class Candidate(models.Model):
 
 
 class CandidateTransferable(models.Model):
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
     candidate_name = models.CharField(max_length=50)
     empty_candidate = models.BooleanField(default=False)
     has_dropped = models.BooleanField(default=False)
@@ -197,6 +197,21 @@ class TokenMapping(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+
+    def get_uuid(self):
+        return self.uuid
+
+    def get_token(self):
+        return self.token
+
+    def __str__(self):
+        return self.uuid
+
+
+class TokenMappingTransferable(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
 
     def get_uuid(self):
         return self.uuid

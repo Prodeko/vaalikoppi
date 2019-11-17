@@ -91,6 +91,25 @@ def is_eligible_to_vote(request, voting_obj):
 
     return False
 
+# A bit double logic here, should be refactored
+def is_eligible_to_vote_transferable(request, voting_obj):
+
+    if (is_valid_token(request)):
+        token_obj = get_token_obj(request)
+
+        try:
+            mapping = TokenMappingTransferable.objects.get(token=token_obj, voting=voting_obj)
+        except (TokenMappingTransferable.DoesNotExist, TokenMapping.MultipleObjectsReturned):
+            return False
+        else:
+            cur_votes = VoteGroupTransferable.objects.filter(uuid=mapping.uuid, voting=voting_obj)
+
+            # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
+            if (len(cur_votes) == 0):
+                 return True
+
+    return False
+
 def transfer_election_has_result(request, voting_obj):
     candidates = CandidateTransferable.objects.all().filter(voting = voting_obj)
 
@@ -125,6 +144,27 @@ def votings(request):
 
     for voting in Voting.objects.filter(is_open = True, is_ended = False):
         if (is_eligible_to_vote(request, voting) is True):
+            open_votings.append(voting)
+        else:
+            closed_votings.insert(0, voting)
+
+    return render(request, 'votings.html', {
+        'closed_votings': closed_votings,
+        'open_votings': open_votings,
+        'ended_votings': ended_votings,
+    })
+
+def votings_transferable(request):
+
+    if (is_valid_token(request) == False):
+        return JsonRespose('message', 'Could not return voting list due to non-eligible token.', status = 401)
+
+    closed_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = False).order_by('-id'))
+    open_votings = []
+    ended_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True).order_by('-id'))
+
+    for voting in VotingTransferable.objects.filter(is_open = True, is_ended = False):
+        if (is_eligible_to_vote_transferable(request, voting) is True):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
@@ -490,6 +530,24 @@ def admin_voting_list(request):
     closed_votings = Voting.objects.filter(is_open = False, is_ended = False).order_by('-id')
     open_votings = Voting.objects.filter(is_open = True, is_ended = False).order_by('-id')
     ended_votings = Voting.objects.filter(is_open = False, is_ended = True).order_by('-id')
+    active_tokens_count = len(get_active_tokens(request))
+    open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
+
+    return render(request, 'admin-voting-list.html', {
+        'closed_votings': closed_votings,
+        'open_votings': open_votings,
+        'ended_votings': ended_votings,
+        'active_tokens_count' : active_tokens_count,
+        'open_votings_eligible_token_counts' : open_votings_eligible_token_counts
+    })
+
+@csrf_exempt
+@login_required
+def admin_voting_list_transferable(request):
+
+    closed_votings = VotingTransferable.objects.filter(is_open = False, is_ended = False).order_by('-id')
+    open_votings = VotingTransferable.objects.filter(is_open = True, is_ended = False).order_by('-id')
+    ended_votings = VotingTransferable.objects.filter(is_open = False, is_ended = True).order_by('-id')
     active_tokens_count = len(get_active_tokens(request))
     open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
 
