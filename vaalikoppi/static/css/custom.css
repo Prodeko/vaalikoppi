@@ -26,6 +26,10 @@ section {
   min-height: 100%;
 }
 
+i {
+  cursor: pointer;
+}
+
 .invisible {
   visibility: hidden;
 }
