@@ -198,35 +198,25 @@ def vote_transferable(request, voting_id):
 
     # check these
     candidates = []
-    candidates_noempty = []
-    candidate_objs = []
+    candidate_objs = {}
     vote_objs = []
     votes_noempty = []
     votes = []
-    empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
+   # empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
     if request.POST.getlist('candidates[]'):
         candidates = request.POST.getlist('candidates[]')
     else:
         return JsonResponse({'message':'candidates not provided'}, status=400)
 
-    candidates_noempty = [x for x in candidates if x != empty_candidate.id]
-
-    if (len(candidates_noempty) != len(set(candidates_noempty))):
-        return JsonResponse({'message':'multiple votes for same candidate'}, status=400)
-
-    empty_votes = voting_obj.max_votes - len(candidates_noempty)
-
-    for candi_id in candidates_noempty:
-
+    # Candi is pair of (id, order)
+    for candi in candidates:
         try:
-            candidate_obj = Candidate.objects.get(pk = candi_id, voting = voting_obj)
-            candidate_objs.append(candidate_obj)
-        except (Candidate.DoesNotExist, Candidate.MultipleObjectsReturned):
+            candidate_obj = CandidateTransferable.objects.get(pk = candi[0], voting = voting_obj)
+            if candi[1] != '-':
+                candidate_objs[candi[1]] = candidate_obj
+        except (CandidateTransferable.DoesNotExist, CandidateTransferable.MultipleObjectsReturned):
             return JsonResponse({'message':'no such candidate for this voting'}, status=400)
-
-    for i in range(0, empty_votes):
-        candidate_objs.append(empty_candidate)
 
     try:
         mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
@@ -234,12 +224,15 @@ def vote_transferable(request, voting_id):
         return JsonResponse({'message':'no uuid for token'}, status=403)
 
     # Double-check...
-    cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+    cur_votes = VoteGroupTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
     if len(cur_votes) != 0:
          return JsonResponse({'message':'already voted in this voting!'}, status=403)
 
-    for candidate_obj in candidate_objs:
-        Vote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
+    # Create Vote group
+    vote_group = VoteGroupTransferable(uuid=mapping.uuid, voting=voting_obj, is_transferred=False).save()
+
+    for key in candidate_objs:
+        VoteTransferable(uuid=mapping.uuid, candidate=candidate_objs[key], voting=voting_obj, preference=key, votegroup=vote_group).save()
 
     return votings(request)
 

@@ -3,7 +3,7 @@
 {% for voting in open_votings %}
 
 <!-- Siirtoäänivaalitapa -->
-{% if voting.is_transfer %}
+{% if voting.is_transfer or True %}
 <div class="card blue-grey lighten-5">
     <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>

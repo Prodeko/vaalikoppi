@@ -97,9 +97,9 @@ function voteTransferableElection(votingId) {
 
   form.find("input, button").prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "votings/" + votingId + "/vote/", {
+  var query = $.post(SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/", {
     candidates: chosenCandidates.map(function(candi) {
-      return candi.id;
+      return [candi.id, candi.position];
     })
   })
     .done(function(data) {
