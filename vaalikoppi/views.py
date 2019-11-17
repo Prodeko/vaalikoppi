@@ -376,11 +376,17 @@ def invalidate_all_tokens(request):
 @csrf_exempt
 @login_required
 def create_voting(request):
+    is_transfer_election = request.POST.get('is_transfer_election')
     voting_name = request.POST.get('voting_name')
     voting_description = request.POST.get('voting_description')
     max_votes = request.POST.get('max_votes')
-    voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
-    voting_obj.save()
+
+    if is_transfer_election:
+        voting_obj = VotingTransferable(voting_name=voting_name, voting_description=voting_description)
+        voting_obj.save()
+    else:
+        voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
+        voting_obj.save()
     return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt

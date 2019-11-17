@@ -97,11 +97,14 @@ function voteTransferableElection(votingId) {
 
   form.find("input, button").prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/", {
-    candidates: chosenCandidates.map(function(candi) {
-      return [candi.id, candi.position];
-    })
-  })
+  var query = $.post(
+    SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/",
+    {
+      candidates: chosenCandidates.map(function(candi) {
+        return [candi.id, candi.position];
+      })
+    }
+  )
     .done(function(data) {
       $("#voting-list-area").html(data);
     })
@@ -304,10 +307,14 @@ function toggleLoginPrompt() {
 }
 
 function create_voting() {
-  var voting_name = $("#voting_name").val();
-  var voting_description = $("#voting_description").val();
-  var max_votes = $("#max_votes").val();
-  var query = $.post(SITE_ROOT_PATH + "admin/votings/create/", {
+  const is_transfer_election = $("#is_transfer_election").is(":checked");
+  const voting_name = $("#voting_name").val();
+  const voting_description = $("#voting_description").val();
+  const max_votes = $("#max_votes").val();
+  console.log("is_transfer_election: " + is_transfer_election);
+
+  $.post(SITE_ROOT_PATH + "admin/votings/create/", {
+    is_transfer_election: is_transfer_election,
     voting_name: voting_name,
     voting_description: voting_description,
     max_votes: max_votes
