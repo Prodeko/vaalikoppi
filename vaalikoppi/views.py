@@ -555,7 +555,7 @@ def close_voting(request, voting_id):
     for cur_candidate in voting_obj.candidates.all():
         if is_transferable:
             cur_vote_count = len(VoteTransferable.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
-            winners = results['rounds'][0]['winners']
+            winners = results['winners']
             for winner in winners:
                 winner_object = CandidateTransferable.objects.get(pk=winner)
                 winner_object.chosen = True
@@ -611,7 +611,7 @@ def calculate_stv(request, voting_id):
 
 
 def test(request):
-    inputs = calculate_stv(request, 7)
+    #inputs = calculate_stv(request, 7)
     ballots = [
             {"count": 56, "ballot": ["c1", "c2", "c3"]},
             {"count": 40, "ballot": ["c2", "c3", "c1"]},
