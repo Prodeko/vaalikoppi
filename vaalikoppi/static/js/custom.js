@@ -97,7 +97,7 @@ function voteTransferableElection(votingId) {
     "Olet äänestämässä " +
       (chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n") +
       chosenCandidates
-        .filter(candi => candi != "-")
+        .filter(candi => candi.position != "-")
         .map(candi => candi.position + ". " + candi.name)
         .join(", ")
   );
