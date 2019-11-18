@@ -32,7 +32,7 @@ from .models import *
 import json
 from collections import Counter
 
-from vaalikoppi.py3votecore.stv import *
+from py3votecore.stv import *
 
 
 def get_token_obj(request):
@@ -543,6 +543,7 @@ def create_voting(request):
 @csrf_exempt
 @login_required
 def add_candidate(request, voting_id):
+    print(request)
     if request.POST.get("is_transferable") == "true":
         voting = get_object_or_404(VotingTransferable, pk=voting_id)
         candidate_name = request.POST.get("candidate_name")
