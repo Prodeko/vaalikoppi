@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^user/login/$', views.user_login, name='user_login'),
     url(r'^votings/list/$', views.votings, name='votings'),
     url(r'^votings/(?P<voting_id>\d+)/vote/$', views.vote, name="vote"),
+    url(r'^votings/(?P<voting_id>\d+)/voteTransferable/$', views.vote_transferable, name="vote_transferable"),
     url(r'^admin/tokens/$', views.admin_tokens, name='admin_tokens'),
     url(r'^admin/tokens/generate/$', views.generate_tokens, name='admin_tokens_generate'),
     url(r'^user/logout/$', views.user_logout, name='user_logout'),
@@ -24,4 +25,5 @@ urlpatterns = [
     url(r'^admin/votings/results/$', views.voting_results, name='admin_voting_results'),
 	url(r'^admin/votings/(?P<voting_id>\d+)/open/$', views.open_voting, name='admin_open_voting'),
 	url(r'^admin/votings/(?P<voting_id>\d+)/close/$', views.close_voting, name='admin_close_voting'),
+    url(r'^test/$', views.test, name='test'),
 ]

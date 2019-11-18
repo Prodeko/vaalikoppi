@@ -7,7 +7,25 @@ class VotingForm(forms.ModelForm):
         model = Voting
         fields = ["voting_name", "voting_description", "max_votes"]
         labels = {
+<<<<<<< HEAD
             "voting_name": "Äänestyksen nimi",
             "voting_description": "Äänestyksen kuvaus",
             "max_votes": "Ääniä käytössä",
         }
+=======
+            'voting_name' : 'Äänestyksen nimi',
+            'voting_description' : 'Äänestyksen kuvaus',
+            'max_votes' : 'Ääniä käytössä',
+        }
+
+class TransferableVotingForm(forms.ModelForm):
+
+    class Meta:
+        model = TransferableVoting
+        fields = ['voting_name', 'voting_description', 'max_votes']
+        labels = {
+            'voting_name' : 'Äänestyksen nimi',
+            'voting_description' : 'Äänestyksen kuvaus',
+            'max_votes' : 'Ääniä käytössä',
+        }
+>>>>>>> origin/transfer-election

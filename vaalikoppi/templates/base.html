@@ -11,12 +11,11 @@
         <link href="{% static 'css/materialize.css' %}" rel="stylesheet">
         <link href="{% static 'css/custom.css' %}{% if nocache_rand %}?rand={{ nocache_rand }}{% endif %}" rel="stylesheet">
 
-        {# Import Google Icon Font #}
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Raleway:400,700,800" rel="stylesheet">
-        
-        {% block local_styles %}
-        {% endblock %}
+		<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+		<script type="text/javascript" src="{% static 'js/custom.js' %}{% if nocache_rand %}?rand={{ nocache_rand }}{% endif %}"></script>
+		<script type="text/javascript" src="{% static 'js/materialize.min.js' %}"></script>
+	</head>
+  <body>
 
         <script type="text/javascript" src="{% static 'js/custom.js' %}{% if nocache_rand %}?rand={{ nocache_rand }}{% endif %}"></script>
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
