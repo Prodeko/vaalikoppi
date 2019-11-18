@@ -15,13 +15,13 @@
         <div id="voting-form-{{ voting.id }}" class="voting-form-transferable" data-voting-max-votes="{{ voting.max_votes }}">
             {% csrf_token %}
             {% for candidate in voting.candidates.all %}
-            <div style="display: flex; flex-direction: row; margin-right: 2rem;">
-            <p name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</p>
-            <label value="candidate-v-{{ voting.id }}-{{ candidate.id }}" style="margin-left: 2rem;" class="waves-effect waves-red blue-grey darken-2 btn-large wide-button hoverable transfer-vote-candidate">{{ candidate.candidate_name }}</label><br>
+            <div style="display: flex; flex-direction: row;">
+                <div class="voting-order blue darken-1" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
+                <label value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-turqoise blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label><br>
             </div>
             {% endfor %}
-            <button onclick="voteTransferableElection({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
-            <button onclick="clear({{ voting.id }})" class="clear-vote btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Tyhjennä</button>
+            <button onclick="voteTransferableElection({{ voting.id }})" style="margin-top: 20px;" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+            <button onclick="clear({{ voting.id }})" class="clear-vote btn waves-effect waves-light grey white-text wide-button bold-font">Tyhjennä</button>
         </div>
         {% endif %}
     </div>

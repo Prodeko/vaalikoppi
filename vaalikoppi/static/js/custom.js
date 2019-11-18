@@ -66,7 +66,7 @@ function voteTransferableElection(votingId) {
     return;
   }
 
-  form.find("p").each(function() {
+  form.find(".voting-order").each(function() {
     var curId = $(this).attr("value");
     var curName = form
       .find("label[value=candidate-v-" + votingId + "-" + curId + "]")
@@ -82,13 +82,10 @@ function voteTransferableElection(votingId) {
   var confirmation = confirm(
     "Olet äänestämässä " +
       (chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n") +
-      chosenCandidates.map(function(candi) {
-        if (candi.position !== "-") {
-          return candi.position + ". " + candi.name;
-        } else {
-          return "";
-        }
-      })
+      chosenCandidates
+        .filter(candi => candi != "-")
+        .map(candi => candi.position + ". " + candi.name)
+        .join(", ")
   );
 
   if (!confirmation) {
@@ -97,14 +94,11 @@ function voteTransferableElection(votingId) {
 
   form.find("input, button").prop("disabled", true);
 
-  var query = $.post(
-    SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/",
-    {
-      candidates: chosenCandidates.map(function(candi) {
-        return [candi.id, candi.position];
-      })
-    }
-  )
+  $.post(SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/", {
+    candidates: chosenCandidates.map(function(candi) {
+      return [candi.id, candi.position];
+    })
+  })
     .done(function(data) {
       $("#voting-list-area").html(data);
     })
@@ -116,11 +110,11 @@ function voteTransferableElection(votingId) {
 
 // used to sort candidates by position in transferable election confirmation modal
 function compareChosenCandidates(a, b) {
-  if (a.position.charAt(0) == "(") {
-    return -1;
-  }
-  if (b.position.charAt(0) == "(") {
+  if (a.position.charAt(0) == "-") {
     return 1;
+  }
+  if (b.position.charAt(0) == "-") {
+    return -1;
   }
   if (a.position < b.position) {
     return -1;
@@ -343,10 +337,9 @@ function add_candidate(voting_id, is_transferable) {
 }
 
 function remove_candidate(candidate_id, is_transferable) {
-  $.post(
-    SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/",
-    { is_transferable: is_transferable }
-  )
+  $.post(SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/", {
+    is_transferable: is_transferable
+  })
     .done(function(data) {
       refreshVotingList(true);
     })
@@ -377,9 +370,9 @@ function closeVoting(votingId) {
 }
 
 function openVoting(votingId, is_transferable) {
-    $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/", {
-        is_transferable: is_transferable,
-    })
+  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/", {
+    is_transferable: is_transferable
+  })
     .done(function(data) {
       refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
@@ -389,7 +382,9 @@ function openVoting(votingId, is_transferable) {
 }
 
 function openVotingTransferable(votingId) {
-  var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/")
+  var query = $.post(
+    SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/"
+  )
     .done(function(data) {
       refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
@@ -460,28 +455,37 @@ $(document).ready(function() {
   var votesGiven = 0;
 
   $(document).on("click", ".transfer-vote-candidate", function() {
-    var candidate = $(this).attr("value");
-    var votingId = $(this)
-      .parent()
-      .parent()
+    const candidate = $(this).attr("value");
+    const voting = $(this).parents(".voting-form-transferable")[0];
+    const votingID = $(voting)
       .attr("id")
-      .substr(12);
-    var candidateCount = $(this)
-      .parent()
-      .parent()
-      .find("label").length;
-    if ($("#" + candidate).text() != "-") {
-      return;
-    }
-    if (currentVotingId !== votingId) {
-      votes = new Array();
-      currentVotingId = votingId;
-      votesGiven = 0;
-    }
-    if (votesGiven < candidateCount) {
-      votesGiven += 1;
-      $("#" + candidate).text(votesGiven);
+      .replace("voting-form-", "");
+    const candidateCount = $(voting).find("label").length;
+
+    if ($("#" + candidate).text() == "-") {
+      if (currentVotingId != votingID) {
+        votes = new Array();
+        currentVotingId = votingID;
+        votesGiven = 0;
+      }
+      if (votesGiven < candidateCount) {
+        votesGiven += 1;
+        $("#" + candidate).text(votesGiven);
+      }
     } else {
+      const value = parseInt($("#" + candidate).text());
+      $("#" + candidate).text("-");
+      $(voting)
+        .find(".voting-order")
+        .each(function() {
+          const rank = parseInt($(this).text());
+          if (rank > value) {
+            return $(this).text(rank - 1);
+          } else {
+            return this;
+          }
+        });
+      votesGiven -= 1;
     }
   });
 
@@ -490,9 +494,10 @@ $(document).ready(function() {
       .parent()
       .attr("id")
       .substr(12);
+
     $(this)
-      .parent()
-      .find("p")
+      .parents(".voting-form-transferable")
+      .find(".voting-order")
       .each(function() {
         $(this).text("-");
       });
