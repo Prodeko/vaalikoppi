@@ -122,7 +122,7 @@
     <div class="results">
         <table class="result-table">
             {% for candidate in voting.results %}
-            <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
+            <tr class="candidate {% if candidate.elected %}elected{% endif %} {% if candidate.dropped %}dropped{% endif %}">
                 <td class="candidate-name">
                     {{ candidate.candidate_name }}
                     {% if candidate.dropped %}
@@ -138,7 +138,7 @@
         </table>
     </div>
     <div class="empty-votes">
-        {{ voting.empty_votes }}
+        Tyhjiä: {{ voting.empty_votes }}
     </div>
 </div>
 
