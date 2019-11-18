@@ -327,27 +327,28 @@ function create_voting() {
     });
 }
 
-function add_candidate(voting_id) {
-  var form = $("#candidate_name");
+function add_candidate(voting_id, is_transferable) {
   var candidate = $("#voting-" + voting_id + "-candidate_name").val();
 
-  var query = $.post(SITE_ROOT_PATH + "admin/votings/" + voting_id + "/add/", {
+  $.post(SITE_ROOT_PATH + "admin/votings/" + voting_id + "/add/", {
+    is_transferable: is_transferable,
     candidate_name: candidate
   })
     .done(function(data) {
-      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true);
     })
     .fail(function(data) {
       alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!");
     });
 }
 
-function remove_candidate(candidate_id) {
-  var query = $.post(
-    SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/"
+function remove_candidate(candidate_id, is_transferable) {
+  $.post(
+    SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/",
+    { is_transferable: is_transferable }
   )
     .done(function(data) {
-      refreshVotingList(true);  // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true);
     })
     .fail(function(data) {
       alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!");
@@ -357,7 +358,7 @@ function remove_candidate(candidate_id) {
 function closeVoting(votingId) {
   var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/")
     .done(function(data) {
-      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true);
 
       // If a sound is already playing, reveal the result with a badum-tss sound
       if (SOUND_STATE !== 0) {
@@ -375,8 +376,10 @@ function closeVoting(votingId) {
     });
 }
 
-function openVoting(votingId) {
-  var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/")
+function openVoting(votingId, is_transferable) {
+    $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/", {
+        is_transferable: is_transferable,
+    })
     .done(function(data) {
       refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
