@@ -557,7 +557,7 @@ def close_voting(request, voting_id):
     if is_transferable:
         for round in results["rounds"]:
             for candidate in round["candidates"]:
-                result = VotingResultTransferable(voting = voting_obj, candidate_name = candidate.name, vote_count = candidate.vote_count, elected=candidate.elected, dropped=candidate.dropped).save()
+                VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], dropped=candidate["dropped"]).save()
     else:
         for cur_candidate in voting_obj.candidates.all():
             cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
@@ -573,12 +573,12 @@ def calculate_results_stv(request, voting_obj):
     counter = 1
     for round in results['rounds']:
         round["round"] = counter
-        round["tallies"]
         round['candidates'] = []
 
         for person in round['tallies']:
             obj = {}
-            obj["name"] = person
+            obj["id"] = person
+            obj["name"] = CandidateTransferable.objects.get(id=person).candidate_name
             obj["vote_count"] = round["tallies"][person]
             round['candidates'].append(obj)
             if "winners" in round and person in round['winners']:
@@ -641,7 +641,6 @@ def test(request):
     counter = 1
     for round in results['rounds']:
         round["round"] = counter
-        round["tallies"]
         round['candidates'] = []
 
         for person in round['tallies']:
@@ -651,8 +650,13 @@ def test(request):
             round['candidates'].append(obj)
             if "winners" in round and person in round['winners']:
                 obj['elected'] = True
+            else:
+                obj['elected'] = False
+
             if "loser" in round and round["loser"] == person:
                 obj['dropped'] = True
+            else:
+                obj['dropped'] = False
         round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)
 
         del round["tallies"]
