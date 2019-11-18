@@ -318,14 +318,14 @@ function toggleLoginPrompt() {
 }
 
 function create_voting() {
-  const is_transfer_election = $("#is_transfer_election").is(":checked");
+  const is_transferable = $("#is_transfer_election").is(":checked");
   const voting_name = $("#voting_name").val();
   const voting_description = $("#voting_description").val();
-  const max_votes = $("#max_votes").val();
-  console.log("is_transfer_election: " + is_transfer_election);
+  const max_votes = $("#max_votes").val() ? $("#max_votes").val() : 1;
+  console.log("is_transferable: " + is_transferable);
 
   $.post(SITE_ROOT_PATH + "admin/votings/create/", {
-    is_transfer_election: is_transfer_election,
+    is_transferable: is_transferable,
     voting_name: voting_name,
     voting_description: voting_description,
     max_votes: max_votes

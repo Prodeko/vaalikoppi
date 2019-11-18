@@ -412,23 +412,23 @@ def invalidate_all_tokens(request):
 @csrf_exempt
 @login_required
 def create_voting(request):
-    is_transfer_election = request.POST.get('is_transfer_election')
+    is_transferable = (request.POST.get('is_transferable') == "true")
     voting_name = request.POST.get('voting_name')
     voting_description = request.POST.get('voting_description')
-    max_votes = request.POST.get('max_votes')
+    max_votes = int(request.POST.get('max_votes'))
 
-    if is_transfer_election:
+    if is_transferable:
         voting_obj = VotingTransferable(voting_name=voting_name, voting_description=voting_description)
         voting_obj.save()
     else:
         voting_obj = Voting(voting_name=voting_name, voting_description=voting_description, max_votes=max_votes)
         voting_obj.save()
-    return JsonResponse({'message':'success'}, status=200)
+    return JsonResponse({'message': is_transferable }, status=200)
 
 @csrf_exempt
 @login_required
 def add_candidate(request, voting_id):
-    if request.POST.get('is_transferable'):
+    if (request.POST.get('is_transferable') == "true"):
         voting = get_object_or_404(VotingTransferable, pk=voting_id)
         candidate_name = request.POST.get('candidate_name')
         candidate = CandidateTransferable(voting=voting, candidate_name=candidate_name)
@@ -443,7 +443,7 @@ def add_candidate(request, voting_id):
 @csrf_exempt
 @login_required
 def remove_candidate(request, candidate_id):
-    if request.POST.get('is_transferable'):
+    if (request.POST.get('is_transferable') == "true"):
         get_object_or_404(CandidateTransferable, pk=candidate_id).delete()
     else:
         get_object_or_404(Candidate, pk=candidate_id).delete()
@@ -453,7 +453,7 @@ def remove_candidate(request, candidate_id):
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):
-    if request.POST.get('is_transferable'):
+    if (request.POST.get('is_transferable') == "true"):
         voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
     else:
         voting_obj = get_object_or_404(Voting, pk=voting_id)
@@ -464,7 +464,7 @@ def open_voting(request, voting_id):
 
     active_tokens = get_active_tokens(request)
 
-    if request.POST.get('is_transferable'):
+    if (request.POST.get('is_transferable') == "true"):
         for cur_token in active_tokens:
             TokenMappingTransferable(token=cur_token, voting=voting_obj).save()      
     else:
@@ -506,7 +506,7 @@ def close_voting_transferable(request, voting_id):
 @csrf_exempt
 @login_required
 def close_voting(request, voting_id):
-    is_transferable = request.POST.get('is_transferable')
+    is_transferable = (request.POST.get('is_transferable') == "true")
 
     if is_transferable:
         voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
