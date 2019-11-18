@@ -6,7 +6,7 @@
 {% if voting.is_transfer or True %}
 <div class="card blue-grey lighten-5">
     <div class="card-content grey-text center">
-        <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>
+        <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
         {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
         <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
     </div>
@@ -31,7 +31,7 @@
 {% else %}
 <div class="card blue-grey lighten-5">
     <div class="card-content grey-text center">
-        <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>
+        <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
         {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
         <p>Ääniä käytettävissä {{ voting.max_votes }} kpl.</p>
         </div>
@@ -57,7 +57,7 @@
 {% for voting in closed_votings %}
 <div class="card grey lighten-3">
     <div class="card-content blue-grey-text text-lighten-1 center">
-        <span class="card-title blue-grey-text text-lighten-1">{{ voting.voting_name }}</span>
+        <span class="card-title blue-grey-text text-lighten-1">{{ voting }}</span>
         {% if voting.voting_description %}
         <p>{{ voting.voting_description }}</p>
         {% endif %}
@@ -80,7 +80,7 @@
 {% if voting.is_transfer %}
 <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
     <div class="card-title-container">
-        <h3 class="card-title bold-font">{{ voting.voting_name }}</h3>
+        <h3 class="card-title bold-font">{{ voting }}</h3>
         {% if voting.results|length > 1 %}
         <i class="expand-results material-icons">chevron_right</i>
         {% endif %}
@@ -118,7 +118,7 @@
 {% else %}
 <div class="card prodeko-blue white-text center">
     <div class="card-title-container">
-        <h3 class="card-title bold-font">{{ voting.voting_name }}</h3>
+        <h3 class="card-title bold-font">{{ voting }}</h3>
     </div>
     <div class="results">
         <table class="result-table">

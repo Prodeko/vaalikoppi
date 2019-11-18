@@ -50,7 +50,7 @@ function vote(votingId) {
     })
     .fail(function(data) {
       alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-      refreshVotingListTransferable();
+      refreshVotingList();
     });
 }
 
@@ -110,7 +110,7 @@ function voteTransferableElection(votingId) {
     })
     .fail(function(data) {
       alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-      refreshVotingListTransferable();
+      refreshVotingList();
     });
 }
 
@@ -136,22 +136,6 @@ function refreshVotingList(admin = false) {
 
   var query = $.get(
     SITE_ROOT_PATH + (admin ? "admin/" : "") + "votings/list/",
-    function(data) {
-      votingArea.html(data);
-    }
-  ).fail(function() {
-    alert(
-      "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
-    );
-  });
-}
-
-
-function refreshVotingListTransferable(admin = false) {
-  var votingArea = $("#voting-list-area");
-
-  var query = $.get(
-    SITE_ROOT_PATH + (admin ? "admin/" : "") + "votingsTransferable/list/",
     function(data) {
       votingArea.html(data);
     }
@@ -336,7 +320,7 @@ function create_voting() {
     max_votes: max_votes
   })
     .done(function(data) {
-      refreshVotingListTransferable(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
     .fail(function(data) {
       alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!");
@@ -351,7 +335,7 @@ function add_candidate(voting_id) {
     candidate_name: candidate
   })
     .done(function(data) {
-      refreshVotingListTransferable(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
     .fail(function(data) {
       alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!");
@@ -363,7 +347,7 @@ function remove_candidate(candidate_id) {
     SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/"
   )
     .done(function(data) {
-      refreshVotingListTransferable(true);  // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true);  // TEMP CHANGED TO TRANSFERABLE VOTES
     })
     .fail(function(data) {
       alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!");
@@ -373,7 +357,7 @@ function remove_candidate(candidate_id) {
 function closeVoting(votingId) {
   var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/")
     .done(function(data) {
-      refreshVotingListTransferable(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
 
       // If a sound is already playing, reveal the result with a badum-tss sound
       if (SOUND_STATE !== 0) {
@@ -394,7 +378,7 @@ function closeVoting(votingId) {
 function openVoting(votingId) {
   var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/")
     .done(function(data) {
-      refreshVotingListTransferable(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
     .fail(function(data) {
       alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!");
