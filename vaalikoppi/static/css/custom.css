@@ -150,6 +150,19 @@ input {
 
 /* === VOTING LISTING === */
 
+.voting-order {
+    height: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    padding: 5px 15px;
+    margin-top: 12px;
+    margin-right: 20px;
+    text-align: center;
+    border-radius: 50%;
+    color: white;
+    font-weight: bold;
+}
+
 .card-title-container {
   padding: 10px 10px 5px;
   position: relative;

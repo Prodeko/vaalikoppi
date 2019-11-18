@@ -482,7 +482,7 @@ def close_voting_transferable(request, voting_id):
     for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
         cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
         if len(cur_votes) > voting_obj.max_votes:
-            return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
+            return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
         if (len(cur_votes) == 0):
             not_voted_tokens.append(mapping.get_token().token)
 
@@ -509,7 +509,7 @@ def close_voting(request, voting_id):
     for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
         cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
         if len(cur_votes) > voting_obj.max_votes:
-            return JsonResponse({'message':'security compromised - too many votes from a single voter'}, status=500)
+            return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
         if (len(cur_votes) == 0):
             not_voted_tokens.append(mapping.get_token().token)
 
