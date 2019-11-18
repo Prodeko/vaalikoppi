@@ -66,7 +66,7 @@ class VotingTransferable(models.Model):
     voting_description = models.CharField(max_length=200, blank=True)
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
-    round = models.IntegerField(default=0)
+    round = models.IntegerField(default=1)
     is_transferable = True
     max_votes = models.IntegerField(default=1)
 
@@ -80,9 +80,18 @@ class VotingTransferable(models.Model):
                 return int(math.floor(result.get('sum')))
             else:
                 return 0
-
-    def results(self):
-        return self.voting_results.exclude(candidate_name='Tyhjä').order_by('-vote_count')
+    
+    def rounds_list(self):
+        return range(1, self.round + 1)
+    
+    def grouped_results(self):
+        result = []
+        for i in self.rounds_list():
+            round_obj = {}
+            round_obj["round"] = i
+            round_obj["candidates"] = list(self.voting_results.filter(vote_rounds=i))
+            result.append(round_obj)
+        return sorted(result, key=lambda k: k["round"], reverse=True)
 
     def winners(self):
         return self.voting_results.exclude(candidate_name='Tyhjä').order_by('-vote_count')[:self.max_votes]
@@ -103,7 +112,7 @@ class VotingTransferable(models.Model):
         self.save()
 
     def __str__(self):
-        return "{} (siirtovaaliäänitapa)".format(self.voting_name)
+        return "{} (siirtoäänivaalitapa)".format(self.voting_name)
 
 
 class VotingRoundTransferable(models.Model):
