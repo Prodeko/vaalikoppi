@@ -76,22 +76,21 @@ function voteTransferableElection(votingId) {
     var position = $(this).text();
     chosenCandidates.push({ id: curId, name: curName, position: position });
   });
- // console.log(chosenCandidates);
+  // console.log(chosenCandidates);
 
   chosenCandidates = chosenCandidates.sort(compareChosenCandidates);
 
-
-  var postData = []
-  var postData2 = new Map()
+  var postData = [];
+  var postData2 = new Map();
 
   chosenCandidates.map(function(candi) {
-    postData2.set(candi.id, candi.position)
+    postData2.set(candi.id, candi.position);
   });
 
   chosenCandidates.forEach(function(candi) {
     postData.push([candi.id, candi.position]);
   });
-//  console.log(postData);
+  //  console.log(postData);
 
   // TODO: Remove comma separators in confirmation modal
   var confirmation = confirm(
@@ -341,17 +340,18 @@ function create_voting() {
 
 function add_candidate(voting_id, is_transferable) {
   var candidate = $("#voting-" + voting_id + "-candidate_name").val();
-
-  $.post(SITE_ROOT_PATH + "admin/votings/" + voting_id + "/add/", {
-    is_transferable: is_transferable,
-    candidate_name: candidate
-  })
-    .done(function(data) {
-      refreshVotingList(true);
+  if (candidate) {
+    $.post(SITE_ROOT_PATH + "admin/votings/" + voting_id + "/add/", {
+      is_transferable: is_transferable,
+      candidate_name: candidate
     })
-    .fail(function(data) {
-      alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!");
-    });
+      .done(function(data) {
+        refreshVotingList(true);
+      })
+      .fail(function(data) {
+        alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!");
+      });
+  }
 }
 
 function remove_candidate(candidate_id, is_transferable) {
@@ -367,8 +367,9 @@ function remove_candidate(candidate_id, is_transferable) {
 }
 
 function closeVoting(votingId, is_transferable) {
-  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/", 
-  { is_transferable: is_transferable })
+  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/", {
+    is_transferable: is_transferable
+  })
     .done(function(data) {
       refreshVotingList(true);
 

@@ -77,7 +77,10 @@
                 <input id="voting-{{ voting.id }}-candidate_name" name="candidate_name" type="text" required>
                 <label for="candidate_name">Ehdokkaan nimi</label>
             </div>
-            <button onclick="add_candidate({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
+            <button 
+                onclick="add_candidate({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" 
+                class="btn waves-effect waves-light wide-button"
+            >
                 Lisää<i class="material-icons right">add</i>
             </button>
             <button onclick="openVoting({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Avaa äänestys</button>
