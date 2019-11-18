@@ -121,6 +121,18 @@ USE_L10N = True
 
 USE_TZ = True
 
+<<<<<<< Updated upstream
+=======
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+)
+
+MEDIA_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static/media")
+MEDIA_URL = "/media/"
+STATIC_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static")
+STATIC_URL = "/static/"
+>>>>>>> Stashed changes
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
