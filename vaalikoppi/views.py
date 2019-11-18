@@ -81,7 +81,7 @@ def is_eligible_to_vote(request, voting_obj):
 
     if (is_valid_token(request)):
         token_obj = get_token_obj(request)
-        
+
         try:
             mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
         except (TokenMapping.DoesNotExist, TokenMapping.MultipleObjectsReturned):
@@ -145,11 +145,11 @@ def votings(request):
     closed_votings = sorted((closed_regular_votings + closed_transferable_votings), key=id, reverse=True)
 
     open_votings = []
-    
+
     ended_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = True))
     ended_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True))
     ended_votings = sorted((ended_regular_votings + ended_transferable_votings), key=id, reverse=True)
-    
+
     for voting in Voting.objects.filter(is_open = True, is_ended = False):
         if (is_eligible_to_vote(request, voting)):
             open_votings.append(voting)
@@ -166,7 +166,7 @@ def votings(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
-    
+
 
 @csrf_exempt
 def vote(request, voting_id):
@@ -260,7 +260,7 @@ def vote_transferable(request, voting_id):
         return JsonResponse({'message':'no uuid for token'}, status=403)
 
     # Double-check..
-    
+
     # !!!!!!!!!! VERY IMPORTANT TODO!!!!!!!!
 
     cur_votes = VoteGroupTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
@@ -271,7 +271,7 @@ def vote_transferable(request, voting_id):
     vote_group = VoteGroupTransferable(uuid=mapping.uuid, voting=voting_obj, is_transferred=False)
     vote_group.save()
     print(vote_group)
-    
+
     for key in candidate_objs:
         VoteTransferable(uuid=mapping.uuid, candidate=candidate_objs[key], voting=voting_obj, preference=key, votegroup=vote_group).save()
 
@@ -438,7 +438,7 @@ def add_candidate(request, voting_id):
         candidate_name = request.POST.get('candidate_name')
         candidate = CandidateTransferable(voting=voting, candidate_name=candidate_name)
         candidate.save()
-    else: 
+    else:
         voting = get_object_or_404(Voting, pk=voting_id)
         candidate_name = request.POST.get('candidate_name')
         candidate = Candidate(voting=voting, candidate_name=candidate_name)
@@ -471,7 +471,7 @@ def open_voting(request, voting_id):
 
     if (request.POST.get('is_transferable') == "true"):
         for cur_token in active_tokens:
-            TokenMappingTransferable(token=cur_token, voting=voting_obj).save()      
+            TokenMappingTransferable(token=cur_token, voting=voting_obj).save()
     else:
         for cur_token in active_tokens:
             TokenMapping(token=cur_token, voting=voting_obj).save()
@@ -519,7 +519,7 @@ def close_voting(request, voting_id):
         voting_obj = get_object_or_404(Voting, pk=voting_id)
 
     not_voted_tokens = []
-    
+
     if not voting_obj.is_open or voting_obj.is_ended:
         return JsonResponse({'message':'Voting is not open or has ended'}, status=403)
 
@@ -531,13 +531,21 @@ def close_voting(request, voting_id):
     for mapping in mappings:
         if is_transferable:
             cur_votes = VoteTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+            cur_votegroups = VoteGroupTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+            candidates = CandidateTransferable.objects.all().filter(voting=voting_obj)
+            if len(cur_votes) > len(candidates):
+                return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
+            if len(cur_votegroups) > 1:
+                return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
+            if len(cur_votegroups) == 0:
+                not_voted_tokens.append(mapping.get_token().token)
         else:
             cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
             if len(cur_votes) > voting_obj.max_votes:
                 return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
             if (len(cur_votes) == 0):
                 not_voted_tokens.append(mapping.get_token().token)
-        
+
         mapping.delete()
 
     voting_obj.close_voting()
@@ -568,7 +576,7 @@ def calculate_stv(request, voting_id):
             vote_array.append(vote.candidate)
         print(vote_array)
         ballots2.append({"orderedvotes":vote_array})
-    
+
     count_similar_ballots(ballots2)
     return HttpResponse("d")
 
@@ -600,11 +608,11 @@ def admin_voting_list(request):
     open_regular_votings = list(Voting.objects.filter(is_open = True, is_ended = False))
     open_transferable_votings = list(VotingTransferable.objects.filter(is_open = True, is_ended = False))
     open_votings = sorted((open_regular_votings + open_transferable_votings), key=id, reverse=True)
-    
+
     ended_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = True))
     ended_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True))
     ended_votings = sorted((ended_regular_votings + ended_transferable_votings), key=id, reverse=True)
-    
+
     active_tokens_count = len(get_active_tokens(request))
 
     return render(request, 'admin-voting-list.html', {
