@@ -11,10 +11,10 @@
         <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
     </div>
     <div class="card-action">
-        {% if voting.candidatetransferable_set.all %}
+        {% if voting.candidates.all %}
         <div id="voting-form-{{ voting.id }}" class="voting-form-transferable" data-voting-max-votes="{{ voting.max_votes }}">
             {% csrf_token %}
-            {% for candidate in voting.candidatetransferable_set.all %}
+            {% for candidate in voting.candidates.all %}
             <div style="display: flex; flex-direction: row; margin-right: 2rem;">
             <p name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</p>
             <label value="candidate-v-{{ voting.id }}-{{ candidate.id }}" style="margin-left: 2rem;" class="waves-effect waves-red blue-grey darken-2 btn-large wide-button hoverable transfer-vote-candidate">{{ candidate.candidate_name }}</label><br>
@@ -36,10 +36,10 @@
         <p>Ääniä käytettävissä {{ voting.max_votes }} kpl.</p>
         </div>
         <div class="card-action">
-            {% if voting.candidates.all %}
+            {% if voting.candidates.al %}
             <div id="voting-form-{{ voting.id }}" class="voting-form" data-voting-max-votes="{{ voting.max_votes }}">
                 {% csrf_token %}
-                {% for candidate in voting.candidates.all %}
+                {% for candidate in voting.candidates.al %}
                 <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="checkboxClick({{ voting.id }}, {{ candidate.id }})">
                 <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label><br>
                 {% endfor %}
@@ -63,8 +63,8 @@
         {% endif %}
     </div>
     <div class="card-action">
-        {% if voting.candidates.all %}
-        {% for candidate in voting.candidates.all %}
+        {% if voting.candidates.al %}
+        {% for candidate in voting.candidates.al %}
         <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}</a>
         {% endfor %}
         {% endif %}

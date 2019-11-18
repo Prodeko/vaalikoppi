@@ -442,25 +442,6 @@ def remove_candidate(request, candidate_id):
     return JsonResponse({'message':'success'}, status=200)
 
 
-
-@csrf_exempt
-@login_required
-def open_voting_transferable(request, voting_id):
-
-    voting_obj = get_object_or_404(Voting, pk=voting_id)
-
-    if voting_obj.is_open == True or voting_obj.is_ended == True:
-        return JsonResponse({'message':'voting is open or has ended'}, status=403)
-
-    active_tokens = get_active_tokens(request)
-
-    for cur_token in active_tokens:
-        TokenMappingTransferable(token=cur_token, voting=voting_obj).save()
-
-    voting_obj.open_voting()
-    return JsonResponse({'message':'voting opened'}, status=200)
-
-
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):
@@ -468,16 +449,20 @@ def open_voting(request, voting_id):
         voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
     else:
         voting_obj = get_object_or_404(Voting, pk=voting_id)
+        Candidate(candidate_name='Tyhjä', empty_candidate=True, voting=voting_obj).save()
 
     if voting_obj.is_open or voting_obj.is_ended:
-        return JsonResponse({'message':'voting is open or has ended'}, status=403)
+        return JsonResponse({'message':'Voting is already open or has ended'}, status=403)
 
     active_tokens = get_active_tokens(request)
 
-    for cur_token in active_tokens:
-        TokenMapping(token=cur_token, voting=voting_obj).save()
+    if request.POST.get('is_transferable'):
+        for cur_token in active_tokens:
+            TokenMappingTransferable(token=cur_token, voting=voting_obj).save()      
+    else:
+        for cur_token in active_tokens:
+            TokenMapping(token=cur_token, voting=voting_obj).save()
 
-    Candidate(candidate_name='Tyhjä', empty_candidate=True, voting=voting_obj).save()
     voting_obj.open_voting()
     return JsonResponse({'message':'voting opened'}, status=200)
 

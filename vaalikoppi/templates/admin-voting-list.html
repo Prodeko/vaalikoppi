@@ -33,11 +33,11 @@
         {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
         {% csrf_token %}
         </div>
-        <div class="card-action">
-            {% if voting.candidate_set.all %}
+        <div class="card-action center">
+            {% if voting.candidates.all %}
             <div id="voting-form-{{ voting.id }}">
                 <ul>
-                {% for candidate in voting.candidate_set.all %}
+                {% for candidate in voting.candidates.all %}
                     <li>{{ candidate.candidate_name }}</li>
                 {% endfor %}
                 </ul>

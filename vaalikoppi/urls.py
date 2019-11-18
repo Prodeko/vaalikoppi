@@ -22,6 +22,5 @@ urlpatterns = [
 	url(r'^admin/votings/list/$', views.admin_voting_list, name='admin_voting_list'),
     url(r'^admin/votings/results/$', views.voting_results, name='admin_voting_results'),
 	url(r'^admin/votings/(?P<voting_id>\d+)/open/$', views.open_voting, name='admin_open_voting'),
-    url(r'^admin/votings/(?P<voting_id>\d+)/openTransferable/$', views.open_voting, name='admin_open_voting_transferable'),
 	url(r'^admin/votings/(?P<voting_id>\d+)/close/$', views.close_voting, name='admin_close_voting'),
 ]
