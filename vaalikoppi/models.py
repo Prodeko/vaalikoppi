@@ -252,9 +252,9 @@ class VoteBatchTransferable(models.Model):
 
 class VoteTransferable(models.Model):
     uuid = models.CharField(max_length=200)
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(CandidateTransferable, on_delete=models.CASCADE)
     preference = models.IntegerField(default=0)
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
     votegroup = models.ForeignKey(
         VoteGroupTransferable, on_delete=models.CASCADE)
 

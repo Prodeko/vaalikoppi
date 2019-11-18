@@ -74,9 +74,22 @@ function voteTransferableElection(votingId) {
     var position = $(this).text();
     chosenCandidates.push({ id: curId, name: curName, position: position });
   });
-  console.log(chosenCandidates);
+ // console.log(chosenCandidates);
 
   chosenCandidates = chosenCandidates.sort(compareChosenCandidates);
+
+
+  var postData = []
+  var postData2 = new Map()
+
+  chosenCandidates.map(function(candi) {
+    postData2.set(candi.id, candi.position)
+  });
+
+  chosenCandidates.forEach(function(candi) {
+    postData.push([candi.id, candi.position]);
+  });
+//  console.log(postData);
 
   // TODO: Remove comma separators in confirmation modal
   var confirmation = confirm(
@@ -101,7 +114,7 @@ function voteTransferableElection(votingId) {
     SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/",
     {
       candidates: chosenCandidates.map(function(candi) {
-        return [candi.id, candi.position];
+        return candi.id + ":" + candi.position;
       })
     }
   )

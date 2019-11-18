@@ -214,7 +214,7 @@ def vote_transferable(request, voting_id):
     if (is_eligible_to_vote_transferable(request, voting_id) == False):
         return JsonResponse({'message':'not allowed to vote in this voting!'}, status=403)
 
-    voting_obj = get_object_or_404(Voting, pk=voting_id)
+    voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
     token_obj = get_token_obj(request)
 
     # check these
@@ -225,39 +225,40 @@ def vote_transferable(request, voting_id):
     votes = []
    # empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
-    print(request.POST.items())
-    if request.POST.getlist('candidates'):
-        candidates = request.POST.getlist('candidates')
+    print(request.POST.getlist('candidates[]'))
+    if request.POST.getlist('candidates[]'):
+        candidates = request.POST.getlist('candidates[]')
     else:
-        print("d")
         return JsonResponse({'message':'candidates not provided'}, status=400)
 
-    print("b")
-    # Candi is pair of (id, order)
+    # Candi is pair of id:order
     for candi in candidates:
         try:
-            candidate_obj = CandidateTransferable.objects.get(pk = candi[0], voting = voting_obj)
-            if candi[1] != '-':
-                candidate_objs[candi[1]] = candidate_obj
+            print(candi.split(':')[0])
+            candidate_obj = CandidateTransferable.objects.get(pk = candi.split(':')[0], voting = voting_obj)
+            if candi.split(':')[1] != '-':
+                candidate_objs[candi.split(':')[1]] = candidate_obj
         except (CandidateTransferable.DoesNotExist, CandidateTransferable.MultipleObjectsReturned):
             return JsonResponse({'message':'no such candidate for this voting'}, status=400)
 
     print("c")
-   #  try:
-   #     mapping = TokenMappingTransferable.objects.get(token=token_obj, voting=voting_obj)
-   # except (TokenMappingTransferable.DoesNotExist):
-    #    return JsonResponse({'message':'no uuid for token'}, status=403)
+    try:
+        mapping = TokenMappingTransferable.objects.get(token=token_obj, voting=voting_obj)
+    except (TokenMappingTransferable.DoesNotExist):
+        return JsonResponse({'message':'no uuid for token'}, status=403)
 
     # Double-check..
     
     # !!!!!!!!!! VERY IMPORTANT TODO!!!!!!!!
 
-   # cur_votes = VoteGroupTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
-   # if len(cur_votes) != 0:
-    #     return JsonResponse({'message':'already voted in this voting!'}, status=403)
+    cur_votes = VoteGroupTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+    if len(cur_votes) != 0:
+         return JsonResponse({'message':'already voted in this voting!'}, status=403)
 
     # Create Vote group
-    vote_group = VoteGroupTransferable(uuid=mapping.uuid, voting=voting_obj, is_transferred=False).save()
+    vote_group = VoteGroupTransferable(uuid=mapping.uuid, voting=voting_obj, is_transferred=False)
+    vote_group.save()
+    print(vote_group)
     
     for key in candidate_objs:
         VoteTransferable(uuid=mapping.uuid, candidate=candidate_objs[key], voting=voting_obj, preference=key, votegroup=vote_group).save()
