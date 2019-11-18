@@ -97,22 +97,22 @@
 <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
     <div class="card-title-container">
         <h3 class="card-title bold-font">{{ voting }}</h3>
-        {% if voting.results|length > 1 %}
+        {% if voting.grouped_results|length > 1 %}
         <i class="expand-results material-icons">chevron_right</i>
         {% endif %}
     </div>
     <div class="results">
-        {% for result in voting.results %}
+        {% for round in voting.grouped_results %}
         <div class="result">
             <div class="voting-round">
-                <span class="round-number">{{ result.round }}.</span>
+                <span class="round-number">{{ round.round }}.</span>
                 kierros
             </div>
             <table class="result-table">
-                {% for candidate in result.candidates %}
+                {% for candidate in round.candidates %}
                 <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
                     <td class="candidate-name">
-                        {{ candidate.name }}
+                        {{ candidate.candidate_name }}
                         {% if candidate.dropped %}
                             (pudonnut)
                         {% elif candidate.elected %}
@@ -120,12 +120,14 @@
                         {% endif %}
                     </td>
                     <td>{{ candidate.vote_count }}</td>
-                    <td>{{ candidate.vote_share }}&nbsp;%</td>
                 </tr>
                 {% endfor %}
             </table>
         </div>
         {% endfor %}
+    </div>
+    <div class="empty-votes">
+        Valitaan: {{ voting.winners }}
     </div>
 </div>
 {% else %}
@@ -136,7 +138,7 @@
     <div class="results">
         <table class="result-table">
             {% for candidate in voting.results %}
-            <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
+            <tr class="candidate {% if candidate.elected %}elected{% endif %} {% if candidate.dropped %}dropped{% endif %}">
                 <td class="candidate-name">
                     {{ candidate.candidate_name }}
                     {% if candidate.dropped %}
@@ -155,7 +157,6 @@
         Tyhjiä: {{ voting.empty_votes }}
     </div>
 </div>
-
 {% endif %}
 {% endfor %}
 {% endif %}

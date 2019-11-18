@@ -552,7 +552,7 @@ def close_voting(request, voting_id):
         results = calculate_results_stv(request, voting_obj)
         for round in results["rounds"]:
             for candidate in round["candidates"]:
-                VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], vote_rounds=round["round"]).save()
+                VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], dropped=candidate["dropped"], vote_rounds=round["round"]).save()
         voting_obj.round = len(results["rounds"])
         voting_obj.save()
     else:
@@ -580,19 +580,17 @@ def calculate_results_stv(request, voting_obj):
             obj["name"] = CandidateTransferable.objects.get(id=person).candidate_name
             obj["vote_count"] = round["tallies"][person]
             round['candidates'].append(obj)
+            obj['elected'] = False
+            obj['dropped'] = False
+
             if "winners" in round and person in round['winners']:
                 obj['elected'] = True
-            else:
-                obj['elected'] = False
-
             if "loser" in round:
                 if round["loser"] == person:
                     obj['dropped'] = True
                 elif len(round['tallies']) == 2:
                     obj['elected'] = True
-                    obj['dropped'] = False
-            else:
-                obj['dropped'] = False
+
         round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)
 
         del round["tallies"]
