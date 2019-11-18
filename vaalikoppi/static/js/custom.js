@@ -401,6 +401,16 @@ function openVoting(votingId) {
     });
 }
 
+function openVotingTransferable(votingId) {
+  var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/")
+    .done(function(data) {
+      refreshVotingListTransferable(true); // TEMP CHANGED TO TRANSFERABLE VOTES
+    })
+    .fail(function(data) {
+      alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!");
+    });
+}
+
 // Hakutaulukon funktioi
 
 function searchFunction() {

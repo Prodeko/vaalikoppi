@@ -3,7 +3,7 @@
 {% for voting in open_votings %}
 
 <!-- Siirtoäänivaalitapa -->
-{% if voting.is_transfer %}
+{% if voting.is_transfer or True %}
 <div class="card blue-grey lighten-5">
     <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting.voting_name }}</span>
@@ -11,16 +11,16 @@
         <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
     </div>
     <div class="card-action">
-        {% if voting.candidate_set.all %}
+        {% if voting.candidatetransferable_set.all %}
         <div id="voting-form-{{ voting.id }}" class="voting-form-transferable" data-voting-max-votes="{{ voting.max_votes }}">
             {% csrf_token %}
-            {% for candidate in voting.candidate_set.all %}
+            {% for candidate in voting.candidatetransferable_set.all %}
             <div style="display: flex; flex-direction: row; margin-right: 2rem;">
             <p name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</p>
             <label value="candidate-v-{{ voting.id }}-{{ candidate.id }}" style="margin-left: 2rem;" class="waves-effect waves-red blue-grey darken-2 btn-large wide-button hoverable transfer-vote-candidate">{{ candidate.candidate_name }}</label><br>
             </div>
             {% endfor %}
-            <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+            <button onclick="voteTransferableElection({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
             <button onclick="clear({{ voting.id }})" class="clear-vote btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Tyhjennä</button>
         </div>
         {% endif %}
