@@ -585,8 +585,11 @@ def calculate_results_stv(request, voting_obj):
             else:
                 obj['elected'] = False
 
-            if "loser" in round and round["loser"] == person:
-                obj['dropped'] = True
+            if "loser" in round:
+                if round["loser"] == person:
+                    obj['dropped'] = True
+                elif len(round['tallies']) == 2:
+                    obj['elected'] = True
             else:
                 obj['dropped'] = False
         round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)

@@ -110,6 +110,9 @@
         </div>
         {% endfor %}
     </div>
+    <div class="empty-votes">
+        Valitaan: {{ voting.winners }}
+    </div>
 </div>
 {% else %}
 <div class="card prodeko-blue white-text center">
@@ -133,6 +136,9 @@
             </tr>
             {% endfor %}
         </table>
+    </div>
+    <div class="empty-votes">
+        {{ voting.empty_votes }}
     </div>
 </div>
 

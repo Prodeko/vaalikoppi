@@ -322,7 +322,6 @@ function create_voting() {
   const voting_name = $("#voting_name").val();
   const voting_description = $("#voting_description").val();
   const max_votes = $("#max_votes").val() ? $("#max_votes").val() : 1;
-  console.log("is_transferable: " + is_transferable);
 
   $.post(SITE_ROOT_PATH + "admin/votings/create/", {
     is_transferable: is_transferable,
