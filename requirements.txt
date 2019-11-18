@@ -7,3 +7,4 @@ markdown
 django-filter
 django-audit-log
 unicodecsv
+pygraph

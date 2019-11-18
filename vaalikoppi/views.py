@@ -20,6 +20,11 @@ from django.db import connection
 from django.http import HttpResponse
 from django.http import JsonResponse
 
+import json
+from collections import Counter
+
+from vaalikoppi.py3votecore.stv import *
+
 
 def get_token_obj(request):
 
@@ -546,6 +551,43 @@ def close_voting(request, voting_id):
             VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 
     return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
+
+
+def calculate_stv(request, voting_id):
+    ballots = []
+    ballots2 = []
+
+    voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+    votegroups = VoteGroupTransferable.objects.all().filter(voting = voting_obj)
+    for vote_group in votegroups:
+        print(vote_group)
+        votes = VoteTransferable.objects.all().filter(votegroup = vote_group).order_by('preference')
+        vote_array = []
+        for vote in votes:
+            print(vote)
+            vote_array.append(vote.candidate)
+        print(vote_array)
+        ballots2.append({"orderedvotes":vote_array})
+    
+    count_similar_ballots(ballots2)
+    return HttpResponse("d")
+
+
+def count_similar_ballots(data):
+    signs = Counter(k['orderedvotes'] for k in data if k.get('orderedvotes'))
+    for item, count in signs.most_common():
+        print(sign, count)
+
+def test(request):
+    return calculate_stv(request, 7)
+    ballots = [
+            {"count": 56, "ballot": ["c1", "c2", "c3"]},
+            {"count": 40, "ballot": ["c2", "c3", "c1"]},
+            {"count": 20, "ballot": ["c3", "c1", "c2"]}
+            ]
+    results = STV(ballots, required_winners=1).as_dict()
+    print(results)
+    return render_to_response("test_stvresults.html", {'data': results})
 
 @csrf_exempt
 @login_required
