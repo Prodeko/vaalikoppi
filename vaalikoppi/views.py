@@ -548,11 +548,10 @@ def close_voting(request, voting_id):
 
         mapping.delete()
 
-    #voting_obj.close_voting()
-
-    results = calculate_results_stv(request, voting_obj)
+    voting_obj.close_voting()
 
     if is_transferable:
+        results = calculate_results_stv(request, voting_obj)
         for round in results["rounds"]:
             for candidate in round["candidates"]:
                 VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], dropped=candidate["dropped"]).save()
