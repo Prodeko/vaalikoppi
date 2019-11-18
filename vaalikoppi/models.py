@@ -14,6 +14,7 @@ class Voting(models.Model):
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
     treshold = models.FloatField(default=500.0)
+    is_transferable = False
 
     def total_votes(self):
         if self.is_open:
@@ -66,6 +67,7 @@ class VotingTransferable(models.Model):
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
     round = models.IntegerField(default=0)
+    is_transferable = True
 
     def total_votes(self):
         if self.is_open:
@@ -155,7 +157,7 @@ class VotingRoundTransferable(models.Model):
 
 
 class Candidate(models.Model):
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE, related_name='candidates')
     candidate_name = models.CharField(max_length=50)
     empty_candidate = models.BooleanField(default=False)
 
@@ -164,7 +166,7 @@ class Candidate(models.Model):
 
 
 class CandidateTransferable(models.Model):
-    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE, related_name='candidates')
     candidate_name = models.CharField(max_length=50)
     empty_candidate = models.BooleanField(default=False)
     has_dropped = models.BooleanField(default=False)
