@@ -25,8 +25,8 @@
 
 
 <!-- Avattu äänestys -->
-{% if open_votings_eligible_token_counts %}
-    {% for voting, eligible_token_count in open_votings_eligible_token_counts %}
+{% if open_votings %}
+    {% for voting in open_votings %}
     <div class="card blue-grey lighten-5">
         <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-1 bold-font">Auki: {{ voting.voting_name }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
@@ -52,10 +52,11 @@
 <!-- Avaamaton äänestys -->
 {% if closed_votings %}
     {% for voting in closed_votings %}
+    {{ voting.id }}
     <div class="card grey lighten-3">
         <div class="card-content blue-grey-text text-lighten-1 center">
             <span class="card-title blue-grey-text text-lighten-1">
-                Avaamaton: {{ voting.voting_name }}
+                Avaamaton: {{ voting }}
             </span>
             {% if voting.voting_description %}
             <p>{{ voting.voting_description }}</p>
@@ -80,18 +81,6 @@
     {% endfor %}
 {% endif %}
 
-
-<!-- Päättynyt äänestys, vanha -->
-{% if False %}
-    {% for voting in ended_votings %}
-    <div class="card prodeko-blue white-text center">
-        <div class="card-content">
-            <p>{{ voting.voting_name }}, Äänestäneitä: {{ voting.total_votes }}</p>
-            <span class="card-title bold-font"></span>
-        </div>
-    </div>
-    {% endfor %}
-{% endif %}
     
 <!-- Päättynyt äänestys -->
 {% if ended_votings %}

@@ -56,7 +56,6 @@ def get_eligible_active_tokens(request, voting_obj_list):
     eligible_tokens = []
 
     for voting_obj in voting_obj_list:
-
         votes_given = Vote.objects.filter(voting=voting_obj)
         active_mappings = TokenMapping.objects.filter(voting=voting_obj)
         cur_eligible_tokens = []
@@ -147,22 +146,6 @@ def votings(request):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
-
-    return render(request, 'votings.html', {
-        'closed_votings': closed_votings,
-        'open_votings': open_votings,
-        'ended_votings': ended_votings,
-    })
-
-def votings_transferable(request):
-
-    if (is_valid_token(request) == False):
-        return JsonRespose('message', 'Could not return voting list due to non-eligible token.', status = 401)
-
-    closed_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = False).order_by('-id'))
-    open_votings = []
-    ended_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True).order_by('-id'))
-
     for voting in VotingTransferable.objects.filter(is_open = True, is_ended = False):
         if (is_eligible_to_vote_transferable(request, voting) is True):
             open_votings.append(voting)
@@ -174,6 +157,7 @@ def votings_transferable(request):
         'open_votings': open_votings,
         'ended_votings': ended_votings,
     })
+    
 
 @csrf_exempt
 def vote(request, voting_id):
@@ -438,8 +422,6 @@ def add_candidate(request, voting_id):
     candidate.save()
     return JsonResponse({'message':'success'}, status=200)
 
-## TODO Check This
-
 @csrf_exempt
 @login_required
 def add_candidate_transferable(request, voting_id):
@@ -532,35 +514,24 @@ def close_voting(request, voting_id):
 @csrf_exempt
 @login_required
 def admin_voting_list(request):
+    # TODO: Votings are sorted by ID even though both voting types have separate running IDs
+    closed_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = False))
+    closed_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = False))
+    closed_votings = sorted((closed_regular_votings + closed_transferable_votings), key=id, reverse=True)
 
-    closed_votings = Voting.objects.filter(is_open = False, is_ended = False).order_by('-id')
-    open_votings = Voting.objects.filter(is_open = True, is_ended = False).order_by('-id')
-    ended_votings = Voting.objects.filter(is_open = False, is_ended = True).order_by('-id')
+    open_regular_votings = list(Voting.objects.filter(is_open = True, is_ended = False))
+    open_transferable_votings = list(VotingTransferable.objects.filter(is_open = True, is_ended = False))
+    open_votings = sorted((open_regular_votings + open_transferable_votings), key=id, reverse=True)
+    
+    ended_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = True))
+    ended_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True))
+    ended_votings = sorted((ended_regular_votings + ended_transferable_votings), key=id, reverse=True)
+    
     active_tokens_count = len(get_active_tokens(request))
-    open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
 
     return render(request, 'admin-voting-list.html', {
         'closed_votings': closed_votings,
         'open_votings': open_votings,
         'ended_votings': ended_votings,
-        'active_tokens_count' : active_tokens_count,
-        'open_votings_eligible_token_counts' : open_votings_eligible_token_counts
-    })
-
-@csrf_exempt
-@login_required
-def admin_voting_list_transferable(request):
-
-    closed_votings = VotingTransferable.objects.filter(is_open = False, is_ended = False).order_by('-id')
-    open_votings = VotingTransferable.objects.filter(is_open = True, is_ended = False).order_by('-id')
-    ended_votings = VotingTransferable.objects.filter(is_open = False, is_ended = True).order_by('-id')
-    active_tokens_count = len(get_active_tokens(request))
-    open_votings_eligible_token_counts = list(map(lambda x: (x[0], len(x[1])), get_eligible_active_tokens(request, open_votings)))
-
-    return render(request, 'admin-voting-list.html', {
-        'closed_votings': closed_votings,
-        'open_votings': open_votings,
-        'ended_votings': ended_votings,
-        'active_tokens_count' : active_tokens_count,
-        'open_votings_eligible_token_counts' : open_votings_eligible_token_counts
+        'active_tokens_count': active_tokens_count
     })
