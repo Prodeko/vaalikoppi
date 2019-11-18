@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from vaalikoppi import views
 
+app_name = 'vaalikoppi'
+
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^user/status/$', views.user_status, name='user_status'),

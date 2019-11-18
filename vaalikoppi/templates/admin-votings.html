@@ -2,36 +2,33 @@
 {% load static %}
 
 {% block body %}
-  <div class="bg">
-	
-	{% include 'admin-navbar.html' %}
+    <div class="bg">
+        {% include 'admin-navbar.html' %}
+        <div class="container main-container">
+            <div id="voting-sound-panel" class="card blue-grey lighten-4">
+                <audio id="sound-track-1" class="sound-track">
+                    <source src="{% static 'music/rummut.mp3' %}" type="audio/mpeg">
+                </audio>
+                <audio id="sound-track-2" class="sound-track">
+                    <source src="{% static 'music/tuplaus.mp3' %}" type="audio/mpeg">
+                </audio>
+                <audio id="sound-track-3" class="sound-track">
+                    <source src="{% static 'music/badumtss.mp3' %}" type="audio/mpeg">
+                </audio>
+                
+                <div class="card-action center">
+                    <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(1)">Rumpujen pärinää</button>
+                    <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(2)">Tuplaus</button>
+                </div>
+            </div>
+            {% include 'voting-list.html' %}
+        </div>
+    </div>
 
-	<div class="container main-container">
-		<div id="voting-sound-panel" class="card blue-grey lighten-4">
-		
-		<audio id="sound-track-1" class="sound-track">
-			<source src="{% static 'music/rummut.mp3' %}" type="audio/mpeg">
-		</audio>
-		<audio id="sound-track-2" class="sound-track">
-			<source src="{% static 'music/tuplaus.mp3' %}" type="audio/mpeg">
-		</audio>
-		<audio id="sound-track-3" class="sound-track">
-			<source src="{% static 'music/badumtss.mp3' %}" type="audio/mpeg">
-		</audio>
-		
-		<div class="card-action center">
-			<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(1)">Rumpujen pärinää</button>
-			<button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(2)">Tuplaus</button>
-		</div>
-	</div>
-		{% include 'voting-list.html' %}
-	</div>
-</div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-	refreshVotingList(true);
-});
-</script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+        refreshVotingList(true);
+    });
+    </script>
 
 {% endblock %}

@@ -2,37 +2,35 @@
 {% load static %}
 
 {% block body %}
-
-<div class="bg">
-  {% include 'admin-navbar.html' %}
-  <div class="container main-container">
-    <div class="card blue-grey lighten-5">
-      {% if votings %}
-      <table class="highlight bordered">
-        <thead>
-          <tr>
-              <th>Äänestys</th>
-              <th>Ehdokas</th>
-              <th>Äänimäärä</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for result in votings %}
-          <tr>
-            <td>{{ result.voting }}</td>
-            <td>{{ result.candidate_name }}</td>
-            <td>{{ result.vote_count }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <div class="card-content blue-grey-text text-lighten-1 center">
-        <span class="card-title blue-grey-text text-lighten-1">Ei valmistuneita äänestyksiä.</span>
-      </div>
-      {% endif %}
+    <div class="bg">
+        {% include 'admin-navbar.html' %}
+        <div class="container main-container">
+            <div class="card blue-grey lighten-5">
+                {% if votings %}
+                    <table class="highlight bordered">
+                        <thead>
+                            <tr>
+                                <th>Äänestys</th>
+                                <th>Ehdokas</th>
+                                <th>Äänimäärä</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in votings %}
+                                <tr>
+                                    <td>{{ result.voting }}</td>
+                                    <td>{{ result.candidate_name }}</td>
+                                    <td>{{ result.vote_count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="card-content blue-grey-text text-lighten-1 center">
+                        <span class="card-title blue-grey-text text-lighten-1">Ei valmistuneita äänestyksiä.</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-
 {% endblock %}
