@@ -169,12 +169,6 @@ class Candidate(models.Model):
 class CandidateTransferable(models.Model):
     voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE, related_name='candidates')
     candidate_name = models.CharField(max_length=50)
-    empty_candidate = models.BooleanField(default=False)
-    has_dropped = models.BooleanField(default=False)
-    drop_round = models.IntegerField(default=0)
-    chosen = models.BooleanField(default=False)
-    chosen_round = models.IntegerField(default=0)
-    votes = models.FloatField(default=0.0)
 
     def __str__(self):
         return self.candidate_name
@@ -299,3 +293,5 @@ class VotingResultTransferable(models.Model):
     candidate_name = models.CharField(max_length=50)
     vote_count = models.FloatField(default=0.0)
     vote_rounds = models.IntegerField(default=1)
+    elected = models.BooleanField(default=False)
+    dropped = models.BooleanField(default=False)
