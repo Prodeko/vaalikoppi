@@ -557,6 +557,12 @@ def close_voting(request, voting_id):
             cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
             VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 
+
+    if is_transferable:
+        for round in results['rounds']:
+            print(round)
+
+
     return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
 
 
@@ -603,11 +609,13 @@ def test(request):
             {"count": 40, "ballot": ["c2", "c3", "c1"]},
             {"count": 20, "ballot": ["c3", "c1", "c2"]}
             ]
-    results = STV(inputs, required_winners=1).as_dict()
-    print(results['rounds'][0]['winners']) 
-    asd = results['rounds'][0]['winners']
-    for d in asd:
-        print(d)
+    results = STV(ballots, required_winners=1).as_dict()
+    #print(results['rounds']) 
+    #asd = results['rounds'][0]['winners']
+    for round in results['rounds']:
+        print(round)
+        for d in round['tallies']:
+            print(d)
     print(results['rounds']) 
     return render_to_response("test_stvresults.html", {'data': results})
 
