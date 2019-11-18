@@ -98,9 +98,15 @@ class VotingTransferable(models.Model):
         return sorted(result, key=lambda k: k["round"], reverse=True)
 
     def winners(self):
-        return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
-            "-vote_count"
-        )[: self.max_votes]
+        result = []
+        for round in self.grouped_results():
+            result += list(
+                map(
+                    lambda y: y.candidate_name,
+                    filter(lambda x: x.elected, round["candidates"]),
+                )
+            )
+        return ", ".join(reversed(result))
 
     def losers(self):
         return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
