@@ -548,19 +548,19 @@ def close_voting(request, voting_id):
 
         mapping.delete()
 
-    voting_obj.close_voting()
-
     if is_transferable:
         results = calculate_results_stv(request, voting_obj)
         for round in results["rounds"]:
             for candidate in round["candidates"]:
-                VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], dropped=candidate["dropped"]).save()
+                VotingResultTransferable(voting = voting_obj, candidate_name = candidate["name"], vote_count = candidate["vote_count"], elected=candidate["elected"], dropped=candidate["dropped"], vote_rounds=round["round"]).save()
         voting_obj.round = len(results["rounds"])
         voting_obj.save()
     else:
         for cur_candidate in voting_obj.candidates.all():
             cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
             VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
+
+    voting_obj.close_voting()
 
     return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
 

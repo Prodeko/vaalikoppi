@@ -81,7 +81,7 @@
 <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
     <div class="card-title-container">
         <h3 class="card-title bold-font">{{ voting }}</h3>
-        {% if voting.results|length > 1 %}
+        {% if voting.grouped_results|length > 1 %}
         <i class="expand-results material-icons">chevron_right</i>
         {% endif %}
     </div>
