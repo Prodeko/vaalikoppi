@@ -205,7 +205,7 @@ class TokenMapping(models.Model):
         return self.token
 
     def __str__(self):
-        return self.uuid
+        return str(self.uuid)
 
 
 class TokenMappingTransferable(models.Model):
@@ -220,7 +220,7 @@ class TokenMappingTransferable(models.Model):
         return self.token
 
     def __str__(self):
-        return self.uuid
+        return str(self.uuid)
 
 
 class VoteGroupTransferable(models.Model):
