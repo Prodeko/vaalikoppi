@@ -79,9 +79,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
@@ -91,13 +88,6 @@ MEDIA_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static/media")
 MEDIA_URL = "/media/"
 STATIC_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static")
 STATIC_URL = "/static/"
->>>>>>> Stashed changes
-=======
-MEDIA_ROOT = "/vaalikoppi/static/media"
-MEDIA_URL = "/media/"
-STATIC_ROOT = "/vaalikoppi/static/"
-STATIC_URL = "/static/"
->>>>>>> 580b02bdb032ca701c5a27a19a186a618a8d4f5a
 
 LOGIN_URL = "/admin/"
 LOGIN_REDIRECT_URL = "/vaalikoppi/admin/"
