@@ -3,7 +3,7 @@
 {% for voting in open_votings %}
 
 <!-- Siirtoäänivaalitapa -->
-{% if voting.is_transfer or True %}
+{% if voting.is_transferable %}
 <div class="card blue-grey lighten-5">
     <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
@@ -63,8 +63,8 @@
         {% endif %}
     </div>
     <div class="card-action">
-        {% if voting.candidates.al %}
-        {% for candidate in voting.candidates.al %}
+        {% if voting.candidates.all %}
+        {% for candidate in voting.candidates.all %}
         <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}</a>
         {% endfor %}
         {% endif %}
@@ -77,7 +77,7 @@
 <!-- Päättynyt äänestys -->
 {% if ended_votings %}
 {% for voting in ended_votings %}
-{% if voting.is_transfer %}
+{% if voting.is_transferable %}
 <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
     <div class="card-title-container">
         <h3 class="card-title bold-font">{{ voting }}</h3>
@@ -111,9 +111,6 @@
         </div>
         {% endfor %}
     </div>
-    <div class="empty-votes">
-        Tyhjiä: {{ voting.empty_votes }}
-    </div>
 </div>
 {% else %}
 <div class="card prodeko-blue white-text center">
@@ -137,9 +134,6 @@
             </tr>
             {% endfor %}
         </table>
-    </div>
-    <div class="empty-votes">
-        Tyhjiä: {{ voting.empty_votes }}
     </div>
 </div>
 
