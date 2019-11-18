@@ -59,6 +59,8 @@ function voteTransferableElection(votingId) {
   var maxVotes;
   var chosenCandidates = [];
 
+  form.find("label").addClass("disabled");
+
   try {
     maxVotes = parseInt(form.attr("data-voting-max-votes"));
   } catch (err) {

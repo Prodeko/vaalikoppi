@@ -144,7 +144,7 @@ def votings(request):
         else:
             closed_votings.insert(0, voting)
     for voting in VotingTransferable.objects.filter(is_open = True, is_ended = False):
-        if (is_eligible_to_vote_transferable(request, voting) is True or True):
+        if (is_eligible_to_vote_transferable(request, voting) is True):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
