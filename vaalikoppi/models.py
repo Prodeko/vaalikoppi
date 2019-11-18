@@ -68,6 +68,7 @@ class VotingTransferable(models.Model):
     is_ended = models.BooleanField(default=False)
     round = models.IntegerField(default=0)
     is_transferable = True
+    max_votes = models.IntegerField(default=1)
 
     def total_votes(self):
         if self.is_open:
