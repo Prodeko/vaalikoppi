@@ -92,6 +92,7 @@ def is_eligible_to_vote(request, voting_obj):
 
 # A bit double logic here, should be refactored
 def is_eligible_to_vote_transferable(request, voting_obj):
+    print("a")
     if (is_valid_token(request)):
         token_obj = get_token_obj(request)
         try:
@@ -139,7 +140,6 @@ def votings(request):
     closed_votings = list(Voting.objects.filter(is_open = False, is_ended = False).order_by('-id'))
     open_votings = []
     ended_votings = list(Voting.objects.filter(is_open = False, is_ended = True).order_by('-id'))
-
     for voting in Voting.objects.filter(is_open = True, is_ended = False):
         if (is_eligible_to_vote(request, voting) is True):
             open_votings.append(voting)
