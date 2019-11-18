@@ -420,25 +420,25 @@ def create_voting(request):
 @csrf_exempt
 @login_required
 def add_candidate(request, voting_id):
-    voting = get_object_or_404(Voting, pk=voting_id)
-    candidate_name = request.POST.get('candidate_name')
-    candidate = Candidate(voting=voting, candidate_name=candidate_name)
-    candidate.save()
-    return JsonResponse({'message':'success'}, status=200)
-
-@csrf_exempt
-@login_required
-def add_candidate_transferable(request, voting_id):
-    voting = get_object_or_404(Voting, pk=voting_id)
-    candidate_name = request.POST.get('candidate_name')
-    candidate = Candidate(voting=voting, candidate_name=candidate_name)
-    candidate.save()
+    if request.POST.get('is_transferable'):
+        voting = get_object_or_404(VotingTransferable, pk=voting_id)
+        candidate_name = request.POST.get('candidate_name')
+        candidate = CandidateTransferable(voting=voting, candidate_name=candidate_name)
+        candidate.save()
+    else: 
+        voting = get_object_or_404(Voting, pk=voting_id)
+        candidate_name = request.POST.get('candidate_name')
+        candidate = Candidate(voting=voting, candidate_name=candidate_name)
+        candidate.save()
     return JsonResponse({'message':'success'}, status=200)
 
 @csrf_exempt
 @login_required
 def remove_candidate(request, candidate_id):
-    Candidate.objects.filter(pk=candidate_id).delete()
+    if request.POST.get('is_transferable'):
+        get_object_or_404(CandidateTransferable, pk=candidate_id).delete()
+    else:
+        get_object_or_404(Candidate, pk=candidate_id).delete()
     return JsonResponse({'message':'success'}, status=200)
 
 
@@ -464,10 +464,12 @@ def open_voting_transferable(request, voting_id):
 @csrf_exempt
 @login_required
 def open_voting(request, voting_id):
+    if request.POST.get('is_transferable'):
+        voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+    else:
+        voting_obj = get_object_or_404(Voting, pk=voting_id)
 
-    voting_obj = get_object_or_404(Voting, pk=voting_id)
-
-    if voting_obj.is_open == True or voting_obj.is_ended == True:
+    if voting_obj.is_open or voting_obj.is_ended:
         return JsonResponse({'message':'voting is open or has ended'}, status=403)
 
     active_tokens = get_active_tokens(request)

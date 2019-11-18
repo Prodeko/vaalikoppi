@@ -17,7 +17,7 @@
         <label for="max_votes">Äänet</label>
     </div>
     <button class="btn waves-effect waves-light wide-button" onclick="create_voting()" name="action">Luo
-        <i class="material-icons right">Send</i>
+        <i class="material-icons right">send</i>
     </button>
     </div>
 </div>
@@ -52,7 +52,6 @@
 <!-- Avaamaton äänestys -->
 {% if closed_votings %}
     {% for voting in closed_votings %}
-    {{ voting.id }}
     <div class="card grey lighten-3">
         <div class="card-content blue-grey-text text-lighten-1 center">
             <span class="card-title blue-grey-text text-lighten-1">
@@ -63,19 +62,25 @@
             {% endif %}
         </div>
         <div class="card-action">
-            {% if voting.candidate_set.all %}
-            {% for candidate in voting.candidate_set.all %}
-            <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}<a onclick ="remove_candidate({{ candidate.id }})"><i class="material-icons right">close</i></a></a>
+            {% if voting.candidates.all %}
+            {% for candidate in voting.candidates.all %}
+            <a 
+                class="blue-grey lighten-1 btn-large wide-button" 
+                onclick="remove_candidate({{ candidate.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})"
+            >
+                {{ candidate.candidate_name }}
+                <i class="material-icons right">close</i>
+            </a>
             {% endfor %}
             {% endif %}
             <div class="input-field col">
                 <input id="voting-{{ voting.id }}-candidate_name" name="candidate_name" type="text" required>
                 <label for="candidate_name">Ehdokkaan nimi</label>
             </div>
-            <button onclick="add_candidate({{ voting.id }})" class="btn waves-effect waves-light wide-button">Lisää
-            <i class="material-icons right">Add</i>
+            <button onclick="add_candidate({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
+                Lisää<i class="material-icons right">add</i>
             </button>
-            <button onclick="openVotingTransferable({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Avaa äänestys</button>
+            <button onclick="openVoting({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Avaa äänestys</button>
         </div>
     </div>
     {% endfor %}
