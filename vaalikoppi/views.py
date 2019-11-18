@@ -552,24 +552,16 @@ def close_voting(request, voting_id):
 
     results = calculate_results_stv(request, voting_obj)
 
-    for cur_candidate in voting_obj.candidates.all():
-        if is_transferable:
-            cur_vote_count = len(VoteTransferable.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
-            winners = results['rounds'][0]['winners']
-            for winner in winners:
-                winner_object = CandidateTransferable.objects.get(pk=winner)
-                winner_object.chosen = True
-                winner_object.save()
-            VotingResultTransferable(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
-        else:
-            cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
-            VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
-
+    
 
     if is_transferable:
-        for round in results['rounds']:
-            print(round)
-
+        for round in results["rounds"]:
+            for candidate in round["candidates"]:
+                result = VotingResultTransferable(voting = voting_obj, candidate_name = candidate.name, vote_count = candidate.vote_count, elected=candidate.elected, dropped=candidate.dropped).save()
+    else:
+        for cur_candidate in voting_obj.candidates.all():
+            cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
+            VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 
     return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
 
@@ -577,6 +569,33 @@ def close_voting(request, voting_id):
 def calculate_results_stv(request, voting_obj):
     inputs = calculate_stv(request, voting_obj.id)
     results = STV(inputs, required_winners=1).as_dict()
+
+    counter = 1
+    for round in results['rounds']:
+        round["round"] = counter
+        round["tallies"]
+        round['candidates'] = []
+
+        for person in round['tallies']:
+            obj = {}
+            obj["name"] = person
+            obj["vote_count"] = round["tallies"][person]
+            round['candidates'].append(obj) 
+            if "winners" in round and person in round['winners']:
+                obj['elected'] = True
+            else:
+                obj['elected'] = False
+
+            if "loser" in round and round["loser"] == person:
+                obj['dropped'] = True
+            else:
+                obj['dropped'] = False
+        round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)
+        
+        del round["tallies"]
+        if "loser" in round: del round["loser"]
+        if "winners" in round: del round["winners"]
+        counter += 1
 
     return results
 
@@ -611,20 +630,36 @@ def calculate_stv(request, voting_id):
 
 
 def test(request):
-    inputs = calculate_stv(request, 7)
+    #inputs = calculate_stv(request, 7)
     ballots = [
             {"count": 56, "ballot": ["c1", "c2", "c3"]},
             {"count": 40, "ballot": ["c2", "c3", "c1"]},
             {"count": 20, "ballot": ["c3", "c1", "c2"]}
             ]
     results = STV(ballots, required_winners=1).as_dict()
-    #print(results['rounds']) 
-    #asd = results['rounds'][0]['winners']
+    
+    counter = 1
     for round in results['rounds']:
-        print(round)
-        for d in round['tallies']:
-            print(d)
-    print(results['rounds']) 
+        round["round"] = counter
+        round["tallies"]
+        round['candidates'] = []
+
+        for person in round['tallies']:
+            obj = {}
+            obj["name"] = person
+            obj["vote_count"] = round["tallies"][person]
+            round['candidates'].append(obj) 
+            if "winners" in round and person in round['winners']:
+                obj['elected'] = True
+            if "loser" in round and round["loser"] == person:
+                obj['dropped'] = True
+        round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)
+        
+        del round["tallies"]
+        if "loser" in round: del round["loser"]
+        if "winners" in round: del round["winners"]
+        counter += 1
+
     return render_to_response("test_stvresults.html", {'data': results})
 
 @csrf_exempt
