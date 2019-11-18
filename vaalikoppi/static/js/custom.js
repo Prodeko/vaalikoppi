@@ -1,6 +1,3 @@
-// Kaikenlaisia funktioita äänestykseen
-// Tarvii jQueryn
-
 SITE_ROOT_PATH = "/vaalikoppi/";
 SOUND_STATE = 0;
 
@@ -40,7 +37,7 @@ function vote(votingId) {
 
   form.find("input, button").prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "votings/" + votingId + "/vote/", {
+  $.post(SITE_ROOT_PATH + "votings/" + votingId + "/vote/", {
     candidates: chosenCandidates.map(function(candi) {
       return candi.id;
     })
@@ -76,7 +73,6 @@ function voteTransferableElection(votingId) {
     var position = $(this).text();
     chosenCandidates.push({ id: curId, name: curName, position: position });
   });
-  // console.log(chosenCandidates);
 
   chosenCandidates = chosenCandidates.sort(compareChosenCandidates);
 
@@ -90,7 +86,6 @@ function voteTransferableElection(votingId) {
   chosenCandidates.forEach(function(candi) {
     postData.push([candi.id, candi.position]);
   });
-  //  console.log(postData);
 
   // TODO: Remove comma separators in confirmation modal
   var confirmation = confirm(
@@ -108,14 +103,11 @@ function voteTransferableElection(votingId) {
 
   form.find("input, button").prop("disabled", true);
 
-  var query = $.post(
-    SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/",
-    {
-      candidates: chosenCandidates.map(function(candi) {
-        return candi.id + ":" + candi.position;
-      })
-    }
-  )
+  $.post(SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/", {
+    candidates: chosenCandidates.map(function(candi) {
+      return candi.id + ":" + candi.position;
+    })
+  })
     .done(function(data) {
       $("#voting-list-area").html(data);
     })
@@ -145,12 +137,11 @@ function compareChosenCandidates(a, b) {
 function refreshVotingList(admin = false) {
   var votingArea = $("#voting-list-area");
 
-  var query = $.get(
-    SITE_ROOT_PATH + (admin ? "admin/" : "") + "votings/list/",
-    function(data) {
-      votingArea.html(data);
-    }
-  ).fail(function() {
+  $.get(SITE_ROOT_PATH + (admin ? "admin/" : "") + "votings/list/", function(
+    data
+  ) {
+    votingArea.html(data);
+  }).fail(function() {
     alert(
       "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
     );
@@ -171,7 +162,7 @@ function checkboxClick(votingId, candidateId) {
 function generateTokens(count) {
   $("#generate-tokens-button").prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "admin/tokens/generate/", {
+  $.post(SITE_ROOT_PATH + "admin/tokens/generate/", {
     count: count
   })
     .done(function(data) {
@@ -206,7 +197,7 @@ function invalidateToken(code, number) {
 
   invalidateButton.prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/", {
+  $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/", {
     token: token
   })
     .done(function(data) {
@@ -239,7 +230,7 @@ function activateToken(code, number) {
 
   activateButton.prop("disabled", true);
 
-  var query = $.post(SITE_ROOT_PATH + "admin/tokens/activate/", {
+  $.post(SITE_ROOT_PATH + "admin/tokens/activate/", {
     token: token
   })
     .done(function(data) {
@@ -253,7 +244,7 @@ function activateToken(code, number) {
 
 // Just for the UI. Everything is validated in the back-end...
 function checkVoterStatus(callback) {
-  var query = $.getJSON(SITE_ROOT_PATH + "user/status/")
+  $.getJSON(SITE_ROOT_PATH + "user/status/")
     .done(function(data) {
       try {
         // No token/non-active token
@@ -275,7 +266,7 @@ function checkVoterStatus(callback) {
 }
 
 function logout() {
-  var query = $.post(SITE_ROOT_PATH + "user/logout/")
+  $.post(SITE_ROOT_PATH + "user/logout/")
     .done(function(data) {
       if (data.status === 0) {
         document.cookie = "";
@@ -295,7 +286,7 @@ function submitToken() {
   notificationArea.addClass("loading-token-notification");
   notificationArea.html("Ladataan...");
 
-  var query = $.post(SITE_ROOT_PATH + "user/login/", { token: token })
+  $.post(SITE_ROOT_PATH + "user/login/", { token: token })
     .done(function(data) {
       /* toggleLoginPrompt();
 		// Below adds the token to the top bar
@@ -322,7 +313,6 @@ function create_voting() {
   const voting_name = $("#voting_name").val();
   const voting_description = $("#voting_description").val();
   const max_votes = $("#max_votes").val() ? $("#max_votes").val() : 1;
-  console.log("is_transferable: " + is_transferable);
 
   $.post(SITE_ROOT_PATH + "admin/votings/create/", {
     is_transferable: is_transferable,
@@ -402,9 +392,7 @@ function openVoting(votingId, is_transferable) {
 }
 
 function openVotingTransferable(votingId) {
-  var query = $.post(
-    SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/"
-  )
+  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/")
     .done(function(data) {
       refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
     })
@@ -437,7 +425,7 @@ function searchFunction() {
 }
 
 function invalidateActiveTokens() {
-  var query = $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/all/")
+  $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/all/")
     .done(function(data) {
       location.reload();
     })
