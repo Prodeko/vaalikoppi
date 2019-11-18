@@ -630,41 +630,9 @@ def calculate_stv(request, voting_id):
     return ballots
 
 
-def test(request):
-    #inputs = calculate_stv(request, 7)
-    ballots = [
-            {"count": 56, "ballot": ["c1", "c2", "c3"]},
-            {"count": 40, "ballot": ["c2", "c3", "c1"]},
-            {"count": 20, "ballot": ["c3", "c1", "c2"]}
-            ]
-    results = STV(ballots, required_winners=1).as_dict()
-
-    counter = 1
-    for round in results['rounds']:
-        round["round"] = counter
-        round['candidates'] = []
-
-        for person in round['tallies']:
-            obj = {}
-            obj["name"] = person
-            obj["vote_count"] = round["tallies"][person]
-            round['candidates'].append(obj)
-            if "winners" in round and person in round['winners']:
-                obj['elected'] = True
-            else:
-                obj['elected'] = False
-
-            if "loser" in round and round["loser"] == person:
-                obj['dropped'] = True
-            else:
-                obj['dropped'] = False
-        round["candidates"] = sorted(round["candidates"], key=lambda k: k['vote_count'], reverse=True)
-
-        del round["tallies"]
-        if "loser" in round: del round["loser"]
-        if "winners" in round: del round["winners"]
-        counter += 1
-
+def test(request, voting_id):
+    voting_obj = VotingTransferable.objects.get(pk=voting_id)
+    results = calculate_results_stv(request, voting_obj)
     return render_to_response("test_stvresults.html", {'data': results})
 
 @csrf_exempt
