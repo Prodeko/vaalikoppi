@@ -135,16 +135,23 @@ def votings(request):
     if (is_valid_token(request) == False):
         return JsonRespose('message', 'Could not return voting list due to non-eligible token.', status = 401)
 
-    closed_votings = list(Voting.objects.filter(is_open = False, is_ended = False).order_by('-id'))
+    closed_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = False))
+    closed_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = False))
+    closed_votings = sorted((closed_regular_votings + closed_transferable_votings), key=id, reverse=True)
+
     open_votings = []
-    ended_votings = list(Voting.objects.filter(is_open = False, is_ended = True).order_by('-id'))
+    
+    ended_regular_votings = list(Voting.objects.filter(is_open = False, is_ended = True))
+    ended_transferable_votings = list(VotingTransferable.objects.filter(is_open = False, is_ended = True))
+    ended_votings = sorted((ended_regular_votings + ended_transferable_votings), key=id, reverse=True)
+    
     for voting in Voting.objects.filter(is_open = True, is_ended = False):
-        if (is_eligible_to_vote(request, voting) is True):
+        if (is_eligible_to_vote(request, voting)):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
     for voting in VotingTransferable.objects.filter(is_open = True, is_ended = False):
-        if (is_eligible_to_vote_transferable(request, voting) is True or True):
+        if (is_eligible_to_vote_transferable(request, voting)):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
@@ -498,26 +505,44 @@ def close_voting_transferable(request, voting_id):
 @csrf_exempt
 @login_required
 def close_voting(request, voting_id):
+    is_transferable = request.POST.get('is_transferable')
 
-    voting_obj = get_object_or_404(Voting, pk=voting_id)
+    if is_transferable:
+        voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+    else:
+        voting_obj = get_object_or_404(Voting, pk=voting_id)
+
     not_voted_tokens = []
+    
+    if not voting_obj.is_open or voting_obj.is_ended:
+        return JsonResponse({'message':'Voting is not open or has ended'}, status=403)
 
-    if voting_obj.is_open == False or voting_obj.is_ended == True:
-        return JsonResponse({'message':'voting is not open or has ended'}, status=403)
+    if is_transferable:
+        mappings = TokenMappingTransferable.objects.all().filter(voting=voting_obj)
+    else:
+        mappings = TokenMapping.objects.all().filter(voting=voting_obj)
 
-    for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
-        cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
-        if len(cur_votes) > voting_obj.max_votes:
-            return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
-        if (len(cur_votes) == 0):
-            not_voted_tokens.append(mapping.get_token().token)
+    for mapping in mappings:
+        if is_transferable:
+            cur_votes = VoteTransferable.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+        else:
+            cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+            if len(cur_votes) > voting_obj.max_votes:
+                return JsonResponse({'message':'Security compromised - too many votes from a single voter'}, status=500)
+            if (len(cur_votes) == 0):
+                not_voted_tokens.append(mapping.get_token().token)
+        
+        mapping.delete()
 
     voting_obj.close_voting()
-    TokenMapping.objects.all().filter(voting=voting_obj).delete()
 
-    for cur_candidate in Candidate.objects.all().filter(voting = voting_obj):
-        cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
-        VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
+    for cur_candidate in voting_obj.candidates.all():
+        if is_transferable:
+            cur_vote_count = len(VoteTransferable.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
+            VotingResultTransferable(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
+        else:
+            cur_vote_count = len(Vote.objects.all().filter(voting = voting_obj, candidate = cur_candidate))
+            VotingResult(voting = voting_obj, candidate_name = cur_candidate.candidate_name, vote_count = cur_vote_count).save()
 
     return JsonResponse({'message':'voting closed', 'not_voted_tokens':not_voted_tokens}, status=200)
 

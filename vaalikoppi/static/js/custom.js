@@ -348,8 +348,9 @@ function remove_candidate(candidate_id, is_transferable) {
     });
 }
 
-function closeVoting(votingId) {
-  var query = $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/")
+function closeVoting(votingId, is_transferable) {
+  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/", 
+  { is_transferable: is_transferable })
     .done(function(data) {
       refreshVotingList(true);
 
