@@ -92,7 +92,6 @@ def is_eligible_to_vote(request, voting_obj):
 
 # A bit double logic here, should be refactored
 def is_eligible_to_vote_transferable(request, voting_obj):
-    print("a")
     if (is_valid_token(request)):
         token_obj = get_token_obj(request)
         try:
@@ -101,7 +100,6 @@ def is_eligible_to_vote_transferable(request, voting_obj):
             return False
         else:
             cur_votes = VoteGroupTransferable.objects.filter(uuid=mapping.uuid, voting=voting_obj)
-            print("dddddddd")
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
             if (len(cur_votes) == 0):
                  return True
@@ -212,12 +210,10 @@ def vote(request, voting_id):
 
 @csrf_exempt
 def vote_transferable(request, voting_id):
-    print("a")
     ## NEED TO CHECK THAT POSTS CORRECTLY
     if (is_eligible_to_vote_transferable(request, voting_id) == False):
         return JsonResponse({'message':'not allowed to vote in this voting!'}, status=403)
 
-    print("d")
     voting_obj = get_object_or_404(Voting, pk=voting_id)
     token_obj = get_token_obj(request)
 
@@ -229,10 +225,11 @@ def vote_transferable(request, voting_id):
     votes = []
    # empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
-    print("d")
-    if request.POST.getlist('candidates[]'):
-        candidates = request.POST.getlist('candidates[]')
+    print(request.POST.items())
+    if request.POST.getlist('candidates'):
+        candidates = request.POST.getlist('candidates')
     else:
+        print("d")
         return JsonResponse({'message':'candidates not provided'}, status=400)
 
     print("b")
@@ -246,7 +243,7 @@ def vote_transferable(request, voting_id):
             return JsonResponse({'message':'no such candidate for this voting'}, status=400)
 
     print("c")
-  #  try:
+   #  try:
    #     mapping = TokenMappingTransferable.objects.get(token=token_obj, voting=voting_obj)
    # except (TokenMappingTransferable.DoesNotExist):
     #    return JsonResponse({'message':'no uuid for token'}, status=403)
@@ -261,7 +258,7 @@ def vote_transferable(request, voting_id):
 
     # Create Vote group
     vote_group = VoteGroupTransferable(uuid=mapping.uuid, voting=voting_obj, is_transferred=False).save()
-
+    
     for key in candidate_objs:
         VoteTransferable(uuid=mapping.uuid, candidate=candidate_objs[key], voting=voting_obj, preference=key, votegroup=vote_group).save()
 

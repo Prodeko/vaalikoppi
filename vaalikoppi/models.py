@@ -225,7 +225,7 @@ class TokenMappingTransferable(models.Model):
 
 class VoteGroupTransferable(models.Model):
     uuid = models.CharField(max_length=200)
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
     is_transferred = models.BooleanField(default=False)
 
     def get_uuid(self):
