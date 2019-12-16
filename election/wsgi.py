@@ -13,6 +13,6 @@ from django.core.wsgi import get_wsgi_application
 
 root = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, root)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "election.settings")
+os.getenv("DJANGO_SETTINGS_MODULE", "election.settings.dev")
 
 application = get_wsgi_application()
