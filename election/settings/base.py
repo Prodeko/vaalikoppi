@@ -4,13 +4,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 USER_TOKEN_VAR = "cur_token"
 
-config = configparser.ConfigParser()
-config.read(os.path.join(BASE_DIR, "prodekoorg/settings/variables.txt"))
-
-SECRET_KEY = config["DJANGO"]["SECRET"]
-
-DB_USER = config["DB"]["USER"]
-DB_PSWD = config["DB"]["PASSWORD"]
+SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 INSTALLED_APPS = [
     "vaalikoppi.apps.VaalikoppiConfig",
