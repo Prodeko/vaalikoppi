@@ -27,4 +27,4 @@ jobs:
         uses: azure/webapps-deploy@v1
         with:
           app-name: vaalikoppi
-          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
