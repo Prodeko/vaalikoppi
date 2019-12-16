@@ -1,7 +1,6 @@
 Django
 django-pipeline
-PyMySQL
-mysqlclient
+psycopg2
 djangorestframework
 markdown
 django-filter
