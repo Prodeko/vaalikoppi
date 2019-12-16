@@ -1,0 +1,44 @@
+on: [push, pull_request]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+
+      # install dependencies
+      - name: Install dependencies
+        run: |
+          python3.7 -m venv venv
+          source venv/bin/activate
+          pip3.7 install setuptools
+          pip3.7 install -r requirements.txt
+
+      # Archive built app
+      - name: Archive vaalikoppi
+        run: |
+          zip -r vaalikoppi.zip .
+
+      # Azure login
+      - name: Azure login
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.PUBLISH_PROFILE }} # Define secret variable in repository settings as per action documentation
+
+      # deploy web app
+      - name: Deploy to Azure App Service
+      - uses: azure/webapps-deploy@v1
+        with:
+          app-name: vaalikoppi
+          package: "./vaalikoppi.zip"
+
+      # Add startup command in app service configuration if required
+
+      # Azure logout
+      - name: logout
+        run: |
+          az logout
