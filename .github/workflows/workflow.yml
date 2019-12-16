@@ -13,6 +13,7 @@ jobs:
       # Install dependencies
       - name: Install dependencies
         run: |
+          sudo apt install default-libmysqlclient-dev
           python3.7 -m venv venv
           source venv/bin/activate
           pip3.7 install setuptools
