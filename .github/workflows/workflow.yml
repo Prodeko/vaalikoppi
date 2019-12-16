@@ -10,7 +10,7 @@ jobs:
         with:
           python-version: 3.7
 
-      # install dependencies
+      # Install dependencies
       - name: Install dependencies
         run: |
           python3.7 -m venv venv
@@ -27,18 +27,12 @@ jobs:
       - name: Azure login
       - uses: azure/login@v1
         with:
-          creds: ${{ secrets.PUBLISH_PROFILE }} # Define secret variable in repository settings as per action documentation
+          # PUBLISH_PROFILE is defined in the repo settings
+          creds: ${{ secrets.PUBLISH_PROFILE }}
 
-      # deploy web app
+      # Deploy web app
       - name: Deploy to Azure App Service
       - uses: azure/webapps-deploy@v1
         with:
           app-name: vaalikoppi
           package: "./vaalikoppi.zip"
-
-      # Add startup command in app service configuration if required
-
-      # Azure logout
-      - name: logout
-        run: |
-          az logout
