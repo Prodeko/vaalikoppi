@@ -24,16 +24,10 @@ jobs:
         run: |
           zip -r vaalikoppi.zip .
 
-      # Azure login
-      - name: Azure login
-        uses: azure/login@v1
-        with:
-          # PUBLISH_PROFILE is defined in the repo settings
-          creds: ${{ secrets.PUBLISH_PROFILE }}
-
       # Deploy web app
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v1
         with:
           app-name: vaalikoppi
           package: "./vaalikoppi.zip"
+          publish-profile: ${{ secrets.PUBLISH_PROFILE }}
