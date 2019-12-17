@@ -1,6 +1,6 @@
 Django
 django-pipeline
-psycopg2
+psycopg2-binary
 djangorestframework
 markdown
 django-filter
