@@ -1,5 +1,6 @@
 # This workflow will build and push a Django application to
-# an Azure Web App on every push to the master branch.
+# an Azure Web App on every push to the master branch. The
+# workflow is only
 #
 # To configure this workflow:
 #
@@ -7,7 +8,7 @@
 #    with the value of your Azure publish profile.
 
 on:
-  pull_request:
+  push:
     branches:
       - master
 
