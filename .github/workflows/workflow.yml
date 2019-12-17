@@ -1,4 +1,15 @@
-on: [push]
+# This workflow will build and push a Django application to
+# an Azure Web App on every push to the master branch.
+#
+# To configure this workflow:
+#
+# 1. Set up a secret in your repository named AZURE_CREDENTIALS
+#    with the value of your Azure publish profile.
+
+on:
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build-and-deploy:
