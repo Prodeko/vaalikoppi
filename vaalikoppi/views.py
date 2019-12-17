@@ -22,7 +22,6 @@ from django.shortcuts import (
     get_object_or_404,
     redirect,
     render,
-    render_to_response,
 )
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -802,7 +801,7 @@ def calculate_stv(request, voting_id):
 def test(request, voting_id):
     voting_obj = VotingTransferable.objects.get(pk=voting_id)
     results = calculate_results_stv(request, voting_obj)
-    return render_to_response("test_stvresults.html", {"data": results})
+    return render(request, "test_stvresults.html", {"data": results})
 
 
 @csrf_exempt
@@ -845,4 +844,3 @@ def admin_voting_list(request):
             "active_tokens_count": active_tokens_count,
         },
     )
-

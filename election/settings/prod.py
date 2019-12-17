@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['vaalikoppi.azurewebsites.net', '127.0.0.1']
+ALLOWED_HOSTS = ["vaalikoppi.azurewebsites.net", "127.0.0.1"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -19,9 +19,9 @@ DATABASES = {
     }
 }
 
- 
+
 MIDDLEWARE += ("whitenoise.middleware.WhiteNoiseMiddleware",)
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")

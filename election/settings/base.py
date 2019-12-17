@@ -7,7 +7,7 @@ USER_TOKEN_VAR = "cur_token"
 SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 INSTALLED_APPS = [
-    "vaalikoppi.apps.VaalikoppiConfig",
+    "vaalikoppi",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -56,7 +56,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "fi-FI"
+LANGUAGE_CODE = "fi"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
