@@ -2,25 +2,18 @@
 
 set -e
 
-function wait_for_mysql () {
-	# Check if MySQL is up and accepting connections.
-	HOSTNAME=$(python <<EOF
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-o = urlparse('$DATABASE_URL')
-print(o.hostname)
-EOF
-)
-	until mysqladmin ping --host "$HOSTNAME" --silent; do
-		>&2 echo "MySQL is unavailable - sleeping"
-		sleep 1
-	done
-	>&2 echo "MySQL is up - continuing"
+timer="2"
+
+function wait_for_psql () {
+    until pg_isready --username=vaalikoppi --host=db 2>/dev/null; do
+    >&2 echo "Postgres is unavailable - sleeping for $timer seconds"
+    sleep $timer
+    done
+
+    >&2 echo "Postgres is up - executing command"
 }
 
-wait_for_mysql
+wait_for_psql
 
 # Create and run migrations
 echo "Creating migrations..."
