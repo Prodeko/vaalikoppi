@@ -4,7 +4,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Install Python and Package Libraries
 RUN apt-get update && \
-    apt-get install -y mysql-client gettext
+    apt-get install -y postgresql-client gettext
 
 RUN apt-get update && apt-get install -y dos2unix
 

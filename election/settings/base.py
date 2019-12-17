@@ -4,15 +4,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 USER_TOKEN_VAR = "cur_token"
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "wavy&g8u^zge&8!_$%vz5g@&y-wi%&yrzvzlz33pv&+t(svrmr"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = []
+SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 INSTALLED_APPS = [
-    "vaalikoppi.apps.VaalikoppiConfig",
+    "vaalikoppi",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -52,18 +47,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "election.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "vaalikoppi",
-        "USER": "vaalikoppi",
-        "PASSWORD": "secret",
-        "HOST": "db",
-        "PORT": "",
-        "ATOMIC_REQUESTS": True,
-    }
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
@@ -73,7 +56,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "fi"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True

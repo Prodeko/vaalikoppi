@@ -22,7 +22,6 @@ from django.shortcuts import (
     get_object_or_404,
     redirect,
     render,
-    render_to_response,
 )
 from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
@@ -135,7 +134,6 @@ def is_eligible_to_vote_transferable(request, voting_obj):
             if len(cur_votes) == 0:
                 return True
 
-    print("ssssss")
     return False
 
 
@@ -291,7 +289,6 @@ def vote_transferable(request, voting_id):
     votes = []
     # empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
-    print(request.POST.getlist("candidates[]"))
     if request.POST.getlist("candidates[]"):
         candidates = request.POST.getlist("candidates[]")
     else:
@@ -300,7 +297,6 @@ def vote_transferable(request, voting_id):
     # Candi is pair of id:order
     for candi in candidates:
         try:
-            print(candi.split(":")[0])
             candidate_obj = CandidateTransferable.objects.get(
                 pk=candi.split(":")[0], voting=voting_obj
             )
@@ -314,7 +310,6 @@ def vote_transferable(request, voting_id):
                 {"message": "no such candidate for this voting"}, status=400
             )
 
-    print("c")
     try:
         mapping = TokenMappingTransferable.objects.get(
             token=token_obj, voting=voting_obj
@@ -337,7 +332,6 @@ def vote_transferable(request, voting_id):
         uuid=mapping.uuid, voting=voting_obj, is_transferred=False
     )
     vote_group.save()
-    print(vote_group)
 
     for key in candidate_objs:
         VoteTransferable(
@@ -543,7 +537,6 @@ def create_voting(request):
 @csrf_exempt
 @login_required
 def add_candidate(request, voting_id):
-    print(request)
     if request.POST.get("is_transferable") == "true":
         voting = get_object_or_404(VotingTransferable, pk=voting_id)
         candidate_name = request.POST.get("candidate_name")
@@ -794,7 +787,6 @@ def calculate_stv(request, voting_id):
 
     for key, value in keysdict.items():
         ballots.append({"count": countdict[key], "ballot": value})
-    # print(ballots)
 
     return ballots
 
@@ -802,7 +794,7 @@ def calculate_stv(request, voting_id):
 def test(request, voting_id):
     voting_obj = VotingTransferable.objects.get(pk=voting_id)
     results = calculate_results_stv(request, voting_obj)
-    return render_to_response("test_stvresults.html", {"data": results})
+    return render(request, "test_stvresults.html", {"data": results})
 
 
 @csrf_exempt
@@ -845,4 +837,3 @@ def admin_voting_list(request):
             "active_tokens_count": active_tokens_count,
         },
     )
-

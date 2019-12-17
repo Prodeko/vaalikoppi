@@ -1,11 +1,4 @@
 Django
-django-pipeline
-PyMySQL
-mysqlclient
-djangorestframework
-markdown
-django-filter
-django-audit-log
-unicodecsv
-pygraph
+psycopg2-binary
 python3-vote-core
+whitenoise
