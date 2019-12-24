@@ -17,8 +17,8 @@ DATABASES = {
         "PORT": "5432",
         "ATOMIC_REQUESTS": True,
         "OPTIONS": {
-            "sslmode": "require",
-            "ca": os.environ.get("POSTGRESQL_SSL_CA", "")
+            "sslmode": "verify-ca",
+            "sslrootcert": os.environ.get("POSTGRESQL_SSL_CA", "")
         }
     }
 }
