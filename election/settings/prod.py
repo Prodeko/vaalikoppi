@@ -16,9 +16,10 @@ DATABASES = {
         "HOST": "prodeko-postgres.postgres.database.azure.com",
         "PORT": "5432",
         "ATOMIC_REQUESTS": True,
-        'OPTIONS': {
-            'ssl': {'ssl-ca': os.environ.get('POSTGRESQL_SSL_CA', '')}
-        },
+        "OPTIONS": {
+            "sslmode": "require",
+            "ca": os.environ.get("POSTGRESQL_SSL_CA", "")
+        }
     }
 }
 
