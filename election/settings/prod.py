@@ -18,8 +18,8 @@ DATABASES = {
         "ATOMIC_REQUESTS": True,
         "OPTIONS": {
             "sslmode": "verify-ca",
-            "sslrootcert": os.environ.get("POSTGRESQL_SSL_CA", "")
-        }
+            "sslrootcert": os.environ.get("POSTGRESQL_SSL_CA", ""),
+        },
     }
 }
 
@@ -29,3 +29,18 @@ MIDDLEWARE += ("whitenoise.middleware.WhiteNoiseMiddleware",)
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {"require_debug_false": {"()": "django.utils.log.RequireDebugFalse"}},
+    "handlers": {
+        "logfile": {
+            "class": "logging.handlers.WatchedFileHandler",
+            "filename": "D:\home\site\wwwroot\vaalikoppi.log",
+        }
+    },
+    "loggers": {
+        "django": {"handlers": ["logfile"], "level": "ERROR", "propagate": False,}
+    },
+}
