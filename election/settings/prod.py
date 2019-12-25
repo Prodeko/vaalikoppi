@@ -37,7 +37,7 @@ LOGGING = {
     "handlers": {
         "logfile": {
             "class": "logging.handlers.WatchedFileHandler",
-            "filename": "D:\home\site\wwwroot\vaalikoppi.log",
+            "filename": "/home/LogFiles/vaalikoppi.log",
         }
     },
     "loggers": {
