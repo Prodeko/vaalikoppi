@@ -2,7 +2,7 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["vaalikoppi.azurewebsites.net", "vaalikoppi.prodeko.org"]
+ALLOWED_HOSTS = ["vaalikoppi.azurewebsites.net", "vaalikoppi.prodeko.org", "127.0.0.1"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
