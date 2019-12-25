@@ -67,9 +67,9 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
 
-MEDIA_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static/media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static/media")
 MEDIA_URL = "/media/"
-STATIC_ROOT = STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static")
+STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static")
 STATIC_URL = "/static/"
 
 LOGIN_URL = "/admin/"
