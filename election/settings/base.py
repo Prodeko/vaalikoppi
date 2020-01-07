@@ -48,9 +48,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "election.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -62,14 +60,9 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-STATICFILES_FINDERS = (
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-)
-
-MEDIA_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static/media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "election/media")
 MEDIA_URL = "/media/"
-STATIC_ROOT = os.path.join(BASE_DIR, "vaalikoppi/static")
+STATIC_ROOT = os.path.join(BASE_DIR, "election/static")
 STATIC_URL = "/static/"
 
 LOGIN_URL = "/admin/"
