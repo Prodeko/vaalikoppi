@@ -2,3 +2,4 @@ Django
 psycopg2-binary
 python3-vote-core
 whitenoise
+sentry-sdk
