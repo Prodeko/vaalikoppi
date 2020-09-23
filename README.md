@@ -2,32 +2,18 @@
 
 ## Lokaaliajo
 
-Kehitysympäristönä käytetään Ubuntu 16.04 virtuaalikonetta. Virtuaalikoneen hallinta on tehty helpoksi [Vagrantin](https://www.vagrantup.com/) ja [VirtualBoxin](https://www.virtualbox.org/) - asenna nämä molemmat. Seuraavaksi aja komento `$ vagrant up`, jotta virtuaalikone käynnistyy. Koneen sisään pääsee ssh yhteydellä `$ vagrant ssh`. Jos tulee ongelmia aja `$ vagrant provision` (Vagrant ajaa kaikki bootstrap.sh tiedostossa olevat komennot ajetaan uudestaan virtuaalikoneessa). Jos haluat sammuttaa koneen aja `$ vagrant halt`.
+Vaatimukset:
 
-Seuraavaksi ota ssh yhteys vagranttiin ja käynnistä Django serveri.
+- [Docker](https://www.docker.com/)
 
-```
-$ vagrant ssh  # ssh yhteys virtuaalikoneeseen
-$ cd /vagrant  # vaihda hakemistoksi virtuaalikoneen ja oman koneesi jaettu hakemisto
-$ python3 manage.py makemigrations && python3 manage.py migrate  # Luo tietokantaan tarvittavat taulut
-$ python3 manage.py runserver  # käynnistä Django kehitysserveri
+```bash
+$ docker-compose up
 ```
 
-Tämän jälkeen sivusto pitäisi olla nähtävissä osoitteessa http://localhost:9000/vaalikoppi/.
+Tämän jälkeen sivusto pitäisi olla nähtävissä osoitteessa http://localhost:8000/vaalikoppi/.
 
-Pääkäyttäjän luonti onnistuu seuraavasti:
-
-```
-$ python3 manage.py createsuperuser
-Username (leave blank to use 'vagrant'): <TÄHÄN USERNAME>
-Email address: <TÄMÄN VOI JÄTTÄÄ HALUTESSAAN TYHJÄKSI>
-Password: <SALASANA>
-Password (again): <SALASANA>
-Superuser created successfully.
-```
-
-Admin näkymään pääsee osoitteesta http://localhost:9000/admin/
-<img src="admin.png"/>
+Admin näkymään pääsee osoitteesta http://localhost:8000/admin/
+![Admin näkymä](admin.png)
 
 ## Äänestysoikeuden myöntäminen ja verifikaatio
 
