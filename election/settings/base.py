@@ -60,9 +60,9 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-MEDIA_ROOT = os.path.join(BASE_DIR, "election/media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "/media")
 MEDIA_URL = "/media/"
-STATIC_ROOT = os.path.join(BASE_DIR, "election/static")
+STATIC_ROOT = os.path.join(BASE_DIR, "/static")
 STATIC_URL = "/static/"
 
 LOGIN_URL = "/admin/"
