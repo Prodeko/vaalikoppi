@@ -27,13 +27,15 @@ def is_eligible_to_vote(request, voting_obj):
 
         try:
             mapping = TokenMapping.objects.get(token=token_obj, voting=voting_obj)
-        except (TokenMapping.DoesNotExist, TokenMapping.MultipleObjectsReturned):
+        except Exception as e:
             return False
         else:
-            cur_votes = Vote.objects.filter(uuid=mapping.uuid, voting=voting_obj)
+            cur_votes_count = Vote.objects.filter(
+                uuid=mapping.uuid, voting=voting_obj
+            ).count()
 
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
-            if len(cur_votes) == 0:
+            if cur_votes_count == 0:
                 return True
 
     return False
@@ -46,18 +48,25 @@ def is_eligible_to_vote_transferable(request, voting_obj):
         try:
             mapping = TokenMappingTransferable.objects.get(
                 token=token_obj, voting=voting_obj
+            ).count()
+            cur_votes_by_token_count = (
+                VoteTransferable.objects.all()
+                .filter(uuid=mapping.uuid, voting=voting_obj)
+                .count()
             )
-        except (
-            TokenMappingTransferable.DoesNotExist,
-            TokenMappingTransferable.MultipleObjectsReturned,
-        ):
+            candidates_count = (
+                CandidateTransferable.objects.all().filter(voting=voting_obj).count()
+            )
+            if cur_votes_by_token_count == candidates_count:
+                return False
+        except Exception as e:
             return False
         else:
-            cur_votes = VoteGroupTransferable.objects.filter(
+            cur_votes_count = VoteGroupTransferable.objects.filter(
                 uuid=mapping.uuid, voting=voting_obj
-            )
+            ).count()
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
-            if len(cur_votes) == 0:
+            if cur_votes_count == 0:
                 return True
 
     return False
@@ -137,7 +146,6 @@ def vote(request, voting_id, token):
     empty_votes = voting_obj.max_votes - len(candidates_noempty)
 
     for candidate_id in candidates_noempty:
-
         try:
             candidate_obj = Candidate.objects.get(pk=candidate_id, voting=voting_obj)
             candidate_objs.append(candidate_obj)

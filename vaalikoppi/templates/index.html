@@ -6,7 +6,6 @@
     <div class="container">
       {% if is_valid_token is True %}
         {% include 'voting.html' %}
-        {% include 'voting-modal.html' %}
       {% else %}
         {% include 'login.html' %}
       {% endif %}

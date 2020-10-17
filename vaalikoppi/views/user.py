@@ -15,11 +15,10 @@ def user_login(request):
     data = json.loads(request.body.decode("utf-8"))
     token = data.get("token")
     if token:
-        session_var_name = settings.USER_TOKEN_VAR
         token_obj = get_object_or_404(Usertoken, token=token)
 
         if token_obj.activated and not token_obj.invalidated:
-            request.session[session_var_name] = token_obj.token
+            request.session[settings.USER_TOKEN_VAR] = token_obj.token
             return JsonResponse(
                 {"message": "Login success", "token": token_obj.token}, status=200
             )
@@ -31,8 +30,7 @@ def user_login(request):
 
 
 def user_logout(request):
-    session_var_name = settings.USER_TOKEN_VAR
-    request.session[session_var_name] = ""
+    request.session[settings.USER_TOKEN_VAR] = ""
     request.session.flush()
 
     if is_valid_token(request) == False:

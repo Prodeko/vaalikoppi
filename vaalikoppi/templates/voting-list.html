@@ -41,8 +41,8 @@
             <div id="voting-form-{{ voting.id }}" class="voting-form" data-voting-max-votes="{{ voting.max_votes }}">
               {% csrf_token %}
               {% for candidate in voting.candidates.all %}
-                <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="checkboxClick({{ voting.id }}, {{ candidate.id }})">
-                <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-red blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
+                <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="selectVote(this, {{ voting.id }})">
+                <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-green blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                 <br>
               {% endfor %}
               <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
@@ -55,3 +55,4 @@
 {% endif %}
 
 {% include 'voting-list-ended-and-closed.html' %}
+{% include 'voting-modal.html' %}
