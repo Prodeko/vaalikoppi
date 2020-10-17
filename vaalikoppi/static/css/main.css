@@ -1,3 +1,11 @@
+main {
+  background-image: url("../images/background.jpg");
+  background-position: center center;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+}
+
 *,
 *::before,
 *::after {
@@ -17,10 +25,11 @@ body {
   font-size: 1.2em;
   color: #1e3553;
   scroll-behavior: smooth;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 section {
-  /*margin-top: -50px;*/
   padding-top: 80px;
   background-color: #fafafa;
   min-height: 100%;
@@ -30,32 +39,49 @@ i {
   cursor: pointer;
 }
 
-.invisible {
-  visibility: hidden;
+#logo {
+  width: 220px;
+  margin: 10px auto 0px auto;
 }
 
-.token-input-field {
-  font-size: x-large !important;
-  font-weight: bold;
-}
-
-/* === BACKGROUND === */
-
-.bg {
-  background-image: url("background-compressed.jpg");
-  background-position: center center;
-  background-size: cover;
+#vaalikoppi-logo {
   width: 100%;
-  height: 100%;
-  overflow: auto;
-  position: fixed;
 }
 
-.main-container {
-  padding-bottom: 100px;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+.logos {
+  width: 100%;
+  padding-top: 100px;
+  padding-bottom: 75px;
+}
+
+input {
+  text-align: center;
+}
+
+.prodeko-blue {
+  background-color: #004080;
+}
+
+#deactivate {
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 1.4em;
+}
+
+.bold-font {
+  font-weight: 700;
+}
+
+nav {
+  background: #004080;
+}
+
+#admin-nav .nav-wrapper {
+  background: #ee6e73;
+}
+
+#admin-nav .nav-content {
+  height: 64px;
 }
 
 .wide-button {
@@ -70,97 +96,43 @@ i {
   margin-top: 5px;
 }
 
-.prodeko-blue {
-  background-color: #004080;
-}
-
 #deactivate-btn {
   position: static;
   margin-right: 10px;
 }
 
-#deactivate {
-  text-transform: uppercase;
-  font-weight: 800;
-  font-size: 1.4em;
+.tokens-table-wrapper {
+  overflow-x: scroll;
 }
 
-.bold-font {
-  font-weight: 700;
-}
-
-#logo {
-  width: 220px;
-  height: 100%;
-  margin: 10px auto 0px auto;
-}
-
-#token_div {
-  font-size: 2vh;
-}
-
-#vaalikoppi-logo {
-  width: 100%;
-}
-
-#login-container {
-  width: 100%;
-  height: 100%;
-  background-image: url("Blue.jpg");
-  background-position: center center;
-  background-size: cover;
-  color: white;
-}
-
-.logos {
-  width: 100%;
-  padding-top: 100px;
-  padding-bottom: 75px;
-}
-
-#login-vaalikoppi-logo {
-  max-width: 400px;
-  width: 80%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-#login-input-container {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  max-width: 400px;
-}
-
-input {
-  text-align: center;
-}
-
-#main-login-prompt .token-input-field {
+#login-container .token-input-field {
   padding-top: 2em;
 }
 
-#main-login-prompt .loading-token-notification {
+#login-container .loading-token-notification {
   color: #26a69a;
 }
 
-#main-login-prompt .wrong-token-warning {
+#login-container .wrong-token-warning {
   color: red;
 }
 
-/* === VOTING LISTING === */
-
 .voting-order {
-    height: 40px;
-    min-width: 40px;
-    max-width: 40px;
-    padding: 5px 15px;
-    margin-top: 12px;
-    margin-right: 20px;
-    text-align: center;
-    border-radius: 50%;
-    color: white;
-    font-weight: bold;
+  height: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  padding: 5px 15px;
+  margin-top: 12px;
+  margin-right: 20px;
+  text-align: center;
+  border-radius: 50%;
+  color: white;
+  font-weight: bold;
+}
+
+.voting-candidates {
+  display: flex;
+  flex-direction: row;
 }
 
 .card-title-container {
@@ -304,11 +276,8 @@ input {
     font-size: 0.9rem;
     padding-bottom: 0;
   }
-
   .result {
-    grid-template-areas:
-      "voting-round"
-      "results-table";
+    grid-template-areas: "voting-round" "results-table";
     grid-template-columns: 100%;
     grid-auto-rows: auto;
   }
@@ -339,43 +308,35 @@ input {
   }
 }
 
-/* === Searchable table === */
-
-#searchInput {
-  /*  background-image: url('/css/searchicon.png'); /* Add a search icon to input */
-  /*  background-position: 10px 12px; /* Position the search icon */
-  /*  background-repeat: no-repeat; /* Do not repeat the icon image */
-  width: 100%; /* Full-width */
-  font-size: 16px; /* Increase font-size */
-  padding: 12px 20px 12px 40px; /* Add some padding */
-  border: 1px solid #ddd; /* Add a grey border */
-  margin-bottom: 12px; /* Add some space below the input */
+#search-input {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px 20px 12px 40px;
+  border: 1px solid #ddd;
+  margin-bottom: 12px;
 }
 
-#searchTable {
-  border-collapse: collapse; /* Collapse borders */
-  width: 100%; /* Full-width */
-  border: 1px solid #ddd; /* Add a grey border */
-  font-size: 18px; /* Increase font-size */
+#search-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #ddd;
+  font-size: 18px;
 }
 
-#searchTable th,
-#searchTable td {
-  text-align: left; /* Left-align text */
-  padding: 12px; /* Add padding */
+#search-table th,
+#search-table td {
+  text-align: left;
+  padding: 12px;
 }
 
-#searchTable tr {
-  /* Add a bottom border to all table rows */
+#search-table button.btn {
+  width: 10em;
+}
+
+#search-table tr {
   border-bottom: 1px solid #ddd;
 }
 
-#searchTable tr.header,
-#searchTable tr:hover {
-  /* Add a grey background color to the table header and on hover */
+#search-table tr:header, #search-table tr:hover {
   background-color: #f1f1f1;
-}
-
-#searchTable button.btn {
-  width: 10em;
 }
