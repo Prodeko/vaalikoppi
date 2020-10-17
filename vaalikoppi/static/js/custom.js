@@ -61,7 +61,7 @@ function getChosenCandidates(isTransferable, votingId) {
       isTransferable ? ".voting-order" : "input[name=candidate]:checked"
     )
   ).map((input) => {
-    const candidateId = input.value;
+    const candidateId = input.getAttribute("value");
     const nameNode = form.querySelector(
       `label[for=candidate-v-${votingId}-${candidateId}]`
     );
@@ -74,99 +74,126 @@ function getChosenCandidates(isTransferable, votingId) {
   return chosenCandidates;
 }
 
-function showVotingConfirmationModal(isTransferable, chosenCandidates) {
+function showVotingConfirmationModal(
+  isTransferable,
+  votingId,
+  chosenCandidates
+) {
+  function setVotingConfirmationEventListener(e) {
+    const votingArea = document.getElementById("voting-list-area");
+    const form = getVotingForm(votingId);
+    Array.from(
+      form.querySelectorAll("input[name=candidate]:checked")
+    ).forEach((elem) => elem.setAttribute("disabled", true));
+
+    const data = {
+      candidates: isTransferable
+        ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
+        : chosenCandidates.map((c) => c.id),
+    };
+
+    e.target.setAttribute("disabled", true);
+
+    callApi(
+      `${SITE_ROOT_PATH}votings/${votingId}/${
+        isTransferable ? "vote-transferable" : "vote"
+      }/`,
+      "POST",
+      data
+    )
+      .then((res) => res.text())
+      .then((html) => (votingArea.innerHTML = html))
+      .catch(() => {
+        M.toast({
+          html: "Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!",
+          classes: "red",
+        });
+        refreshVotingList();
+      });
+
+    e.target.removeAttribute("disabled");
+  }
+
+  // Initialize modal
+  const modal = document.getElementById("voting-modal");
+  const btnConfirmation = modal.querySelector("#voting-modal-confirm");
+
+  // Remove event listener on modal close to prevent
+  // multiple votes. This is also handled in the backend
+  // via a custom SessionLockMiddleware
+  M.Modal.init(modal, {
+    onCloseEnd: () =>
+      btnConfirmation.removeEventListener(
+        "click",
+        setVotingConfirmationEventListener
+      ),
+  });
+  const instance = M.Modal.getInstance(modal);
+
+  // Set modal content
   const candidatesString = chosenCandidates
     .map((c) => (isTransferable ? `${c.position}.${c.name}` : c.name))
     .join(", ");
   const singularOrPlural =
     chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n";
-  const elem = document.querySelector("#voting-modal");
-  const instance = M.Modal.getInstance(elem);
   document.getElementById(
     "voting-modal-text"
   ).innerHTML = `Olet äänestämässä ${singularOrPlural} ${candidatesString}`;
+
+  btnConfirmation.addEventListener("click", setVotingConfirmationEventListener);
   instance.open();
-}
-
-function setVotingConfirmationEventListener(
-  isTransferable,
-  votingId,
-  chosenCandidates
-) {
-  const votingArea = document.getElementById("voting-list-area");
-  const form = getVotingForm(votingId);
-
-  document
-    .getElementById("voting-modal-confirm")
-    .addEventListener("click", () => {
-      Array.from(
-        form.querySelectorAll("input[name=candidate]:checked")
-      ).forEach((elem) => elem.setAttribute("disabled", true));
-
-      const data = {
-        candidates: isTransferable
-          ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
-          : chosenCandidates.map((c) => c.id),
-      };
-
-      callApi(
-        `${SITE_ROOT_PATH}votings/${votingId}/${
-          isTransferable ? "vote-transferable" : "vote"
-        }/`,
-        "POST",
-        data
-      )
-        .then((res) => res.text())
-        .then((html) => (votingArea.innerHTML = html))
-        .catch(() => {
-          alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-          refreshVotingList();
-        });
-    });
 }
 
 function vote(votingId) {
   const chosenCandidates = getChosenCandidates(false, votingId);
-  showVotingConfirmationModal(false, chosenCandidates);
-  setVotingConfirmationEventListener(false, votingId, chosenCandidates);
+  showVotingConfirmationModal(false, votingId, chosenCandidates);
 }
 
 function voteTransferableElection(votingId) {
   const chosenCandidates = getChosenCandidates(true, votingId).sort(
     compareChosenCandidates
   );
-  showVotingConfirmationModal(true, chosenCandidates);
-  setVotingConfirmationEventListener(true, votingId, chosenCandidates);
+  showVotingConfirmationModal(true, votingId, chosenCandidates);
 }
 
 async function refreshVotingList(admin = false) {
   const votingArea = document.getElementById("voting-list-area");
   const adminPath = admin ? "admin/" : "";
 
-  return callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
+  await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-      alert(
-        "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
-      );
+      M.toast({
+        html:
+          "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.",
+        classes: "red",
+      });
     });
+
+  setupEventListeners();
 }
 
-function checkboxClick(votingId, candidateId) {
+function selectVote(elem, votingId) {
   const form = document.getElementById(`voting-form-${votingId}`);
   const maxVotes = parseInt(form.getAttribute("data-voting-max-votes"));
-  const formCheckboxes = [...form.children].filter(
-    (c) => c.type === "checkbox"
-  );
+  elem.checked = true;
+  elem.nextElementSibling.classList.remove("blue-grey");
+  elem.nextElementSibling.classList.add("green");
 
-  if (formCheckboxes.length > maxVotes) {
-    formCheckboxes
-      .filter(
-        (c) => c.getAttribute("id") === `candidate-v${candidateId}-${votingId}`
-      )
-      .forEach((c) => (c.checked = true));
-  }
+  const formInputs = form.querySelectorAll(
+    `input[type=${maxVotes > 1 ? "checkbox" : "radio"}]`
+  );
+  const givenVotes = Array.from(formInputs).filter((c) => c.checked).length;
+  formInputs.forEach((c) => {
+    if (givenVotes === maxVotes) {
+      if (c.id !== elem.id) {
+        c.checked = false;
+        c.nextElementSibling.classList.remove("green");
+        c.nextElementSibling.classList.add("blue-grey");
+      }
+    }
+  });
 }
 
 // User login / logout
@@ -180,7 +207,12 @@ function logout() {
         localStorage.removeItem("token");
       }
     })
-    .catch(() => alert("Uloskirjautuminen epäonnistui. Päivitä sivu."));
+    .catch(() =>
+      M.toast({
+        html: "Uloskirjautuminen epäonnistui. Päivitä sivu.",
+        classes: "red",
+      })
+    );
 }
 
 function submitToken() {
@@ -213,11 +245,13 @@ function generateTokens(count) {
 
   callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
     .then(() => {
-      alert("Koodien generointi onnistui.");
-      location.reload();
+      M.toast({ html: "Koodien generointi onnistui.", classes: "green" });
+      setTimeout(() => location.reload(), 1000);
     })
-    .catch(() => alert("Koodien generointi epäonnistui."));
-  generateTokensButton.setAttribute("disabled", false);
+    .catch(() =>
+      M.toast({ html: "Koodien generointi epäonnistui.", classes: "red" })
+    );
+  generateTokensButton.removeAttribute("disabled");
 }
 
 function activateOrInvalidateToken(isActivate, code, number) {
@@ -250,11 +284,12 @@ function activateOrInvalidateToken(isActivate, code, number) {
   )
     .then(() => location.reload())
     .catch(() =>
-      alert(
-        `Koodin ${
+      M.toast({
+        html: `Koodin ${
           isActivate ? "aktivointi" : "mitätöinti"
-        } epäonnistui. Tarkista koodi.`
-      )
+        } epäonnistui. Tarkista koodi.`,
+        classes: "red",
+      })
     );
 }
 
@@ -274,7 +309,10 @@ function createVoting() {
   callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!")
+      M.toast({
+        html: "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!",
+        classes: "red",
+      })
     );
 }
 
@@ -289,7 +327,10 @@ function addCandidate(votingId, isTransferable) {
     callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
       .then(() => refreshVotingList(true))
       .catch(() =>
-        alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!")
+        M.toast({
+          html: "Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!",
+          classes: "red",
+        })
       );
   }
 }
@@ -305,7 +346,10 @@ function removeCandidate(candidate_id, is_transferable) {
   )
     .then(() => refreshVotingList(true))
     .catch(() =>
-      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!")
+      M.toast({
+        html: "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!",
+        classes: "red",
+      })
     );
 }
 
@@ -314,22 +358,38 @@ function closeVoting(votingId, is_transferable) {
     is_transferable,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/close/`, "POST", data)
-    .then(() => {
+    .then(async (res) => {
+      const data = await res.json();
+      if (res.status !== 200) {
+        if (data.message) {
+          M.toast({
+            html: data.message,
+            classes: "red",
+          });
+        }
+      }
+      return data;
+    })
+    .then((data) => {
       refreshVotingList(true);
-
       // If a sound is already playing, reveal the result with a badum-tss sound
       if (SOUND_STATE !== 0) {
         playSound(3);
       }
 
       if (data.not_voted_tokens && data.not_voted_tokens.length > 0) {
-        alert(
-          "Äänestämättä jäivät koodit:\n" + data.not_voted_tokens.join("\n")
-        );
+        M.toast({
+          html:
+            "Äänestämättä jäivät koodit:\n" + data.not_voted_tokens.join("\n"),
+          classes: "orange",
+        });
       }
     })
-    .catch(() =>
-      alert("Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!")
+    .catch((err) =>
+      M.toast({
+        html: "Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!",
+        classes: "red",
+      })
     );
 }
 
@@ -340,7 +400,10 @@ function openVoting(votingId, is_transferable) {
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!")
+      M.toast({
+        html: "Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!",
+        classes: "red",
+      })
     );
 }
 
@@ -370,7 +433,12 @@ function searchFunction() {
 function invalidateActiveTokens() {
   callApi(`${SITE_ROOT_PATH}admin/tokens/invalidate/all/`, "POST")
     .then(() => location.reload())
-    .catch(() => alert("Koodien mitätöinti epäonnistui!"));
+    .catch(() =>
+      M.toast({
+        html: "Koodien mitätöinti epäonnistui!",
+        classes: "red",
+      })
+    );
 }
 
 function stopAllSounds() {
@@ -395,9 +463,11 @@ function playSound(trackNo) {
 
 function clearVotes(votingId) {
   const form = getVotingForm(votingId);
-  Array.from(form.querySelectorAll(".voting-order")).forEach(
-    (elem) => (elem.innerHTML = "-")
-  );
+  Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
+    elem.innerHTML = "-";
+    elem.nextElementSibling.classList.remove("green");
+    elem.nextElementSibling.classList.add("blue-grey");
+  });
   votesGiven = 0;
   currentVotingId = -1;
 }
@@ -409,10 +479,11 @@ function setupEventListeners() {
 
   Array.from(transferVoteCandidates).forEach((candidate) => {
     candidate.addEventListener("click", (e) => {
-      const candidate = e.target.value;
-      const votingId = e.target.value.split("-")[2];
+      const candidate = e.target.getAttribute("value");
+      const votingId = e.target.getAttribute("value").split("-")[2];
       const form = getVotingForm(votingId);
       const candidateCount = form.querySelectorAll("label").length;
+      currentVotingId = votingId;
 
       const getOrderLabel = () => document.getElementById(candidate).innerHTML;
       var label = getOrderLabel();
@@ -423,11 +494,18 @@ function setupEventListeners() {
           votesGiven = 0;
         } else if (votesGiven < candidateCount) {
           votesGiven += 1;
-          document.getElementById(candidate).innerHTML = votesGiven;
+          const candidateRank = document.getElementById(candidate);
+          candidateRank.innerHTML = votesGiven;
+          candidateRank.nextElementSibling.classList.remove("blue-grey");
+          candidateRank.nextElementSibling.classList.add("green");
         }
       } else {
-        const clickedRank = e.target.previousElementSibling.innerHTML;
-        e.target.previousElementSibling.innerHTML = "-";
+        const clickedCandidate = e.target;
+        const clickedRank = clickedCandidate.previousElementSibling.innerHTML;
+
+        clickedCandidate.classList.remove("green");
+        clickedCandidate.classList.add("blue-grey");
+        clickedCandidate.previousElementSibling.innerHTML = "-";
         Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
           const rank = parseInt(elem.innerHTML);
           if (rank > clickedRank) {
@@ -440,13 +518,11 @@ function setupEventListeners() {
   });
 }
 
-window.addEventListener("load", async function () {
-  M.Modal.init(document.querySelector("#voting-modal"));
+window.addEventListener("load", function () {
   const token = localStorage.getItem("token");
   if (token) {
-    await refreshVotingList();
+    refreshVotingList();
   }
-  setupEventListeners();
 });
 
 function expandResults(element) {
