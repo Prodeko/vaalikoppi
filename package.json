@@ -1,0 +1,31 @@
+{
+  "name": "vaalikoppi",
+  "version": "1.0.0",
+  "description": "Prodeko's election platform",
+  "scripts": {
+    "eslint": "eslint --ext .js vaalikoppi",
+    "eslint-fix": "eslint --ext .js --fix vaalikoppi"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run eslint-fix"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Prodeko/election.git"
+  },
+  "author": "Prodekon webbitiimi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Prodeko/election/issues"
+  },
+  "homepage": "https://vaalikoppi.prodeko.org",
+  "devDependencies": {
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "husky": "^4.2.5",
+    "prettier": "^2.0.5"
+  }
+}
