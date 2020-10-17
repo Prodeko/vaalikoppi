@@ -1,123 +1,42 @@
-SITE_ROOT_PATH = "/vaalikoppi/";
-SOUND_STATE = 0;
+var SITE_ROOT_PATH = "/vaalikoppi/";
+var SOUND_STATE = 0;
+var currentVotingId = -1;
+var votesGiven = 0;
 
-function vote(votingId) {
-  var form = $("#voting-form-" + votingId);
-  var maxVotes;
-  var chosenCandidates = [];
-
-  try {
-    maxVotes = parseInt(form.attr("data-voting-max-votes"));
-  } catch (err) {
-    alert("Äänestyksen tiedot eivät ole latautuneet oikein. Päivitä sivu.");
-    return;
+// Helper functions
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === name + "=") {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
   }
-
-  form.find("input[name=candidate]:checked").each(function() {
-    var curId = $(this).attr("value");
-    var curName = form
-      .find("label[for=candidate-v-" + votingId + "-" + curId + "]")
-      .text();
-    chosenCandidates.push({ id: curId, name: curName });
-  });
-
-  var confirmation = confirm(
-    "Olet äänestämässä " +
-      (chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n") +
-      chosenCandidates
-        .map(function(candi) {
-          return candi.name;
-        })
-        .join(", ")
-  );
-
-  if (!confirmation) {
-    return;
-  }
-
-  form.find("input, button").prop("disabled", true);
-
-  $.post(SITE_ROOT_PATH + "votings/" + votingId + "/vote/", {
-    candidates: chosenCandidates.map(function(candi) {
-      return candi.id;
-    })
-  })
-    .done(function(data) {
-      $("#voting-list-area").html(data);
-    })
-    .fail(function(data) {
-      alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-      refreshVotingList();
-    });
+  return cookieValue;
 }
 
-function voteTransferableElection(votingId) {
-  var form = $("#voting-form-" + votingId);
-  var maxVotes;
-  var chosenCandidates = [];
-
-  form.find("label").addClass("disabled");
-
-  try {
-    maxVotes = parseInt(form.attr("data-voting-max-votes"));
-  } catch (err) {
-    alert("Äänestyksen tiedot eivät ole latautuneet oikein. Päivitä sivu.");
-    return;
-  }
-
-  form.find(".voting-order").each(function() {
-    var curId = $(this).attr("value");
-    var curName = form
-      .find("label[value=candidate-v-" + votingId + "-" + curId + "]")
-      .text();
-    var position = $(this).text();
-    chosenCandidates.push({ id: curId, name: curName, position: position });
+function callApi(url, method, body) {
+  return fetch(url, {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    mode: "same-origin",
+    body: JSON.stringify(body),
   });
-
-  chosenCandidates = chosenCandidates.sort(compareChosenCandidates);
-
-  var postData = [];
-  var postData2 = new Map();
-
-  chosenCandidates.map(function(candi) {
-    postData2.set(candi.id, candi.position);
-  });
-
-  chosenCandidates.forEach(function(candi) {
-    postData.push([candi.id, candi.position]);
-  });
-
-  // TODO: Remove comma separators in confirmation modal
-  var confirmation = confirm(
-    "Olet äänestämässä " +
-      (chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n") +
-      chosenCandidates
-        .filter(candi => candi.position != "-")
-        .map(candi => candi.position + ". " + candi.name)
-        .join(", ")
-  );
-
-  if (!confirmation) {
-    return;
-  }
-
-  form.find("input, button").prop("disabled", true);
-
-  $.post(SITE_ROOT_PATH + "votings/" + votingId + "/voteTransferable/", {
-    candidates: chosenCandidates.map(function(candi) {
-      return candi.id + ":" + candi.position;
-    })
-  })
-    .done(function(data) {
-      $("#voting-list-area").html(data);
-    })
-    .fail(function(data) {
-      alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-      refreshVotingList();
-    });
 }
 
-// used to sort candidates by position in transferable election confirmation modal
+function getVotingForm(votingId) {
+  return document.getElementById(`voting-form-${votingId}`);
+}
+
+// Used to sort candidates by position in transferable election confirmation modal
 function compareChosenCandidates(a, b) {
   if (a.position.charAt(0) == "-") {
     return 1;
@@ -134,233 +53,268 @@ function compareChosenCandidates(a, b) {
   return 0;
 }
 
-function refreshVotingList(admin = false) {
-  var votingArea = $("#voting-list-area");
-
-  $.get(SITE_ROOT_PATH + (admin ? "admin/" : "") + "votings/list/", function(
-    data
-  ) {
-    votingArea.html(data);
-  }).fail(function() {
-    alert(
-      "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
+// Voting
+function getChosenCandidates(isTransferable, votingId) {
+  const form = getVotingForm(votingId);
+  const chosenCandidates = Array.from(
+    form.querySelectorAll(
+      isTransferable ? ".voting-order" : "input[name=candidate]:checked"
+    )
+  ).map((input) => {
+    const candidateId = input.value;
+    const nameNode = form.querySelector(
+      `label[for=candidate-v-${votingId}-${candidateId}]`
     );
+    const labelText = nameNode.childNodes[0].textContent;
+    const labelRankedPosition = isTransferable
+      ? nameNode.previousElementSibling.innerHTML
+      : -1;
+    return { id: candidateId, name: labelText, position: labelRankedPosition };
   });
+  return chosenCandidates;
+}
+
+function showVotingConfirmationModal(isTransferable, chosenCandidates) {
+  const candidatesString = chosenCandidates
+    .map((c) => (isTransferable ? `${c.position}.${c.name}` : c.name))
+    .join(", ");
+  const singularOrPlural =
+    chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n";
+  const elem = document.querySelector("#voting-modal");
+  const instance = M.Modal.getInstance(elem);
+  document.getElementById(
+    "voting-modal-text"
+  ).innerHTML = `Olet äänestämässä ${singularOrPlural} ${candidatesString}`;
+  instance.open();
+}
+
+function setVotingConfirmationEventListener(
+  isTransferable,
+  votingId,
+  chosenCandidates
+) {
+  const votingArea = document.getElementById("voting-list-area");
+  const form = getVotingForm(votingId);
+
+  document
+    .getElementById("voting-modal-confirm")
+    .addEventListener("click", () => {
+      Array.from(
+        form.querySelectorAll("input[name=candidate]:checked")
+      ).forEach((elem) => elem.setAttribute("disabled", true));
+
+      const data = {
+        candidates: isTransferable
+          ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
+          : chosenCandidates.map((c) => c.id),
+      };
+
+      callApi(
+        `${SITE_ROOT_PATH}votings/${votingId}/${
+          isTransferable ? "vote-transferable" : "vote"
+        }/`,
+        "POST",
+        data
+      )
+        .then((res) => res.text())
+        .then((html) => (votingArea.innerHTML = html))
+        .catch(() => {
+          alert("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
+          refreshVotingList();
+        });
+    });
+}
+
+function vote(votingId) {
+  const chosenCandidates = getChosenCandidates(false, votingId);
+  showVotingConfirmationModal(false, chosenCandidates);
+  setVotingConfirmationEventListener(false, votingId, chosenCandidates);
+}
+
+function voteTransferableElection(votingId) {
+  const chosenCandidates = getChosenCandidates(true, votingId).sort(
+    compareChosenCandidates
+  );
+  showVotingConfirmationModal(true, chosenCandidates);
+  setVotingConfirmationEventListener(true, votingId, chosenCandidates);
+}
+
+async function refreshVotingList(admin = false) {
+  const votingArea = document.getElementById("voting-list-area");
+  const adminPath = admin ? "admin/" : "";
+
+  return callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
+    .then((res) => res.text())
+    .then((html) => (votingArea.innerHTML = html))
+    .catch(() => {
+      alert(
+        "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
+      );
+    });
 }
 
 function checkboxClick(votingId, candidateId) {
-  var form = $("#voting-form-" + votingId);
-  var maxVotes = parseInt(form.attr("data-voting-max-votes"));
+  const form = document.getElementById(`voting-form-${votingId}`);
+  const maxVotes = parseInt(form.getAttribute("data-voting-max-votes"));
+  const formCheckboxes = [...form.children].filter(
+    (c) => c.type === "checkbox"
+  );
 
-  if (form.find("input[type=checkbox]:checked").length > maxVotes) {
-    form
-      .find("#candidate-v-" + votingId + "-" + candidateId)
-      .prop("checked", false);
+  if (formCheckboxes.length > maxVotes) {
+    formCheckboxes
+      .filter(
+        (c) => c.getAttribute("id") === `candidate-v${candidateId}-${votingId}`
+      )
+      .forEach((c) => (c.checked = true));
   }
 }
 
-function generateTokens(count) {
-  $("#generate-tokens-button").prop("disabled", true);
-
-  $.post(SITE_ROOT_PATH + "admin/tokens/generate/", {
-    count: count
-  })
-    .done(function(data) {
-      alert("Koodien generointi onnistui.");
-      location.reload();
-    })
-    .fail(function(data) {
-      alert("Koodien generointi epäonnistui.");
-    });
-
-  $("#generate-tokens-button").prop("disabled", false);
-}
-
-function invalidateToken(code, number) {
-  var invalidateButton = $("#invalidate-token-button-" + number);
-  var clickedState = invalidateButton.data("clicked");
-
-  // Require two clicks to activate code
-  if (clickedState == "0") {
-    invalidateButton.html("Mitätöi?");
-    invalidateButton.addClass("orange");
-    invalidateButton.removeClass("red");
-    invalidateButton.data("clicked", "1");
-    return;
-  }
-
-  var token = code;
-
-  if (token.length < 1) {
-    return;
-  }
-
-  invalidateButton.prop("disabled", true);
-
-  $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/", {
-    token: token
-  })
-    .done(function(data) {
-      // alert('Koodin mitätöinti onnistui.');
-      location.reload();
-    })
-    .fail(function(data) {
-      alert("Koodin mitätöinti epäonnistui. Tarkista koodi.");
-    });
-}
-
-function activateToken(code, number) {
-  var activateButton = $("#activate-token-button-" + number);
-  var clickedState = activateButton.data("clicked");
-
-  // Require two clicks to activate code
-  if (clickedState == "0") {
-    activateButton.html("Aktivoi?");
-    activateButton.addClass("orange");
-    activateButton.removeClass("green");
-    activateButton.data("clicked", "1");
-    return;
-  }
-
-  var token = code;
-
-  if (token.length < 1) {
-    return;
-  }
-
-  activateButton.prop("disabled", true);
-
-  $.post(SITE_ROOT_PATH + "admin/tokens/activate/", {
-    token: token
-  })
-    .done(function(data) {
-      //alert('Koodin aktivointi onnistui.');
-      location.reload();
-    })
-    .fail(function(data) {
-      alert("Koodin aktivointi epäonnistui. Tarkista koodi.");
-    });
-}
-
-// Just for the UI. Everything is validated in the back-end...
-function checkVoterStatus(callback) {
-  $.getJSON(SITE_ROOT_PATH + "user/status/")
-    .done(function(data) {
-      try {
-        // No token/non-active token
-        if (data.status === 0) {
-          callback(false);
-        } else if (data.status === 1) {
-          $("#token_div").html(data.token);
-          callback(true);
-        } else {
-          throw new Exception();
-        }
-      } catch (err) {
-        callback(false);
-      }
-    })
-    .fail(function() {
-      alert("Tilan haku palvelimelta ei onnistunut. Koeta päivittää sivu.");
-    });
-}
-
+// User login / logout
 function logout() {
-  $.post(SITE_ROOT_PATH + "user/logout/")
-    .done(function(data) {
+  callApi(`${SITE_ROOT_PATH}user/logout/`, "POST")
+    .then((res) => res.json())
+    .then((data) => {
       if (data.status === 0) {
         document.cookie = "";
-        location.reload(true);
+        location.reload();
+        localStorage.removeItem("token");
       }
     })
-    .fail(function(data) {
-      alert("Uloskirjautuminen epäonnistui. Päivitä sivu.");
-    });
+    .catch(() => alert("Uloskirjautuminen epäonnistui. Päivitä sivu."));
 }
 
 function submitToken() {
-  var token = $("#type-token-field").val();
-  var notificationArea = $("#login-notification-area");
+  var token = document.getElementById("type-token-field").value;
+  var notificationArea = document.getElementById("login-notification-area");
 
-  notificationArea.removeClass("wrong-token-warning");
-  notificationArea.addClass("loading-token-notification");
-  notificationArea.html("Ladataan...");
+  notificationArea.classList.add("loading-token-notification");
+  notificationArea.classList.remove("wrong-token-warning");
+  notificationArea.innerHTML = "Ladataan...";
 
-  $.post(SITE_ROOT_PATH + "user/login/", { token: token })
-    .done(function(data) {
-      /* toggleLoginPrompt();
-		// Below adds the token to the top bar
-		checkVoterStatus();
-		refreshVotingList(); */
+  callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token })
+    .then(() => location.reload())
+    .catch(() =>
+      window.setTimeout(() => {
+        notificationArea.classList.remove("loading-token-notification");
+        notificationArea.classList.add("wrong-token-warning");
+        notificationArea.innerHTML = "Virheellinen koodi";
+      }, 100)
+    );
+
+  localStorage.setItem("token", token);
+}
+
+// Admin
+function generateTokens(count) {
+  const generateTokensButton = document.getElementById(
+    "generate-tokens-button"
+  );
+  generateTokensButton.setAttribute("disabled", true);
+
+  callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
+    .then(() => {
+      alert("Koodien generointi onnistui.");
       location.reload();
     })
-    .fail(function(data) {
-      window.setTimeout(function() {
-        notificationArea.removeClass("loading-token-notification");
-        notificationArea.addClass("wrong-token-warning");
-        notificationArea.html("Virheellinen koodi");
-      }, 100);
-    });
+    .catch(() => alert("Koodien generointi epäonnistui."));
+  generateTokensButton.setAttribute("disabled", false);
 }
 
-function toggleLoginPrompt() {
-  $("#main-login-prompt").toggle();
-  $("#voting-list-updater, #voting-list-area").fadeToggle();
+function activateOrInvalidateToken(isActivate, code, number) {
+  var token = code;
+
+  if (token.length < 1) {
+    return;
+  }
+
+  var button = document.getElementById(
+    `${isActivate ? "activate" : "invalidate"}-token-button-${number}`
+  );
+  var clickedState = button.dataset["clicked"];
+
+  // Require two clicks to activate code
+  if (clickedState == "0") {
+    button.innerHTML = isActivate ? "Aktivoi?" : "Mitätöi?";
+    button.classList.add("orange");
+    button.classList.remove(isActivate ? "green" : "red");
+    button.dataset["clicked"] = "1";
+    return;
+  }
+
+  button.setAttribute("disabled", true);
+
+  callApi(
+    `${SITE_ROOT_PATH}admin/tokens/${isActivate ? "activate" : "invalidate"}/`,
+    "POST",
+    { token }
+  )
+    .then(() => location.reload())
+    .catch(() =>
+      alert(
+        `Koodin ${
+          isActivate ? "aktivointi" : "mitätöinti"
+        } epäonnistui. Tarkista koodi.`
+      )
+    );
 }
 
-function create_voting() {
-  const is_transferable = $("#is_transfer_election").is(":checked");
-  const voting_name = $("#voting_name").val();
-  const voting_description = $("#voting_description").val();
-  const max_votes = $("#max_votes").val() ? $("#max_votes").val() : 1;
+function createVoting() {
+  const isTransferable = document.getElementById("is-transfer-election")
+    .checked;
+  const votingName = document.getElementById("voting-name").value;
+  const votingDescription = document.getElementById("voting-description").value;
+  const maxVotes = document.getElementById("max-votes").value;
 
-  $.post(SITE_ROOT_PATH + "admin/votings/create/", {
-    is_transferable: is_transferable,
-    voting_name: voting_name,
-    voting_description: voting_description,
-    max_votes: max_votes
-  })
-    .done(function(data) {
-      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
-    })
-    .fail(function(data) {
-      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!");
-    });
+  const data = {
+    is_transferable: isTransferable,
+    voting_name: votingName,
+    voting_description: votingDescription,
+    max_votes: maxVotes,
+  };
+  callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)
+    .then(() => refreshVotingList(true))
+    .catch(() =>
+      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!")
+    );
 }
 
-function add_candidate(voting_id, is_transferable) {
-  var candidate = $("#voting-" + voting_id + "-candidate_name").val();
+function addCandidate(votingId, isTransferable) {
+  const candidate = document.getElementById(`voting-${votingId}-candidate-name`)
+    .value;
   if (candidate) {
-    $.post(SITE_ROOT_PATH + "admin/votings/" + voting_id + "/add/", {
-      is_transferable: is_transferable,
-      candidate_name: candidate
-    })
-      .done(function(data) {
-        refreshVotingList(true);
-      })
-      .fail(function(data) {
-        alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!");
-      });
+    const data = {
+      is_transferable: isTransferable,
+      candidate_name: candidate,
+    };
+    callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
+      .then(() => refreshVotingList(true))
+      .catch(() =>
+        alert("Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!")
+      );
   }
 }
 
-function remove_candidate(candidate_id, is_transferable) {
-  $.post(SITE_ROOT_PATH + "admin/votings/" + candidate_id + "/remove/", {
-    is_transferable: is_transferable
-  })
-    .done(function(data) {
-      refreshVotingList(true);
-    })
-    .fail(function(data) {
-      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!");
-    });
+function removeCandidate(candidate_id, is_transferable) {
+  const data = {
+    is_transferable,
+  };
+  callApi(
+    `${SITE_ROOT_PATH}admin/votings/${candidate_id}/remove/`,
+    "POST",
+    data
+  )
+    .then(() => refreshVotingList(true))
+    .catch(() =>
+      alert("Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!")
+    );
 }
 
 function closeVoting(votingId, is_transferable) {
-  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/close/", {
-    is_transferable: is_transferable
-  })
-    .done(function(data) {
+  const data = {
+    is_transferable,
+  };
+  callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/close/`, "POST", data)
+    .then(() => {
       refreshVotingList(true);
 
       // If a sound is already playing, reveal the result with a badum-tss sound
@@ -374,31 +328,20 @@ function closeVoting(votingId, is_transferable) {
         );
       }
     })
-    .fail(function(data) {
-      alert("Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!");
-    });
+    .catch(() =>
+      alert("Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!")
+    );
 }
 
 function openVoting(votingId, is_transferable) {
-  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/open/", {
-    is_transferable: is_transferable
-  })
-    .done(function(data) {
-      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
-    })
-    .fail(function(data) {
-      alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!");
-    });
-}
-
-function openVotingTransferable(votingId) {
-  $.post(SITE_ROOT_PATH + "admin/votings/" + votingId + "/openTransferable/")
-    .done(function(data) {
-      refreshVotingList(true); // TEMP CHANGED TO TRANSFERABLE VOTES
-    })
-    .fail(function(data) {
-      alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!");
-    });
+  const data = {
+    is_transferable,
+  };
+  callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
+    .then(() => refreshVotingList(true))
+    .catch(() =>
+      alert("Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!")
+    );
 }
 
 // Hakutaulukon funktioi
@@ -406,9 +349,9 @@ function openVotingTransferable(votingId) {
 function searchFunction() {
   // Declare variables
   var input, filter, table, tr, td, i;
-  input = document.getElementById("searchInput");
+  input = document.getElementById("search");
   filter = input.value.toUpperCase();
-  table = document.getElementById("searchTable");
+  table = document.getElementById("search-table");
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
@@ -425,96 +368,87 @@ function searchFunction() {
 }
 
 function invalidateActiveTokens() {
-  $.post(SITE_ROOT_PATH + "admin/tokens/invalidate/all/")
-    .done(function(data) {
-      location.reload();
-    })
-    .fail(function(data) {
-      alert("Koodien mitätöinti epäonnistui!");
-    });
+  callApi(`${SITE_ROOT_PATH}admin/tokens/invalidate/all/`, "POST")
+    .then(() => location.reload())
+    .catch(() => alert("Koodien mitätöinti epäonnistui!"));
 }
 
 function stopAllSounds() {
-  $(".sound-track").each(function() {
-    $(this)
-      .get(0)
-      .pause();
-    $(this).get(0).currentTime = 0;
+  document.querySelectorAll(".sound-track").forEach((track) => {
+    track.pause();
+    track.currentTime = 0;
   });
 }
 
 function playSound(trackNo) {
-  var tracks = ["drums", "doubling", "badumtss"];
-  var chosenTrack = tracks[trackNo - 1];
-  var trackEle = $("#sound-track-" + trackNo).get(0);
+  var track = document.getElementById(`sound-track-${trackNo}`);
 
   stopAllSounds();
 
   if (SOUND_STATE !== trackNo) {
-    trackEle.play();
+    track.play();
     SOUND_STATE = trackNo;
   } else {
     SOUND_STATE = 0;
   }
 }
-$(document).ready(function() {
-  var currentVotingId = -1;
-  var votes = [];
-  var votesGiven = 0;
 
-  $(document).on("click", ".transfer-vote-candidate", function() {
-    const candidate = $(this).attr("value");
-    const voting = $(this).parents(".voting-form-transferable")[0];
-    const votingID = $(voting)
-      .attr("id")
-      .replace("voting-form-", "");
-    const candidateCount = $(voting).find("label").length;
+function clearVotes(votingId) {
+  const form = getVotingForm(votingId);
+  Array.from(form.querySelectorAll(".voting-order")).forEach(
+    (elem) => (elem.innerHTML = "-")
+  );
+  votesGiven = 0;
+  currentVotingId = -1;
+}
 
-    if ($("#" + candidate).text() == "-") {
-      if (currentVotingId != votingID) {
-        votes = new Array();
-        currentVotingId = votingID;
-        votesGiven = 0;
-      }
-      if (votesGiven < candidateCount) {
-        votesGiven += 1;
-        $("#" + candidate).text(votesGiven);
-      }
-    } else {
-      const value = parseInt($("#" + candidate).text());
-      $("#" + candidate).text("-");
-      $(voting)
-        .find(".voting-order")
-        .each(function() {
-          const rank = parseInt($(this).text());
-          if (rank > value) {
-            return $(this).text(rank - 1);
-          } else {
-            return this;
+function setupEventListeners() {
+  var transferVoteCandidates = document.getElementsByClassName(
+    "transfer-vote-candidate"
+  );
+
+  Array.from(transferVoteCandidates).forEach((candidate) => {
+    candidate.addEventListener("click", (e) => {
+      const candidate = e.target.value;
+      const votingId = e.target.value.split("-")[2];
+      const form = getVotingForm(votingId);
+      const candidateCount = form.querySelectorAll("label").length;
+
+      const getOrderLabel = () => document.getElementById(candidate).innerHTML;
+      var label = getOrderLabel();
+
+      if (label === "-") {
+        if (currentVotingId !== votingId) {
+          currentVotingId = votingId;
+          votesGiven = 0;
+        } else if (votesGiven < candidateCount) {
+          votesGiven += 1;
+          document.getElementById(candidate).innerHTML = votesGiven;
+        }
+      } else {
+        const clickedRank = e.target.previousElementSibling.innerHTML;
+        e.target.previousElementSibling.innerHTML = "-";
+        Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
+          const rank = parseInt(elem.innerHTML);
+          if (rank > clickedRank) {
+            elem.innerHTML = rank - 1;
           }
         });
-      votesGiven -= 1;
-    }
+        votesGiven -= 1;
+      }
+    });
   });
+}
 
-  $(document).on("click", ".clear-vote", function() {
-    var votingId = $(this)
-      .parent()
-      .attr("id")
-      .substr(12);
-
-    $(this)
-      .parents(".voting-form-transferable")
-      .find(".voting-order")
-      .each(function() {
-        $(this).text("-");
-      });
-    votes = new Array();
-    votesGiven = 0;
-    currentVotingId = -1;
-  });
+window.addEventListener("load", async function () {
+  M.Modal.init(document.querySelector("#voting-modal"));
+  const token = localStorage.getItem("token");
+  if (token) {
+    await refreshVotingList();
+  }
+  setupEventListeners();
 });
 
 function expandResults(element) {
-  $(element).toggleClass("expanded");
+  element.classList.toggle("expanded");
 }

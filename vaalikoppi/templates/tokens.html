@@ -1,39 +1,39 @@
 <!doctype html>
 <html>
-<head>
-<style type="text/css"> 
+  <head>
+  <style type="text/css"> 
     p {
-        font-size: 14pt;
+      font-size: 14pt;
     }
 
     table { 
-        width: 100%;
+      width: 100%;
     }
 
     table, td {
-        border: 2px solid black;
+      border: 2px solid black;
     }
 
     td {
-        text-align: center;
+      text-align: center;
     }
-</style>
-</head>
-<body>
-<table>
-{% for token in tokens %}
-    <tr>
-        {% if not forloop.counter|divisibleby:2 %}
+  </style>
+  </head>
+  <body>
+    <table>
+      {% for token in tokens %}
+        <tr>
+          {% if not forloop.counter|divisibleby:2 %}
             <td>
-                <p>{{ token }}</p>
+              <p>{{ token }}</p>
             </td>
-        {% else %}
+          {% else %}
             <td>
-                <p>{{ token }}</p>
+              <p>{{ token }}</p>
             </td>
-        {% endif %}
-    </tr>
-{% endfor %}
-</table>
-</body>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+  </body>
 </html>
