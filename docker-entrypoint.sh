@@ -26,4 +26,6 @@ python manage.py shell -c "from django.contrib.auth import get_user_model; \
 	User = get_user_model(); User.objects.filter(email='webbitiimi@prodeko.org').exists() or \
 	User.objects.create_superuser(username='webbitiimi', password='kananugetti', email='webbitiimi@prodeko.org')"
 
+nohup python manage.py sass vaalikoppi/static/scss vaalikoppi/static/css --watch &
+
 exec "$@"

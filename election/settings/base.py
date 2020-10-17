@@ -6,6 +6,8 @@ USER_TOKEN_VAR = "cur_token"
 
 SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
+SESSION_LOCK = True
+
 INSTALLED_APPS = [
     "vaalikoppi",
     "django.contrib.admin",
@@ -14,6 +16,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_sass",
 ]
 
 MIDDLEWARE = [
@@ -25,6 +28,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "election.middleware.SessionLockMiddleware",
 ]
 
 ROOT_URLCONF = "election.urls"

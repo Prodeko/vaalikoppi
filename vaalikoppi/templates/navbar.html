@@ -1,0 +1,45 @@
+{% load static %}
+
+{% if user.is_superuser %}
+  <nav id="admin-nav" class="navbar-fixed nav-extended red-darken-1">
+    <div class="nav-wrapper">
+      <ul class="right">
+        <li>
+            <a href="{% url 'vaalikoppi:index' %}">Etusivu</a>
+        </li>
+        <li>
+            <a href="{% url 'admin:index' %}" target="_blank">Django Admin</a>
+        </li>
+        <li>
+            <a href="{% url 'vaalikoppi:admin_votings' %}">Äänestykset</a>
+        </li>
+        <li>
+            <a href="{% url 'vaalikoppi:admin_voting_results' %}">Tulokset</a>
+        </li>
+        <li>
+            <a href="{% url 'vaalikoppi:admin_tokens' %}">Koodit</a>
+        </li>
+      </ul>
+    </div>
+    <div class="nav-content">
+      <ul class="tabs tabs-transparent">
+        <div id="logo" class="center brand-logo">
+          <img id="vaalikoppi-logo" src="{% static 'images/vaalikoppi.png' %}" />
+        </div>
+      </ul>
+    </div>
+  </nav>
+{% else %}
+  <nav id="normal-nav">
+    <div id="logo" class="center brand-logo">
+      <img id="vaalikoppi-logo" src="{% static 'images/vaalikoppi.png' %}" />
+    </div>
+    <div class="fixed-action-btn toolbar" id="deactivate-btn">
+      <a class="transparent right">
+        <i class="large material-icons" onclick="logout()">fingerprint</i>
+      </a>
+    </div>
+  </nav>
+{% endif %}
+
+

@@ -2,44 +2,13 @@
 {% load static %}
 
 {% block body %}
-    <div class="bg">
-        <div class="navbar-fixed" id="top">
-            <nav>
-                <div class="nav-wrapper prodeko-blue">
-                    <div id="logo" class="center brand-logo"><img id="vaalikoppi-logo" src="{% static 'css/Vaalikoppi.png' %}" /></div>
-                    <div class="fixed-action-btn toolbar" id="deactivate-btn">
-                        <a class="transparent right">
-                            <i class="large material-icons">fingerprint</i>
-                        </a>
-                        <ul>
-                            <li class="prodeko-blue">
-                                <div id="token_div" class="center brand-logo">{{ user_token }}</div>
-                                <a class="logout transparent bold">
-                                    <i class="material-icons right" onclick="logout()">exit_to_app</i>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="container main-container">
-                    {% if is_valid_token is True %}
-                        {% include 'voting-list.html' %}
-                    {% endif %}
-                    
-                    {% if is_valid_token is False %}
-                        {% include 'main-login-prompt.html' %}
-                    {% endif %}
-                </div>
-            </nav>
-        </div>
+  <div class="navbar-fixed" id="top">
+    <div class="container">
+      {% if is_valid_token is True %}
+        {% include 'voting.html' %}
+      {% else %}
+        {% include 'login.html' %}
+      {% endif %}
     </div>
-
-    {% if is_valid_token %}
-        <script type="text/javascript">
-        $(document).ready(function() {
-            refreshVotingList();
-        });
-        </script>
-    {% endif %}
+  </div>
 {% endblock %}

@@ -12,7 +12,7 @@ $ docker-compose up
 
 Tämän jälkeen sivusto pitäisi olla nähtävissä osoitteessa http://localhost:8000/vaalikoppi/.
 
-Admin näkymään pääsee osoitteesta http://localhost:8000/admin/
+Admin näkymään pääsee osoitteesta http://localhost:8000/vaalikoppi/admin/votings/
 ![Admin näkymä](admin.png)
 
 ## Äänestysoikeuden myöntäminen ja verifikaatio

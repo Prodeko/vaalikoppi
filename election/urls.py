@@ -1,7 +1,7 @@
-from django.urls import include, path
 from django.contrib import admin
-from .views import redirect_view
+from django.urls import include, path
 
+from .views import redirect_view
 
 app_name = "election"
 urlpatterns = [

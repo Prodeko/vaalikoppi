@@ -1,28 +1,12 @@
-{% load static %}
-
-<!DOCTYPE html>
-<html lang="fi">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Prodeko Election</title>
-        <link href="static/css/materialize.min.css" rel="stylesheet">
-        <link href="static/css/custom.css" rel="stylesheet">
-        {# Import Google Icon Font #}
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Raleway:400,700,800" rel="stylesheet">
-    </head>
-    <body>
-        <div id="login-container">
-            <div class="container center-align">
-                <div class="logos center">
-                    <img id="login-vaalikoppi-logo" src="static/css/Vaalikoppi.png" />
-                </div>
-                <div id="login-input-container" class="center-block">
-                    <input id="input_text" type="text" data-length="8" placeholder="Authentication Code">
-                </div>
-            </div>
-        </div>
-    </body>
-</html>
+<div id="login-container">
+  <div class="card blue-grey lighten-5">
+    <div class="card-content blue-grey-text text-lighten-1 center">
+      <span class="card-title blue-grey-text text-lighten-1">Syötä koodi kirjautuaksesi sisään</span>
+      <input type="text" id="type-token-field" class="token-input-field" size="50">
+      <span id="login-notification-area">&nbsp;</span>
+    </div>
+    <div class="card-action center">
+      <button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="submitToken()">Kirjaudu</button>
+    </div>
+  </div>
+</div>

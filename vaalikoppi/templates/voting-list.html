@@ -1,7 +1,58 @@
-<div id="voting-list-updater" class="card blue-grey lighten-5">
-    <div class="card-action center">
-        <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">Päivitä luettelo</button>
-    </div>
-</div>
+{# Avattu äänestys #}
+{% if open_votings %}
+  {% for voting in open_votings %}
+    {% if voting.is_transferable %}
+      {# Siirtoäänivaalitapa #}
+      <div class="card blue-grey lighten-5">
+        <div class="card-content grey-text center">
+          <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
+            {% if voting.voting_description %}
+              <p>{{ voting.voting_description }}</p>
+            {% endif %}
+          <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
+        </div>
+        <div class="card-action">
+          {% if voting.candidates.all %}
+            <div id="voting-form-{{ voting.id }}" data-voting-max-votes="{{ voting.max_votes }}">
+              {% csrf_token %}
+              {% for candidate in voting.candidates.all %}
+                <div class="voting-candidates">
+                  <div class="voting-order blue darken-1" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
+                  <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-turqoise blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
+                  <br>
+                </div>
+              {% endfor %}
+              <button onclick="voteTransferableElection({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+              <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light grey white-text wide-button bold-font">Tyhjennä</button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      {# Enemmistöäänivaalitapa #}
+      <div class="card blue-grey lighten-5">
+        <div class="card-content grey-text center">
+          <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
+          {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
+          <p>Ääniä käytettävissä {{ voting.max_votes }} kpl.</p>
+        </div>
+        <div class="card-action">
+          {% if voting.candidates.all %}
+            <div id="voting-form-{{ voting.id }}" class="voting-form" data-voting-max-votes="{{ voting.max_votes }}">
+              {% csrf_token %}
+              {% for candidate in voting.candidates.all %}
+                <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="selectVote(this, {{ voting.id }})">
+                <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-green blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
+                <br>
+              {% endfor %}
+              <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endif %}
 
-<div id="voting-list-area"></div>
+{% include 'voting-list-ended-and-closed.html' %}
+{% include 'voting-modal.html' %}
