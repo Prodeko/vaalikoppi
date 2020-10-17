@@ -1,11 +1,12 @@
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+
 from .base import *
 
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
     integrations=[DjangoIntegration()],
-    send_default_pii=False
+    send_default_pii=False,
 )
 
 DEBUG = False

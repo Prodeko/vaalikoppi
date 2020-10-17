@@ -1,5 +1,6 @@
 from django import forms
-from vaalikoppi.models import Voting
+
+from vaalikoppi.models import Voting, VotingTransferable
 
 
 class VotingForm(forms.ModelForm):
@@ -13,9 +14,9 @@ class VotingForm(forms.ModelForm):
         }
 
 
-class TransferableVotingForm(forms.ModelForm):
+class VotingTransferableForm(forms.ModelForm):
     class Meta:
-        model = TransferableVoting
+        model = VotingTransferable
         fields = ["voting_name", "voting_description", "max_votes"]
         labels = {
             "voting_name": "Äänestyksen nimi",

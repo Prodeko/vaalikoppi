@@ -1,9 +1,8 @@
-import datetime
 import math
 import uuid
 
 from django.db import models
-from django.db.models import Avg, Count, Min, Sum
+from django.db.models import Sum
 
 
 class Voting(models.Model):
