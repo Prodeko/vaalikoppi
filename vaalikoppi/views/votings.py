@@ -45,10 +45,11 @@ def is_eligible_to_vote(request, voting_obj):
 def is_eligible_to_vote_transferable(request, voting_obj):
     if is_valid_token(request):
         token_obj = get_token_obj(request)
+        print(token_obj)
         try:
             mapping = TokenMappingTransferable.objects.get(
                 token=token_obj, voting=voting_obj
-            ).count()
+            )
             cur_votes_by_token_count = (
                 VoteTransferable.objects.all()
                 .filter(uuid=mapping.uuid, voting=voting_obj)
@@ -68,7 +69,6 @@ def is_eligible_to_vote_transferable(request, voting_obj):
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
             if cur_votes_count == 0:
                 return True
-
     return False
 
 
