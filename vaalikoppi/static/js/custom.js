@@ -110,7 +110,7 @@ function showVotingConfirmationModal(
       "POST",
       data
     )
-      .then(function(res) {
+      .then((res) => {
 		  if (!res.ok) {
 			  if (res.status == 403) {
 				 throw Error("Äänestäminen epäonnistui. Tarkista äänestyksen salasana.");
@@ -121,9 +121,9 @@ function showVotingConfirmationModal(
 	  })
       .then((html) => (votingArea.innerHTML = html))
       .catch((error) => { 
-		raiseUserWarning((error.length > 0 ? error : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
+		raiseUserWarning((error.message.length > 0 ? error.message : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
 		  näkyykö äänestys vielä äänestämättömänä.")),
-        refreshVotingList()
+        refreshVotingList();
       });
 
     e.target.removeAttribute("disabled");
