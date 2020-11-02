@@ -123,7 +123,7 @@ function showVotingConfirmationModal(
       .catch((error) => { 
 		raiseUserWarning((error.message.length > 0 ? error.message : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
 		  näkyykö äänestys vielä äänestämättömänä.")),
-        refreshVotingList();
+        // refreshVotingList();
       });
 
     e.target.removeAttribute("disabled");
