@@ -5,6 +5,7 @@
       <input type="text" id="type-token-field" class="token-input-field" size="50">
       <span id="login-notification-area">&nbsp;</span>
     </div>
+    {% csrf_token %}
     <div class="card-action center">
       <button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="submitToken()">Kirjaudu</button>
     </div>

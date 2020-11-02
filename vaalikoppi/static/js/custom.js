@@ -222,6 +222,7 @@ function submitToken() {
   notificationArea.classList.add("loading-token-notification");
   notificationArea.classList.remove("wrong-token-warning");
   notificationArea.innerHTML = "Ladataan...";
+  document.cookie = csrftoken=jQuery("[name=csrfmiddlewaretoken]").val();
 
   callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token })
     .then(() => location.reload())
