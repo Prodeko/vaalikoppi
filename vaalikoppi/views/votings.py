@@ -71,6 +71,16 @@ def is_eligible_to_vote_transferable(request, voting_obj):
                 return True
     return False
 
+def is_valid_voting_password(voting_password_typed, voting_obj):
+    voting_password_real = voting_obj.voting_password
+    voting_requires_password = voting_obj.is_password_protected
+    
+    if (not voting_requires_password):
+        return True
+    
+    if(voting_password_typed == voting_password_real):
+        return True
+    return False
 
 @validate_token
 def votings_list(request, token):
@@ -131,6 +141,19 @@ def vote(request, voting_id, token):
     empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
     data = json.loads(request.body.decode("utf-8"))
+    
+    ### BEGIN VOTING PASSWORD CHECK ###
+    voting_password_typed = data.get("voting_password")
+    
+    if not voting_password_typed:
+        voting_password_typed = ""
+    
+    if is_valid_voting_password(voting_password_typed, voting_obj) == False:
+        return JsonResponse(
+            {"message": "Wrong voting password!"}, status=403
+        )
+    ### END VOTING PASSWORD CHECK ###
+    
     candidates = data.get("candidates")
 
     if not candidates:
@@ -192,6 +215,19 @@ def vote_transferable(request, voting_id, token):
     votes = []
 
     data = json.loads(request.body.decode("utf-8"))
+    
+    ### BEGIN VOTING PASSWORD CHECK ###
+    voting_password_typed = data.get("voting_password")
+    
+    if not voting_password_typed:
+        voting_password_typed = ""
+    
+    if is_valid_voting_password(voting_password_typed, voting_obj) == False:
+        return JsonResponse(
+            {"message": "Wrong voting password!"}, status=403
+        )
+    ### END VOTING PASSWORD CHECK ###    
+    
     candidates = data.get("candidates")
     if not candidates:
         return JsonResponse({"message": "Candidates not provided"}, status=400)

@@ -36,6 +36,13 @@ function getVotingForm(votingId) {
   return document.getElementById(`voting-form-${votingId}`);
 }
 
+function raiseUserWarning(message) {
+	M.toast({
+        html: message,
+        classes: "red",
+      })
+}
+
 // Used to sort candidates by position in transferable election confirmation modal
 function compareChosenCandidates(a, b) {
   if (a.position.charAt(0) == "-") {
@@ -77,7 +84,8 @@ function getChosenCandidates(isTransferable, votingId) {
 function showVotingConfirmationModal(
   isTransferable,
   votingId,
-  chosenCandidates
+  chosenCandidates,
+  votingPassword
 ) {
   function setVotingConfirmationEventListener(e) {
     const votingArea = document.getElementById("voting-list-area");
@@ -90,6 +98,7 @@ function showVotingConfirmationModal(
       candidates: isTransferable
         ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
         : chosenCandidates.map((c) => c.id),
+		voting_password: votingPassword
     };
 
     e.target.setAttribute("disabled", true);
@@ -101,14 +110,20 @@ function showVotingConfirmationModal(
       "POST",
       data
     )
-      .then((res) => res.text())
+      .then(function(res) {
+		  if (!res.ok) {
+			  if (res.status == 403) {
+				 throw Error("Äänestäminen epäonnistui. Tarkista äänestyksen salasana.");
+			  }
+			  throw Error("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
+		  }
+		  return res.text();
+	  })
       .then((html) => (votingArea.innerHTML = html))
-      .catch(() => {
-        M.toast({
-          html: "Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!",
-          classes: "red",
-        });
-        refreshVotingList();
+      .catch((error) => { 
+		raiseUserWarning((error.length > 0 ? error : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
+		  näkyykö äänestys vielä äänestämättömänä.")),
+        refreshVotingList()
       });
 
     e.target.removeAttribute("disabled");
@@ -144,16 +159,31 @@ function showVotingConfirmationModal(
   instance.open();
 }
 
+function getVotingPasswordTyped(votingId) {
+	const passwordField = document.getElementById(`voting-password-${votingId}`);
+	if (passwordField) {
+		return(passwordField.value);
+	}
+	return "";
+	// Empty password corresponds to "no input" which can always be sent.
+}
+
 function vote(votingId) {
   const chosenCandidates = getChosenCandidates(false, votingId);
-  showVotingConfirmationModal(false, votingId, chosenCandidates);
+  const votingPassword = getVotingPasswordTyped(votingId);
+  if (chosenCandidates.length === 0) {
+	  raiseUserWarning("Valitse ainakin yksi ehdokas.");
+	  return;
+  }
+  showVotingConfirmationModal(false, votingId, chosenCandidates, votingPassword);
 }
 
 function voteTransferableElection(votingId) {
   const chosenCandidates = getChosenCandidates(true, votingId).sort(
     compareChosenCandidates
   );
-  showVotingConfirmationModal(true, votingId, chosenCandidates);
+  const votingPassword = getVotingPasswordTyped(votingId);
+  showVotingConfirmationModal(true, votingId, chosenCandidates, votingPassword);
 }
 
 async function refreshVotingList(admin = false) {
@@ -164,11 +194,7 @@ async function refreshVotingList(admin = false) {
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-      M.toast({
-        html:
-          "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.",
-        classes: "red",
-      });
+		raiseUserWarning("Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.");
     });
 
   setupEventListeners();

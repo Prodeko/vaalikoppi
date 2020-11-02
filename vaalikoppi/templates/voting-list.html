@@ -22,8 +22,11 @@
                   <br>
                 </div>
               {% endfor %}
-              <button onclick="voteTransferableElection({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
-              <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light grey white-text wide-button bold-font">Tyhjennä</button>
+                <div class="section">
+                      <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
+                      <button onclick="voteTransferableElection({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+                      <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light grey white-text wide-button bold-font">Tyhjennä</button>
+                </div>
             </div>
           {% endif %}
         </div>
@@ -45,7 +48,13 @@
                 <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-green blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                 <br>
               {% endfor %}
-              <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+                <div class="section">
+                    <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
+                    <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Äänestä</button>
+                </div>
+            </div>
+            
+            
             </div>
           {% endif %}
         </div>
