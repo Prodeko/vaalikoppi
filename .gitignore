@@ -5,5 +5,5 @@ __pycache__
 .DS_Store
 
 vaalikoppi/static/css/**/*.css
-!vaalikoppi/static/css/main.css
+#!vaalikoppi/static/css/main.css
 nohup.out
