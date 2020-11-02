@@ -20,11 +20,11 @@ Admin-näkymän tunnus on **webbitiimi** ja salasana **kananugetti**.
 ## Lokaaliajon erityispiirteet Windowsilla
 * Juurihakemiston tiedostossa `docker-entrypoint.sh` muuta Windows-tyyliset rivinvaihdot "CRLF" (`\r\n`) Linux-tyylisiksi "LF" (`\n`).
 Rivinvaihtojen ikävyys johtuu siitä, että Windows-koneilla Git tyypillisesti muuntaa rivinvaihdot checkoutissa. Tämän voi muuttaa asetuksista.
-* Jos et aja Windowsia admin-käyttäjänä, katso [https://icij.gitbook.io/datashare/faq-errors/you-are-not-allowed-to-use-docker-you-must-be-in-the-docker-users-group-.-what-should-i-do]
+* Jos et aja Windowsia admin-käyttäjänä, katso https://icij.gitbook.io/datashare/faq-errors/you-are-not-allowed-to-use-docker-you-must-be-in-the-docker-users-group-.-what-should-i-do
 * Jos olet aiemmin käyttänyt tai yrittänyt käyttää Docker Toolboxia, poista Virtualboxista (/vast.) virtuaalikone default ja mahdolliset muut toolbox-liitännäiset koneet.
 Käynnistä Windows uudelleen.
 Jos ei tämän jälkeen vielä toimi: aja Docker Desktopin uninstalleri. Käynnistä Windows uudelleen. Asenna Docker Desktop uudestaan.
-* Jos ei vieläkään toimi, `docker-compose stop`, `docker-compose build`, `docker-compose up``
+* Jos ei vieläkään toimi, `docker-compose stop`, `docker-compose build`, `docker-compose up`
 
 ## Äänestysoikeuden myöntäminen ja verifikaatio
 
