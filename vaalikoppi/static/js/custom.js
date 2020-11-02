@@ -297,14 +297,18 @@ function activateOrInvalidateToken(isActivate, code, number) {
 function createVoting() {
   const isTransferable = document.getElementById("is-transfer-election")
     .checked;
+  const isPasswordProtected = document.getElementById("voting-add-is-password-protected").checked;
   const votingName = document.getElementById("voting-name").value;
   const votingDescription = document.getElementById("voting-description").value;
+  const votingPassword = document.getElementById("voting-add-voting-password").value;
   const maxVotes = document.getElementById("max-votes").value;
 
   const data = {
     is_transferable: isTransferable,
+    is_password_protected: isPasswordProtected,
     voting_name: votingName,
     voting_description: votingDescription,
+    voting_password: votingPassword,
     max_votes: maxVotes,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)

@@ -34,13 +34,13 @@
   <div class="card-content grey-text">
     <span class="card-title blue-grey-text text-darken-1 bold-font">Luo uusi äänestys</span>
     <label>
-      <input type="checkbox" class="filled-in" id="is-transfer-election" value="is-transfer-election" />
-      <span>Siirtoäänivaalitapa</span>
+        <input type="checkbox" class="filled-in" id="is-transfer-election" value="is-transfer-election" />
+        <span>Siirtoäänivaalitapa</span>
     </label>
     <br>
     <label>
-      <input type="checkbox" class="filled-in" id="has-password" value="has-password" />
-      <span>Äänestyskohtainen salasana vaaditaan</span>
+        <input type="checkbox" class="filled-in" id="voting-add-is-password-protected" name="is-password-protected" value="is-password-protected" />
+        <span>Äänestyskohtainen salasana vaaditaan</span>
     </label>
     <div class="input-field col s3">
       <input id="voting-name" name="voting-name" type="text" class="validate" required>
@@ -51,8 +51,8 @@
       <label for="voting-description">Kuvaus</label>
     </div>
     <div class="input-field col s3">
-      <input id="voting-password" name="voting-password" type="text" maxlength="50">
-      <label for="voting-description">Äänestyskohtainen salasana</label>
+      <input id="voting-add-voting-password" name="voting-password" type="text" maxlength="50">
+      <label for="voting-add-voting-password">Äänestyskohtainen salasana</label>
     </div>
     <div class="input-field col s6">
       <input id="max-votes" type="number" min="1" value="1" name="max-votes" class="validate">
@@ -72,7 +72,7 @@
         <span class="card-title bold-font">Auki: {{ voting.voting_name }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
         <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
         Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
-        {% if voting.voting_description %}<div class=" section grey-text"><p>{{ voting.voting_description }}</p></div>{% endif %}
+        {% if voting.voting_description %}<div class="section grey-text"><p>{{ voting.voting_description }}</p></div>{% endif %}
       </div>
       <div class="card-action center">
         {% if voting.candidates.all %}

@@ -13,7 +13,7 @@ class Voting(models.Model):
     is_ended = models.BooleanField(default=False)
     treshold = models.FloatField(default=500.0)
     is_transferable = False
-    has_password = models.BooleanField(default=False)
+    is_password_protected = models.BooleanField(default=False)
     voting_password = models.CharField(max_length=50, blank=True)
 
     def total_votes(self):
@@ -63,10 +63,6 @@ class Voting(models.Model):
         self.is_ended = True
         self.save()
 
-    def is_password_protected(self):
-        # Do not require password to be of positive length
-        return self.has_password
-
     def __str__(self):
         return self.voting_name
 
@@ -79,7 +75,7 @@ class VotingTransferable(models.Model):
     round = models.IntegerField(default=1)
     is_transferable = True
     max_votes = models.IntegerField(default=1)
-    has_password = models.BooleanField(default=False)
+    is_password_protected = models.BooleanField(default=False)
     voting_password = models.CharField(max_length=50, blank=True)
 
     def total_votes(self):
@@ -131,10 +127,6 @@ class VotingTransferable(models.Model):
         self.is_open = False
         self.is_ended = True
         self.save()
-        
-    def is_password_protected(self):
-        # Do not require password to be of positive length
-        return self.has_password
 
     def __str__(self):
         return "{} (siirtoäänivaalitapa)".format(self.voting_name)
