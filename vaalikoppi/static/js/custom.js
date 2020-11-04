@@ -242,7 +242,7 @@ function logout() {
 
 function submitToken() {
   var token = document.getElementById("type-token-field").value;
-  var notificationArea = document.getElementById("login-notification-area");
+  const notificationArea = document.getElementById("login-notification-area");
 
   notificationArea.classList.add("loading-token-notification");
   notificationArea.classList.remove("wrong-token-warning");
@@ -250,15 +250,19 @@ function submitToken() {
   document.cookie = csrftoken=jQuery("[name=csrfmiddlewaretoken]").val();
 
   callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token })
-    .then(() => location.reload())
-    .catch(() =>
+    .then((res) => {
+		if (!res.ok) {
+			throw Error("Virheellinen koodi");
+		}
+		location.reload();
+	})
+    .catch((error) =>
       window.setTimeout(() => {
         notificationArea.classList.remove("loading-token-notification");
         notificationArea.classList.add("wrong-token-warning");
-        notificationArea.innerHTML = "Virheellinen koodi";
+        notificationArea.innerHTML = error.message;
       }, 100)
     );
-
   localStorage.setItem("token", token);
 }
 
