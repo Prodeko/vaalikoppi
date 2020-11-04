@@ -212,6 +212,7 @@ class CandidateTransferable(models.Model):
 
 class Usertoken(models.Model):
     token = models.CharField(max_length=50, unique=True)
+    alias = models.CharField(max_length=50, blank=True, unique=False)
     created = models.DateTimeField(auto_now=False, auto_now_add=True)
     activated = models.BooleanField(default=False)
     invalidated = models.BooleanField(default=False)
