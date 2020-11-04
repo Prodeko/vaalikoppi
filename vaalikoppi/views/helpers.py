@@ -2,8 +2,9 @@ from django.conf import settings
 from vaalikoppi.models import Usertoken
 
 
-def is_valid_token(request):
-    token_obj = get_token_obj(request)
+def is_valid_token(request, token_obj=None):
+    if token_obj is None:
+        token_obj = get_token_obj(request)
 
     if token_obj is not None and token_obj.activated and not token_obj.invalidated:
         return True
@@ -28,3 +29,13 @@ def get_token_obj(request):
 
 def get_active_tokens(request):
     return Usertoken.objects.filter(activated=True, invalidated=False)
+
+
+# Raises exception
+def validate_register_alias(request, token_obj, alias):
+    alias_len = len(alias)
+     
+    if alias_len >=3 and alias_len <=20 and 0 == get_active_tokens(request).filter(alias=alias).count():
+        Usertoken.objects.filter(token=token_obj.token).update(alias=alias)
+    else:
+        raise Exception("Invalid alias provided")

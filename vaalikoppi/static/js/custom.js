@@ -242,6 +242,7 @@ function logout() {
 
 function submitToken() {
   var token = document.getElementById("type-token-field").value;
+  var alias = document.getElementById("type-alias-field").value;
   const notificationArea = document.getElementById("login-notification-area");
 
   notificationArea.classList.add("loading-token-notification");
@@ -249,10 +250,17 @@ function submitToken() {
   notificationArea.innerHTML = "Ladataan...";
   document.cookie = csrftoken=jQuery("[name=csrfmiddlewaretoken]").val();
 
-  callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token })
+  callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token: token, alias: alias })
     .then((res) => {
 		if (!res.ok) {
-			throw Error("Virheellinen koodi");
+			if (res.status === 401) {
+				throw Error("Virheellinen koodi");
+			} else if (res.status === 403) {
+				throw Error("Alias ei ole sallittu tai se on jo varattu");
+			} else if (res.status === 404) {
+				
+			}
+			throw Error("Kirjautuminen epäonnistui");
 		}
 		location.reload();
 	})
