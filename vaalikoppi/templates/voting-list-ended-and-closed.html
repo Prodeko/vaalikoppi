@@ -57,9 +57,9 @@
   {% endfor %}
 {% endif %}
 
-<h3>Päättyneet äänestykset</h3>
 {# Päättynyt äänestys #}
 {% if ended_votings %}
+<h4>Päättyneet äänestykset</h4>
   {% for voting in ended_votings %}
     {% if voting.is_transferable %}
       <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
