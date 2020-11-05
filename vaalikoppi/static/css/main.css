@@ -58,6 +58,10 @@ input {
   text-align: center;
 }
 
+.alias-input-field {
+  text-transform: uppercase;
+}
+
 .prodeko-blue {
   background-color: #004080;
 }
@@ -111,6 +115,14 @@ nav {
 
 #login-container .wrong-token-warning {
   color: red;
+}
+
+#login-container .login-instructions h6 {
+  font-weight: bold;
+}
+
+#login-container .login-instructions p {
+  margin-bottom: 1em;
 }
 
 .voting-order {
