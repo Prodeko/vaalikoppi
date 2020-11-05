@@ -305,10 +305,8 @@ def calculate_stv(request, voting_id):
 
     return ballots
 
-
 @login_required
 def admin_voting_list(request):
-    # TODO: Votings are sorted by ID even though both voting types have separate running IDs
     closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
     closed_transferable_votings = list(
         VotingTransferable.objects.filter(is_open=False, is_ended=False)
@@ -317,12 +315,47 @@ def admin_voting_list(request):
         (closed_regular_votings + closed_transferable_votings), key=id, reverse=True
     )
 
-    open_regular_votings = list(Voting.objects.filter(is_open=True, is_ended=False))
+    open_regular_votings = list(
+        Voting.objects.filter(is_open=True, is_ended=False)
+    )
+
+    # Attach voted and not voted tokens to the respective votings
+    # Regular votings
+    for open_regular_voting in open_regular_votings:
+        cur_mappings = TokenMapping.objects.all().filter(voting=open_regular_voting)
+
+        open_regular_voting.tokens_voted = []
+        open_regular_voting.tokens_not_voted = []
+        for cur_mapping in cur_mappings:
+            cur_votes_count = Vote.objects.all().filter(uuid=cur_mapping.uuid, voting=open_regular_voting).count()
+
+            if (cur_votes_count > 0):
+                open_regular_voting.tokens_voted.append(cur_mapping.token)
+            else:
+                open_regular_voting.tokens_not_voted.append(cur_mapping.token)
+
     open_transferable_votings = list(
         VotingTransferable.objects.filter(is_open=True, is_ended=False)
     )
+
+    # Attach voted and not voted tokens to the respective votings
+    # Transferable votings
+    for open_transferable_voting in open_transferable_votings:
+        cur_mappings = TokenMappingTransferable.objects.all().filter(voting=open_transferable_voting)
+
+        open_transferable_voting.tokens_voted = []
+        open_transferable_voting.tokens_not_voted = []
+        for cur_mapping in cur_mappings:
+            cur_votes_count = VoteTransferable.objects.all().filter(uuid=cur_mapping.uuid, voting=open_transferable_voting).count()
+
+            if (cur_votes_count > 0):
+                open_transferable_voting.tokens_voted.append(cur_mapping.token)
+            else:
+                open_transferable_voting.tokens_not_voted.append(cur_mapping.token)
+    
+    # Combine regular and transferable votings into one list
     open_votings = sorted(
-        (open_regular_votings + open_transferable_votings), key=id, reverse=True
+        (open_regular_votings + open_transferable_votings), key=lambda voting: (voting.id, voting.voting_name), reverse=True
     )
 
     ended_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=True))
