@@ -225,3 +225,18 @@
     }
   }
 }
+
+.votes-left-col {
+  .votes-left-expander {
+    font-size: inherit;
+    &:hover {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  }
+  .votes-left-table {
+    thead {
+      font-weight: bold;
+    }
+  }
+}

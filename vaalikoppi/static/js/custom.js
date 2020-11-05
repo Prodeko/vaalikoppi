@@ -587,3 +587,7 @@ window.addEventListener("load", function () {
 function expandResults(element) {
   element.classList.toggle("expanded");
 }
+
+function toggleNotVotedList(tableId) {
+  document.getElementById(tableId).classList.toggle("hide");
+}

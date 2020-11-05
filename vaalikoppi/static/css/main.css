@@ -348,3 +348,16 @@ nav {
 #search-table tr:header, #search-table tr:hover {
   background-color: #f1f1f1;
 }
+
+.votes-left-col .votes-left-expander {
+  font-size: inherit;
+}
+
+.votes-left-col .votes-left-expander:hover {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.votes-left-col .votes-left-table thead {
+  font-weight: bold;
+}
