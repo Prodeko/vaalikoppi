@@ -62,7 +62,7 @@
             <table class="highlight bordered" id="search-table">
               <thead>
                 <tr>
-                  <th>Koodi</th>
+                  <th>Koodi / Alias</th>
                   <th>#</th>
                   <th>Aktivoitu</th>
                   <th>Mitätöity</th>
@@ -73,7 +73,7 @@
               <tbody>
                 {% for usertoken in tokens %}
                   <tr>
-                    <td>{{ usertoken.token }}</td>
+                    <td>{{ usertoken.token }}<br>{{ usertoken.alias }}</td>
                     <td>{{ usertoken.pk }}</td>
                     <td>{{ usertoken.activated }}</td>
                     <td>{{ usertoken.invalidated }}</td>
