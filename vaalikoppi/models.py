@@ -151,7 +151,7 @@ class VotingTransferable(GenericVoting):
 
 
 class VotingRoundTransferable(models.Model):
-    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
     round = models.IntegerField(default=0)
 
     def total_votes(self):
@@ -194,10 +194,12 @@ class VotingRoundTransferable(models.Model):
     def empty_votes(self):
         return self.voting_results.filter(candidate_name="Tyhjä")[0].vote_count
 
+    # ??? Voting properties here
     def open_voting(self):
         self.is_open = True
         self.save()
 
+    # ??? Voting properties here
     def close_voting(self):
         self.is_open = False
         self.is_ended = True
