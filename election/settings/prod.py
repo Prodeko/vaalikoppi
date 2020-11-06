@@ -11,7 +11,7 @@ sentry_sdk.init(
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["vaalikoppi.azurewebsites.net", "vaalikoppi.prodeko.org", "127.0.0.1"]
+ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "vaalikoppi.prodeko.fi"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
@@ -44,7 +44,7 @@ LOGGING = {
     "handlers": {
         "logfile": {
             "class": "logging.handlers.WatchedFileHandler",
-            "filename": "/home/LogFiles/vaalikoppi.log",
+            "filename": "/srv/www/vaalikoppi/vaalikoppi.log",
         }
     },
     "loggers": {

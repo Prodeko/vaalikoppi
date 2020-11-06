@@ -18,13 +18,23 @@ Admin näkymään pääsee osoitteesta http://localhost:8000/vaalikoppi/admin/vo
 Admin-näkymän tunnus on **webbitiimi** ja salasana **kananugetti**.
 
 ## Lokaaliajon erityispiirteet Windowsilla
-* Juurihakemiston tiedostossa `docker-entrypoint.sh` muuta Windows-tyyliset rivinvaihdot "CRLF" (`\r\n`) Linux-tyylisiksi "LF" (`\n`).
-Rivinvaihtojen ikävyys johtuu siitä, että Windows-koneilla Git tyypillisesti muuntaa rivinvaihdot checkoutissa. Tämän voi muuttaa asetuksista.
-* Jos et aja Windowsia admin-käyttäjänä, katso https://icij.gitbook.io/datashare/faq-errors/you-are-not-allowed-to-use-docker-you-must-be-in-the-docker-users-group-.-what-should-i-do
-* Jos olet aiemmin käyttänyt tai yrittänyt käyttää Docker Toolboxia, poista Virtualboxista (/vast.) virtuaalikone default ja mahdolliset muut toolbox-liitännäiset koneet.
-Käynnistä Windows uudelleen.
-Jos ei tämän jälkeen vielä toimi: aja Docker Desktopin uninstalleri. Käynnistä Windows uudelleen. Asenna Docker Desktop uudestaan.
-* Jos ei vieläkään toimi, `docker-compose stop`, `docker-compose build`, `docker-compose up`
+
+- Juurihakemiston tiedostossa `docker-entrypoint.sh` muuta Windows-tyyliset rivinvaihdot "CRLF" (`\r\n`) Linux-tyylisiksi "LF" (`\n`).
+  Rivinvaihtojen ikävyys johtuu siitä, että Windows-koneilla Git tyypillisesti muuntaa rivinvaihdot checkoutissa. Tämän voi muuttaa asetuksista.
+- Jos et aja Windowsia admin-käyttäjänä, katso https://icij.gitbook.io/datashare/faq-errors/you-are-not-allowed-to-use-docker-you-must-be-in-the-docker-users-group-.-what-should-i-do
+- Jos olet aiemmin käyttänyt tai yrittänyt käyttää Docker Toolboxia, poista Virtualboxista (/vast.) virtuaalikone default ja mahdolliset muut toolbox-liitännäiset koneet.
+  Käynnistä Windows uudelleen.
+  Jos ei tämän jälkeen vielä toimi: aja Docker Desktopin uninstalleri. Käynnistä Windows uudelleen. Asenna Docker Desktop uudestaan.
+- Jos ei vieläkään toimi, `docker-compose stop`, `docker-compose build`, `docker-compose up`
+
+### Deployaus Prodekon palvelimelle
+
+## Azure
+
+1. Kirjaudu Prodekon docker registryyn: `az acr login --name prodekoregistry`
+2. Buildaa image: `docker build . -t prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi`
+3. Puske image registryyn: `docker push prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi`
+4. Aja infrastructure reposta: `ansible-playbook playbook.yml --extra-vars '@passwd.yml' --tags vaalikoppi`
 
 ## Äänestysoikeuden myöntäminen ja verifikaatio
 

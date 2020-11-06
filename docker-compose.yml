@@ -7,9 +7,12 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=vaalikoppi
       - POSTGRES_USER=vaalikoppi
-  web:
-    tty: true
+
+  vaalikoppi:
     build: .
+    container_name: vaalikoppi
+    entrypoint: /code/docker-entrypoint.sh
+    command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
     ports:
