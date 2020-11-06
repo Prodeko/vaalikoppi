@@ -89,7 +89,7 @@ def votings_list(request, token):
         VotingTransferable.objects.filter(is_open=False, is_ended=False)
     )
     closed_votings = sorted(
-        (closed_regular_votings + closed_transferable_votings), key=id, reverse=True
+        (closed_regular_votings + closed_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
     )
 
     open_votings = []
@@ -99,7 +99,7 @@ def votings_list(request, token):
         VotingTransferable.objects.filter(is_open=False, is_ended=True)
     )
     ended_votings = sorted(
-        (ended_regular_votings + ended_transferable_votings), key=id, reverse=True
+        (ended_regular_votings + ended_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
     )
 
     for voting in Voting.objects.filter(is_open=True, is_ended=False):
@@ -112,6 +112,8 @@ def votings_list(request, token):
             open_votings.append(voting)
         else:
             closed_votings.insert(0, voting)
+
+    open_votings = sorted(open_votings, key=lambda v: v.pseudo_unique_id(), reverse=True)
 
     return render(
         request,

@@ -4,6 +4,7 @@
 {% block body %}
   <div class="container">
     <div class="card blue-grey lighten-5">
+      <div class="card-content center">
 
       {% if votings %}
         <table class="highlight bordered">
@@ -25,11 +26,9 @@
           </tbody>
         </table>
       {% else %}
-        <div class="card-content blue-grey-text text-lighten-1 center">
           <span class="card-title blue-grey-text text-lighten-1">Ei valmistuneita äänestyksiä.</span>
-        </div>
       {% endif %}
-      
+    </div>
     </div>
   </div>
 {% endblock %}

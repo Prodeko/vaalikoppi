@@ -40,7 +40,7 @@
     {% else %}
       <div class="card grey lighten-3">
         <div class="card-content blue-grey-text text-lighten-1 center">
-          <span class="card-title blue-grey-text text-lighten-1">{{ voting }}</span>
+          <span class="card-title blue-grey-text text-lighten-1">{% if voting.is_open %}Äänestetty: {% endif %}{{ voting }}</span>
           {% if voting.voting_description %}
             <p>{{ voting.voting_description }}</p>
           {% endif %}
