@@ -44,7 +44,7 @@ LOGGING = {
     "handlers": {
         "logfile": {
             "class": "logging.handlers.WatchedFileHandler",
-            "filename": "/srv/www/vaalikoppi/vaalikoppi.log",
+            "filename": "/code/vaalikoppi.log",
         }
     },
     "loggers": {
