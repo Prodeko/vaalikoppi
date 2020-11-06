@@ -336,3 +336,18 @@ class VotingResultTransferable(models.Model):
     vote_rounds = models.IntegerField(default=1)
     elected = models.BooleanField(default=False)
     dropped = models.BooleanField(default=False)
+
+
+class GenericVoterStatus(models.Model):
+    usertoken_token = models.CharField(max_length=50, blank=False, unique=False)
+    usertoken_alias = models.CharField(max_length=50, blank=True, unique=False)
+    has_voted = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
+
+class VoterStatusRegular(GenericVoterStatus):
+    voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+
+class VoterStatusTransferable(GenericVoterStatus):
+    voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)
