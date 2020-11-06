@@ -34,7 +34,7 @@ def get_active_tokens(request):
 
 # Raises exception
 def validate_register_alias(request, token_obj, alias):
-    alias_regex = r"^[A-Z0-9\u00C0-\u00D6\u00D8-u00DE][A-Z0-9\u00C0-\u00D6\u00D8-u00DE_\-]+$"
+    alias_regex = r"^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_\-]+$"
     alias = alias.upper()
     alias_len = len(alias)
 
