@@ -5,17 +5,34 @@ from django.db import models
 from django.db.models import Sum
 
 
-class Voting(models.Model):
+class GenericVoting(models.Model):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
     max_votes = models.IntegerField(default=1)
     is_open = models.BooleanField(default=False)
     is_ended = models.BooleanField(default=False)
-    treshold = models.FloatField(default=500.0)
-    is_transferable = False
     is_password_protected = models.BooleanField(default=False)
     voting_password = models.CharField(max_length=50, blank=True)
 
+    class Meta:
+        abstract = True
+
+    def empty_votes(self):
+        return self.voting_results.filter(candidate_name="Tyhjä")[0].vote_count
+
+    def open_voting(self):
+        self.is_open = True
+        self.save()
+
+    def close_voting(self):
+        self.is_open = False
+        self.is_ended = True
+        self.save()
+
+class Voting(GenericVoting):
+    treshold = models.FloatField(default=500.0)
+    is_transferable = False
+    
     def total_votes(self):
         if self.is_open:
             return int(math.floor(self.vote_set.count() / self.max_votes))
@@ -51,32 +68,13 @@ class Voting(models.Model):
             "-vote_count"
         )[self.max_votes :]
 
-    def empty_votes(self):
-        return self.voting_results.filter(candidate_name="Tyhjä")[0].vote_count
-
-    def open_voting(self):
-        self.is_open = True
-        self.save()
-
-    def close_voting(self):
-        self.is_open = False
-        self.is_ended = True
-        self.save()
-
     def __str__(self):
         return self.voting_name
 
 
-class VotingTransferable(models.Model):
-    voting_name = models.CharField(max_length=50)
-    voting_description = models.CharField(max_length=200, blank=True)
-    is_open = models.BooleanField(default=False)
-    is_ended = models.BooleanField(default=False)
+class VotingTransferable(GenericVoting):
     round = models.IntegerField(default=1)
     is_transferable = True
-    max_votes = models.IntegerField(default=1)
-    is_password_protected = models.BooleanField(default=False)
-    voting_password = models.CharField(max_length=50, blank=True)
 
     def total_votes(self):
         if self.is_open:
@@ -115,18 +113,6 @@ class VotingTransferable(models.Model):
         return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
             "-vote_count"
         )[self.max_votes :]
-
-    def empty_votes(self):
-        return self.voting_results.filter(candidate_name="Tyhjä")[0].vote_count
-
-    def open_voting(self):
-        self.is_open = True
-        self.save()
-
-    def close_voting(self):
-        self.is_open = False
-        self.is_ended = True
-        self.save()
 
     def __str__(self):
         return "{} (siirtoäänivaalitapa)".format(self.voting_name)
@@ -335,4 +321,9 @@ class VotingResultTransferable(models.Model):
     vote_count = models.FloatField(default=0.0)
     vote_rounds = models.IntegerField(default=1)
     elected = models.BooleanField(default=False)
-    dropped = models.BooleanField(default=False)
+    dropped = models.BooleanField(default=False)    
+
+#class VotingStatus(models.Model):
+#    voting = models.ForeignKey(
+#       GenericVoting, on_delete=models.CASCADE
+#    )
