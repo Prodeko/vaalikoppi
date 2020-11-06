@@ -37,10 +37,10 @@ function getVotingForm(votingId) {
 }
 
 function raiseUserWarning(message) {
-	M.toast({
-        html: message,
-        classes: "red",
-      })
+  M.toast({
+    html: message,
+    classes: "red",
+  });
 }
 
 // Used to sort candidates by position in transferable election confirmation modal
@@ -98,7 +98,7 @@ function showVotingConfirmationModal(
       candidates: isTransferable
         ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
         : chosenCandidates.map((c) => c.id),
-		voting_password: votingPassword
+      voting_password: votingPassword,
     };
 
     e.target.setAttribute("disabled", true);
@@ -111,18 +111,26 @@ function showVotingConfirmationModal(
       data
     )
       .then((res) => {
-		  if (!res.ok) {
-			  if (res.status == 403) {
-				 throw Error("Äänestäminen epäonnistui. Tarkista äänestyksen salasana.");
-			  }
-			  throw Error("Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!");
-		  }
-		  return res.text();
-	  })
+        if (!res.ok) {
+          if (res.status == 403) {
+            throw Error(
+              "Äänestäminen epäonnistui. Tarkista äänestyksen salasana."
+            );
+          }
+          throw Error(
+            "Äänestäminen epäonnistui. Päivitä sivu ja yritä uudelleen!"
+          );
+        }
+        return res.text();
+      })
       .then((html) => (votingArea.innerHTML = html))
-      .catch((error) => { 
-		raiseUserWarning((error.message.length > 0 ? error.message : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
-		  näkyykö äänestys vielä äänestämättömänä."))
+      .catch((error) => {
+        raiseUserWarning(
+          error.message.length > 0
+            ? error.message
+            : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
+		  näkyykö äänestys vielä äänestämättömänä."
+        );
       });
 
     e.target.removeAttribute("disabled");
@@ -159,22 +167,27 @@ function showVotingConfirmationModal(
 }
 
 function getVotingPasswordTyped(votingId) {
-	const passwordField = document.getElementById(`voting-password-${votingId}`);
-	if (passwordField) {
-		return(passwordField.value);
-	}
-	return "";
-	// Empty password corresponds to "no input" which can always be sent.
+  const passwordField = document.getElementById(`voting-password-${votingId}`);
+  if (passwordField) {
+    return passwordField.value;
+  }
+  return "";
+  // Empty password corresponds to "no input" which can always be sent.
 }
 
 function vote(votingId) {
   const chosenCandidates = getChosenCandidates(false, votingId);
   const votingPassword = getVotingPasswordTyped(votingId);
   if (chosenCandidates.length === 0) {
-	  raiseUserWarning("Valitse ainakin yksi ehdokas.");
-	  return;
+    raiseUserWarning("Valitse ainakin yksi ehdokas.");
+    return;
   }
-  showVotingConfirmationModal(false, votingId, chosenCandidates, votingPassword);
+  showVotingConfirmationModal(
+    false,
+    votingId,
+    chosenCandidates,
+    votingPassword
+  );
 }
 
 function voteTransferableElection(votingId) {
@@ -193,7 +206,9 @@ async function refreshVotingList(admin = false) {
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-		raiseUserWarning("Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.");
+      raiseUserWarning(
+        "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
+      );
     });
 
   setupEventListeners();
@@ -247,15 +262,15 @@ function submitToken() {
   notificationArea.classList.add("loading-token-notification");
   notificationArea.classList.remove("wrong-token-warning");
   notificationArea.innerHTML = "Ladataan...";
-  document.cookie = csrftoken=jQuery("[name=csrfmiddlewaretoken]").val();
+  document.cookie = csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
   callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token })
     .then((res) => {
-		if (!res.ok) {
-			throw Error("Virheellinen koodi");
-		}
-		location.reload();
-	})
+      if (!res.ok) {
+        throw Error("Virheellinen koodi");
+      }
+      location.reload();
+    })
     .catch((error) =>
       window.setTimeout(() => {
         notificationArea.classList.remove("loading-token-notification");
@@ -326,10 +341,13 @@ function activateOrInvalidateToken(isActivate, code, number) {
 function createVoting() {
   const isTransferable = document.getElementById("is-transfer-election")
     .checked;
-  const isPasswordProtected = document.getElementById("voting-add-is-password-protected").checked;
+  const isPasswordProtected = document.getElementById(
+    "voting-add-is-password-protected"
+  ).checked;
   const votingName = document.getElementById("voting-name").value;
   const votingDescription = document.getElementById("voting-description").value;
-  const votingPassword = document.getElementById("voting-add-voting-password").value;
+  const votingPassword = document.getElementById("voting-add-voting-password")
+    .value;
   const maxVotes = document.getElementById("max-votes").value;
 
   const data = {

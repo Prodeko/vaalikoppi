@@ -5,10 +5,12 @@
     "sourceType": "script"
   },
   "env": {
-    "browser": true
+    "browser": true,
+    "jquery": true
   },
   "globals": {
-    "M": "readonly"
+    "M": "readonly",
+    "csrftoken": "writable"
   },
   "plugins": ["prettier"],
   "extends": ["eslint:recommended", "prettier"],
