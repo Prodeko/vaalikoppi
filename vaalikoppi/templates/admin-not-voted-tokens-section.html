@@ -1,0 +1,17 @@
+<div class="row">
+    <div class="col s12 votes-left-col">
+      <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.pseudo_unique_id }}')">Koodit, jotka jättivät äänestämättä</h6>
+      <table id="votes-left-table-{{ voting.pseudo_unique_id }}" class="votes-left-table hide">
+        <thead>
+          <tr><td>Koodi</td><td>Alias</td></tr>
+        </thead>
+        <tbody>
+          {% for voting_status in voting.voter_statuses %}
+          {% if not voting_status.has_voted %}
+          <tr><td>{{ voting_status.usertoken_token }}</td><td>{{ voting_status.usertoken_alias|escape }}</td></tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>

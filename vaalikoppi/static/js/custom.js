@@ -436,14 +436,6 @@ function closeVoting(votingId, is_transferable) {
       if (SOUND_STATE !== 0) {
         playSound(3);
       }
-
-      if (data.not_voted_tokens && data.not_voted_tokens.length > 0) {
-        M.toast({
-          html:
-            "Äänestämättä jäivät koodit:\n" + data.not_voted_tokens.join("\n"),
-          classes: "orange",
-        });
-      }
     })
     .catch((err) =>
       M.toast({
@@ -595,17 +587,17 @@ function instaValidateAliasSyntax(formField){
   }
 }
 
+function expandResults(element) {
+  element.parentNode.classList.toggle("expanded");
+}
+
+function toggleNotVotedList(tableId) {
+  document.getElementById(tableId).classList.toggle("hide");
+}
+
 window.addEventListener("load", function () {
   const token = localStorage.getItem("token");
   if (token) {
     refreshVotingList();
   }
 });
-
-function expandResults(element) {
-  element.classList.toggle("expanded");
-}
-
-function toggleNotVotedList(tableId) {
-  document.getElementById(tableId).classList.toggle("hide");
-}

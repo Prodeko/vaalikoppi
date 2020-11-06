@@ -5,7 +5,25 @@ from django.db import models
 from django.db.models import Sum
 
 
-class Voting(models.Model):
+# TODO: Move common voting fields and methods to this abstract class...
+class GenericVoting(models.Model):
+
+    # For the purpose of getting unique DOM element IDs
+    def pseudo_unique_id(self):
+        if self.is_transferable:
+            return str(self.id) + "-transferable"
+        return str(self.id) + "-regular"
+
+    # Returns anything only after the voting has been closed
+    def voter_statuses(self):
+        if self.is_transferable:
+            return VoterStatusTransferable.objects.all().filter(voting=self)
+        return VoterStatusRegular.objects.all().filter(voting=self)
+
+    class Meta:
+        abstract = True
+
+class Voting(GenericVoting):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
     max_votes = models.IntegerField(default=1)
@@ -67,7 +85,7 @@ class Voting(models.Model):
         return self.voting_name
 
 
-class VotingTransferable(models.Model):
+class VotingTransferable(GenericVoting):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
     is_open = models.BooleanField(default=False)

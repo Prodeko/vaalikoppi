@@ -90,8 +90,8 @@
       <div class="divider"></div>
       <div class="row">
         <div class="col s12 votes-left-col">
-          <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
-          <table id="votes-left-table-{{ voting.id }}" class="votes-left-table hide">
+          <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.pseudo_unique_id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
+          <table id="votes-left-table-{{ voting.pseudo_unique_id }}" class="votes-left-table hide">
             <thead>
               <tr><td>Koodi</td><td>Alias</td></tr>
             </thead>

@@ -62,8 +62,8 @@
 <h4>Päättyneet äänestykset</h4>
   {% for voting in ended_votings %}
     {% if voting.is_transferable %}
-      <div class="transfer-election card prodeko-blue white-text center" onclick="expandResults(this)">
-        <div class="card-title-container">
+      <div class="transfer-election closed-voting card prodeko-blue white-text center">
+        <div class="card-title-container" onclick="expandResults(this)">
           <h3 class="card-title bold-font">{{ voting }}</h3>
           {% if voting.grouped_results|length > 1 %}
             <i class="expand-results material-icons">chevron_right</i>
@@ -97,9 +97,12 @@
         <div class="empty-votes">
           Valitaan: {{ voting.winners }}
         </div>
+        {% if is_admin %}
+        {% include 'admin-not-voted-tokens-section.html' %}
+        {% endif %}
       </div>
     {% else %}
-      <div class="card prodeko-blue white-text center">
+      <div class="closed-voting card prodeko-blue white-text center">
         <div class="card-title-container">
           <h3 class="card-title bold-font">{{ voting }}</h3>
         </div>
@@ -124,6 +127,9 @@
         <div class="empty-votes">
           Tyhjiä: {{ voting.empty_votes }}
         </div>
+        {% if is_admin %}
+        {% include 'admin-not-voted-tokens-section.html' %}
+        {% endif %}
       </div>
     {% endif %}
   {% endfor %}
