@@ -13,6 +13,8 @@ services:
       - db
     environment:
       - DJANGO_SETTINGS_MODULE=election.settings.prod
+      - SECRET_KEY=ANSIBLE_REPLACE_SECRET_KEY
+      - DB_PASSWORD=ANSIBLE_REPLACE_DB_PASSWORD
       - DB_USER=user_vaalikoppi@prodeko-postgres
       - POSTGRESQL_SSL_CA=/code/ca-certs/CombinedCa.crt.pem
       - SENTRY_DSN=https://dda0512eee65464c893202702005be39@sentry.prodeko.org/4
