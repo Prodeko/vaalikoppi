@@ -4,11 +4,11 @@ services:
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
-    command: waitress-serve --threads 5 --port=8000 election.wsgi:application
+    command: waitress-serve --threads 5 --port=8001 election.wsgi:application
     volumes:
       - .:/code
     ports:
-      - "8001:8000"
+      - "8001:8001"
     environment:
       - DJANGO_SETTINGS_MODULE=election.settings.prod
       - SECRET_KEY=ANSIBLE_REPLACE_SECRET_KEY
