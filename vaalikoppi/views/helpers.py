@@ -38,7 +38,10 @@ def validate_register_alias(request, token_obj, alias):
     alias = alias.upper()
     alias_len = len(alias)
 
-    if alias_len >=3 and alias_len <=20 and bool(re.match(alias_regex, alias)) and 0 == get_active_tokens(request).filter(alias=alias).count():
+    # Allow an existing alias to be used if registered for the current token
+    if alias_len >=3 and alias_len <=20 and bool(re.match(alias_regex, alias)) \
+    and 0 == get_active_tokens(request).exclude(token=token_obj.token).filter(alias=alias).count():
         Usertoken.objects.filter(token=token_obj.token).update(alias=alias)
     else:
         raise Exception("Invalid alias provided")
+    
