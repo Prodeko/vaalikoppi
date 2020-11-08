@@ -30,8 +30,8 @@
 	</div>
 
   <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function() {
-      refreshVotingList({% if user.is_superuser %}true{% endif %}); // TODO: Doesn't work
+   window.addEventListener("load", function () {
+      refreshVotingList(true);
     });
   </script>
 {% endblock %}

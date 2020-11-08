@@ -10,7 +10,10 @@
 <div id="voting-list-area"></div>
 
 <script type="text/javascript">
-if (typeof refreshVotingList == "function") {
-	refreshVotingList({% if user.is_superuser %}true{% endif %});
-}
+window.addEventListener("load", function () {
+  const token = localStorage.getItem("token");
+  if (token) {
+    refreshVotingList();
+  }
+});
 </script>

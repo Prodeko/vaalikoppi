@@ -611,10 +611,3 @@ function expandResults(element) {
 function toggleNotVotedList(tableId) {
   document.getElementById(tableId).classList.toggle("hide");
 }
-
-window.addEventListener("load", function () {
-  const token = localStorage.getItem("token");
-  if (token) {
-    refreshVotingList();
-  }
-});
