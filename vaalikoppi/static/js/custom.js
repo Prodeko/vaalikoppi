@@ -36,11 +36,25 @@ function getVotingForm(votingId) {
   return document.getElementById(`voting-form-${votingId}`);
 }
 
-function raiseUserWarning(message) {
+const NOTIF_COLOR = {
+  WARNING: "red",
+  CONFIRMATION: "green",
+}
+
+function raiseToast(color, message) {
   M.toast({
     html: message,
-    classes: "red",
+    classes: color,
+    displayLength: 6000,
   });
+}
+
+function raiseUserWarning(message) {
+  raiseToast(NOTIF_COLOR.WARNING, message);
+}
+
+function raiseUserConfirmation(message) {
+  raiseToast(NOTIF_COLOR.CONFIRMATION, message);
 }
 
 // Used to sort candidates by position in transferable election confirmation modal
@@ -123,7 +137,10 @@ function showVotingConfirmationModal(
         }
         return res.text();
       })
-      .then((html) => (votingArea.innerHTML = html))
+      .then((html) => {
+        votingArea.innerHTML = html;
+        raiseUserConfirmation("Äänesi on otettu vastaan. Kiitos.");
+      })
       .catch((error) => {
         raiseUserWarning(
           error.message.length > 0
