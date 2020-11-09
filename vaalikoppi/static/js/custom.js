@@ -39,7 +39,7 @@ function getVotingForm(votingId) {
 const NOTIF_COLOR = {
   WARNING: "red",
   CONFIRMATION: "green",
-}
+};
 
 function raiseToast(color, message) {
   M.toast({
@@ -280,22 +280,24 @@ function submitToken() {
   notificationArea.classList.add("loading-token-notification");
   notificationArea.classList.remove("wrong-token-warning");
   notificationArea.innerHTML = "Ladataan... &#129312";
-  document.cookie = csrftoken=jQuery("[name=csrfmiddlewaretoken]").val();
+  document.cookie = csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
 
-  callApi(`${SITE_ROOT_PATH}user/login/`, "POST", { token: token, alias: alias })
+  callApi(`${SITE_ROOT_PATH}user/login/`, "POST", {
+    token: token,
+    alias: alias,
+  })
     .then((res) => {
-		if (!res.ok) {
-			if (res.status === 401) {
-				throw Error("Virheellinen kirjautumiskoodi");
-			} else if (res.status === 403) {
-				throw Error("Alias ei ole sallittu, tai se on jo varattu");
-			} else if (res.status === 404) {
-				
-			}
-			throw Error("Kirjautuminen epäonnistui");
-		}
-		location.reload();
-	})
+      if (!res.ok) {
+        if (res.status === 401) {
+          throw Error("Virheellinen kirjautumiskoodi");
+        } else if (res.status === 403) {
+          throw Error("Alias ei ole sallittu, tai se on jo varattu");
+        } else if (res.status === 404) {
+        }
+        throw Error("Kirjautuminen epäonnistui");
+      }
+      location.reload();
+    })
     .catch((error) =>
       window.setTimeout(() => {
         notificationArea.classList.remove("loading-token-notification");
@@ -589,11 +591,11 @@ function setupEventListeners() {
 
 function validateAliasSyntax(aliasInput) {
   const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_\-]+$/;
-  const lengthOk = aliasInput.length >=3 && aliasInput.length <= 20;
+  const lengthOk = aliasInput.length >= 3 && aliasInput.length <= 20;
   return lengthOk && aliasRegex.test(aliasInput.toUpperCase());
 }
 
-function instaValidateAliasSyntax(formField){
+function instaValidateAliasSyntax(formField) {
   const fieldClasses = formField.classList;
   if (validateAliasSyntax(formField.value)) {
     fieldClasses.add("valid");
