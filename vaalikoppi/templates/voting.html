@@ -7,13 +7,17 @@
   </div>
 </div>
 
-<div id="voting-list-area"></div>
+<div id="voting-list-area">
+  {% include 'voting-list.html' %}
+</div>
 
 <script type="text/javascript">
 window.addEventListener("load", function () {
   const token = localStorage.getItem("token");
   if (token) {
-    refreshVotingList();
+    // refreshVotingList();
+    //setupEventListeners();
   }
+  setupEventListeners();
 });
 </script>

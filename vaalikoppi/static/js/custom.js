@@ -39,6 +39,7 @@ function getVotingForm(votingId) {
 const NOTIF_COLOR = {
   WARNING: "red",
   CONFIRMATION: "green",
+  ALERT: "orange"
 };
 
 function raiseToast(color, message) {
@@ -55,6 +56,10 @@ function raiseUserWarning(message) {
 
 function raiseUserConfirmation(message) {
   raiseToast(NOTIF_COLOR.CONFIRMATION, message);
+}
+
+function raiseUserAlert(message) {
+  raiseToast(NOTIF_COLOR.ALERT, message);
 }
 
 // Used to sort candidates by position in transferable election confirmation modal
@@ -138,8 +143,9 @@ function showVotingConfirmationModal(
         return res.text();
       })
       .then((html) => {
-        votingArea.innerHTML = html;
-        raiseUserConfirmation("Äänesi on otettu vastaan. Kiitos.");
+        raiseUserConfirmation("Äänestäminen onnistui. Äänestysluettelo päivitetään kohta. Odota.");
+        // Do not distract the user with things happening too fast
+        window.setTimeout(() => updateVotingListFromHtml(html), 4000);
       })
       .catch((error) => {
         raiseUserWarning(
@@ -151,6 +157,8 @@ function showVotingConfirmationModal(
       });
 
     e.target.removeAttribute("disabled");
+
+    raiseUserAlert("Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu.");
   }
 
   // Initialize modal
@@ -215,19 +223,26 @@ function voteTransferableElection(votingId) {
   showVotingConfirmationModal(true, votingId, chosenCandidates, votingPassword);
 }
 
+// Currently only used in admin mode
 async function refreshVotingList(admin = false) {
   const votingArea = document.getElementById("voting-list-area");
   const adminPath = admin ? "admin/" : "";
 
   await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
-    .then((html) => (votingArea.innerHTML = html))
+    .then((html) => votingArea.innerHTML = html)
     .catch(() => {
       raiseUserWarning(
         "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
       );
     });
 
+  setupEventListeners();
+}
+
+function updateVotingListFromHtml(html) {
+  const votingArea = document.getElementById("voting-list-area");
+  votingArea.innerHTML = html;
   setupEventListeners();
 }
 

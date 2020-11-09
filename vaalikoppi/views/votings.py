@@ -82,8 +82,9 @@ def is_valid_voting_password(voting_password_typed, voting_obj):
         return True
     return False
 
+# Get votings list data directly
 @validate_token
-def votings_list(request, token):
+def votings_list_data(request, token):
     closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
     closed_transferable_votings = list(
         VotingTransferable.objects.filter(is_open=False, is_ended=False)
@@ -115,21 +116,25 @@ def votings_list(request, token):
 
     open_votings = sorted(open_votings, key=lambda v: v.pseudo_unique_id(), reverse=True)
 
-    return render(
-        request,
-        "voting-list.html",
-        {
+    return {
             "is_admin": False,
             "closed_votings": closed_votings,
             "open_votings": open_votings,
             "ended_votings": ended_votings,
-        },
-    )
+        }
 
+# Get votings list rendered as html
+@validate_token
+def votings_list(request, token):
+    return render(
+        request,
+        "voting-list.html",
+        votings_list_data(request)
+    )
 
 @validate_token
 @require_http_methods(["POST"])
-def vote(request, voting_id, token):
+def vote(request, token, voting_id):
     if is_eligible_to_vote(request, voting_id) == False:
         return JsonResponse(
             {"message": "Not allowed to vote in this voting!"}, status=403
@@ -200,7 +205,7 @@ def vote(request, voting_id, token):
 
 @validate_token
 @require_http_methods(["POST"])
-def vote_transferable(request, voting_id, token):
+def vote_transferable(request, token, voting_id):
     ## NEED TO CHECK THAT POSTS CORRECTLY
     if is_eligible_to_vote_transferable(request, voting_id) == False:
         return JsonResponse(
