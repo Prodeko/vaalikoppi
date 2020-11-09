@@ -1,5 +1,5 @@
 """
-WSGI config for prodekoorg project.
+WSGI config for vaalikoppi project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
