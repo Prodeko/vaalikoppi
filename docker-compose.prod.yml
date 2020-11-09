@@ -4,7 +4,7 @@ services:
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
-    command: waitress-serve --threads 5 --port=8001 election.wsgi:application
+    command: gunicorn election.asgi:application -b 0.0.0.0:8001 -k uvicorn.workers.UvicornWorker
     volumes:
       - .:/code
     ports:
