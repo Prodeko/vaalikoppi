@@ -2,7 +2,6 @@
 {% load static %}
 
 {% block body %}
-  <div class="navbar-fixed" id="top">
     <div class="container">
       {% if is_valid_token is True %}
         {% include 'voting.html' %}
@@ -10,5 +9,4 @@
         {% include 'login.html' %}
       {% endif %}
     </div>
-  </div>
 {% endblock %}
