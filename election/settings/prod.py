@@ -11,7 +11,7 @@ sentry_sdk.init(
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "vaalikoppi.prodeko.fi"]
+ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "127.0.0.1", "localhost"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")

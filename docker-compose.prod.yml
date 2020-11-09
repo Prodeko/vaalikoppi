@@ -4,7 +4,7 @@ services:
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
-    command: uvicorn --port=8001 election.asgi:application
+    command: uvicorn --port=8001 --host=vaalikoppi.prodeko.org election.asgi:application
     volumes:
       - .:/code
     ports:
