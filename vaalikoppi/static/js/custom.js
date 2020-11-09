@@ -39,7 +39,7 @@ function getVotingForm(votingId) {
 const NOTIF_COLOR = {
   WARNING: "red",
   CONFIRMATION: "green",
-  ALERT: "orange"
+  ALERT: "orange",
 };
 
 function raiseToast(color, message) {
@@ -143,7 +143,9 @@ function showVotingConfirmationModal(
         return res.text();
       })
       .then((html) => {
-        raiseUserConfirmation("Äänestäminen onnistui. Äänestysluettelo päivitetään kohta. Odota.");
+        raiseUserConfirmation(
+          "Äänestäminen onnistui. Äänestysluettelo päivitetään kohta. Odota."
+        );
         // Do not distract the user with things happening too fast
         window.setTimeout(() => updateVotingListFromHtml(html), 4000);
       })
@@ -158,7 +160,9 @@ function showVotingConfirmationModal(
 
     e.target.removeAttribute("disabled");
 
-    raiseUserAlert("Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu.");
+    raiseUserAlert(
+      "Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu."
+    );
   }
 
   // Initialize modal
@@ -230,7 +234,7 @@ async function refreshVotingList(admin = false) {
 
   await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
-    .then((html) => votingArea.innerHTML = html)
+    .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
       raiseUserWarning(
         "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
