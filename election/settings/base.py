@@ -28,7 +28,6 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "election.middleware.SessionLockMiddleware",
 ]
 
 ROOT_URLCONF = "election.urls"
