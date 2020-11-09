@@ -8,16 +8,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 SESSION_LOCK = True
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
-
 INSTALLED_APPS = [
     "vaalikoppi",
     "django.contrib.admin",
