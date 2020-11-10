@@ -9,5 +9,6 @@ urlpatterns = [
     path("", redirect_view),
     path("vaalikoppi/", include("vaalikoppi.urls", namespace="vaalikoppi")),
     path("admin/", admin.site.urls),
-    path('__debug__/', include(debug_toolbar.urls)),
+    path("silk", include("silk.urls", namespace='silk')),
+    path("__debug__/", include(debug_toolbar.urls)),
 ]

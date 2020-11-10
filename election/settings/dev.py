@@ -26,3 +26,10 @@ if SHOW_DEBUG_TOOLBAR:
     }
     INSTALLED_APPS += ("debug_toolbar",)
     MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
+
+SHOW_DJANGO_SILK = True
+
+if SHOW_DJANGO_SILK:
+    SILKY_PYTHON_PROFILER = True
+    INSTALLED_APPS += ("silk",)
+    MIDDLEWARE += ("silk.middleware.SilkyMiddleware",)
