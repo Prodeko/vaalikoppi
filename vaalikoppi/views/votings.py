@@ -45,25 +45,24 @@ def is_eligible_to_vote(request, voting_obj):
 def is_eligible_to_vote_transferable(request, voting_obj):
     if is_valid_token(request):
         token_obj = get_token_obj(request)
-        print(token_obj)
         try:
-            mapping = TokenMappingTransferable.objects.get(
+            mapping = RankedChoiceTokenMapping.objects.get(
                 token=token_obj, voting=voting_obj
             )
             cur_votes_by_token_count = (
-                VoteTransferable.objects.all()
+                RankedChoiceVote.objects.all()
                 .filter(uuid=mapping.uuid, voting=voting_obj)
                 .count()
             )
             candidates_count = (
-                CandidateTransferable.objects.all().filter(voting=voting_obj).count()
+                RankedChoiceCandidate.objects.all().filter(voting=voting_obj).count()
             )
             if cur_votes_by_token_count == candidates_count:
                 return False
         except Exception as e:
             return False
         else:
-            cur_votes_count = VoteGroupTransferable.objects.filter(
+            cur_votes_count = RankedChoiceVoteGroup.objects.filter(
                 uuid=mapping.uuid, voting=voting_obj
             ).count()
             # Strict policy: don't let the user vote even in a case where 0 < len(cur_votes) < max_votes. Should never happen.
@@ -87,47 +86,16 @@ def is_valid_voting_password(voting_password_typed, voting_obj):
 # Get votings list data directly
 @validate_token
 def votings_list_data(request, token):
-    closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
-    closed_transferable_votings = list(
-        VotingTransferable.objects.filter(is_open=False, is_ended=False)
-    )
-    closed_votings = sorted(
-        (closed_regular_votings + closed_transferable_votings),
-        key=lambda v: v.pseudo_unique_id(),
-        reverse=True,
-    )
+    votings = Voting.objects.all()
 
-    open_votings = []
-
-    ended_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=True))
-    ended_transferable_votings = list(
-        VotingTransferable.objects.filter(is_open=False, is_ended=True)
-    )
-    ended_votings = sorted(
-        (ended_regular_votings + ended_transferable_votings),
-        key=lambda v: v.pseudo_unique_id(),
-        reverse=True,
-    )
-
-    for voting in Voting.objects.filter(is_open=True, is_ended=False):
-        if is_eligible_to_vote(request, voting):
-            open_votings.append(voting)
-        else:
-            closed_votings.insert(0, voting)
-    for voting in VotingTransferable.objects.filter(is_open=True, is_ended=False):
-        if is_eligible_to_vote_transferable(request, voting):
-            open_votings.append(voting)
-        else:
-            closed_votings.insert(0, voting)
-
-    open_votings = sorted(
-        open_votings, key=lambda v: v.pseudo_unique_id(), reverse=True
-    )
+    open_votings = votings.filter(is_open=True, is_ended=False)
+    closed_votings = votings.filter(is_open=False, is_ended=False)
+    ended_votings = votings.filter(is_open=False, is_ended=True)
 
     return {
         "is_admin": False,
-        "closed_votings": closed_votings,
         "open_votings": open_votings,
+        "closed_votings": closed_votings,
         "ended_votings": ended_votings,
     }
 
@@ -193,7 +161,7 @@ def vote(request, token, voting_id):
 
     try:
         mapping = TokenMapping.objects.get(token=token, voting=voting_obj)
-    except (TokenMapping.DoesNotExist):
+    except TokenMapping.DoesNotExist:
         return JsonResponse({"message": "No uuid for token"}, status=403)
 
     # Double-check...
@@ -216,7 +184,7 @@ def vote_transferable(request, token, voting_id):
             {"message": "Not allowed to vote in this voting!"}, status=403
         )
 
-    voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+    voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     token_obj = get_token_obj(request)
 
     candidates = []
@@ -244,44 +212,44 @@ def vote_transferable(request, token, voting_id):
     # Candi is pair of id:order
     for candidate in candidates:
         try:
-            candidate_obj = CandidateTransferable.objects.get(
+            candidate_obj = RankedChoiceCandidate.objects.get(
                 pk=candidate.split(":")[0], voting=voting_obj
             )
             if candidate.split(":")[1] != "-":
                 candidate_objs[candidate.split(":")[1]] = candidate_obj
         except (
-            CandidateTransferable.DoesNotExist,
-            CandidateTransferable.MultipleObjectsReturned,
+            RankedChoiceCandidate.DoesNotExist,
+            RankedChoiceCandidate.MultipleObjectsReturned,
         ):
             return JsonResponse(
                 {"message": "No such candidate for this voting"}, status=400
             )
 
     try:
-        mapping = TokenMappingTransferable.objects.get(
+        mapping = RankedChoiceTokenMapping.objects.get(
             token=token_obj, voting=voting_obj
         )
-    except (TokenMappingTransferable.DoesNotExist):
+    except RankedChoiceTokenMapping.DoesNotExist:
         return JsonResponse({"message": "No uuid for token"}, status=403)
 
     # Double-check..
 
     # !!!!!!!!!! VERY IMPORTANT TODO!!!!!!!!
 
-    cur_votes = VoteGroupTransferable.objects.all().filter(
+    cur_votes = RankedChoiceVoteGroup.objects.all().filter(
         uuid=mapping.uuid, voting=voting_obj
     )
     if len(cur_votes) != 0:
         return JsonResponse({"message": "Already voted in this voting!"}, status=403)
 
     # Create Vote group
-    vote_group = VoteGroupTransferable(
+    vote_group = RankedChoiceVoteGroup(
         uuid=mapping.uuid, voting=voting_obj, is_transferred=False
     )
     vote_group.save()
 
     for key in candidate_objs:
-        VoteTransferable(
+        RankedChoiceVote(
             uuid=mapping.uuid,
             candidate=candidate_objs[key],
             voting=voting_obj,

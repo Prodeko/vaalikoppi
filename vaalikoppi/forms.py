@@ -1,6 +1,6 @@
 from django import forms
 
-from vaalikoppi.models import Voting, VotingTransferable
+from vaalikoppi.models import Voting, RankedChoiceVoting
 
 
 class VotingForm(forms.ModelForm):
@@ -22,9 +22,9 @@ class VotingForm(forms.ModelForm):
         }
 
 
-class VotingTransferableForm(forms.ModelForm):
+class RankedChoiceVotingForm(forms.ModelForm):
     class Meta:
-        model = VotingTransferable
+        model = RankedChoiceVoting
         fields = [
             "voting_name",
             "voting_description",

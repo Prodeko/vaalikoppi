@@ -28,7 +28,7 @@ def create_voting(request):
     is_transferable = data.get("is_transferable")
 
     if is_transferable:
-        VotingTransferableForm(data).save()
+        RankedChoiceVotingForm(data).save()
     else:
         VotingForm(data).save()
 
@@ -43,8 +43,8 @@ def add_candidate(request, voting_id):
     candidate_name = data.get("candidate_name")
 
     if is_transferable:
-        voting = get_object_or_404(VotingTransferable, pk=voting_id)
-        candidate = CandidateTransferable(voting=voting, candidate_name=candidate_name)
+        voting = get_object_or_404(RankedChoiceVoting, pk=voting_id)
+        candidate = RankedChoiceCandidate(voting=voting, candidate_name=candidate_name)
         candidate.save()
     else:
         voting = get_object_or_404(Voting, pk=voting_id)
@@ -61,7 +61,7 @@ def remove_candidate(request, candidate_id):
     is_transferable = data.get("is_transferable")
 
     if is_transferable:
-        get_object_or_404(CandidateTransferable, pk=candidate_id).delete()
+        get_object_or_404(RankedChoiceCandidate, pk=candidate_id).delete()
     else:
         get_object_or_404(Candidate, pk=candidate_id).delete()
 
@@ -75,7 +75,7 @@ def open_voting(request, voting_id):
     is_transferable = data.get("is_transferable")
 
     if is_transferable:
-        voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+        voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     else:
         voting_obj = get_object_or_404(Voting, pk=voting_id)
         Candidate(
@@ -90,7 +90,7 @@ def open_voting(request, voting_id):
     active_tokens = get_active_tokens(request)
     if is_transferable:
         for cur_token in active_tokens:
-            TokenMappingTransferable(token=cur_token, voting=voting_obj).save()
+            RankedChoiceTokenMapping(token=cur_token, voting=voting_obj).save()
     else:
         for cur_token in active_tokens:
             TokenMapping(token=cur_token, voting=voting_obj).save()
@@ -100,7 +100,7 @@ def open_voting(request, voting_id):
 
 
 def transfer_election_has_result(request, voting_obj):
-    candidates = CandidateTransferable.objects.all().filter(voting=voting_obj)
+    candidates = RankedChoiceCandidate.objects.all().filter(voting=voting_obj)
     for candidate in candidates:
         if candidate.has_dropped == False and candidate.chosen == False:
             return False
@@ -150,7 +150,7 @@ def close_voting(request, voting_id):
     is_transferable = data.get("is_transferable")
 
     if is_transferable:
-        voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
+        voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     else:
         voting_obj = get_object_or_404(Voting, pk=voting_id)
 
@@ -158,19 +158,19 @@ def close_voting(request, voting_id):
         return JsonResponse({"message": "Voting is not open or has ended"}, status=403)
 
     if is_transferable:
-        mappings = TokenMappingTransferable.objects.all().filter(voting=voting_obj)
+        mappings = RankedChoiceTokenMapping.objects.all().filter(voting=voting_obj)
     else:
         mappings = TokenMapping.objects.all().filter(voting=voting_obj)
 
     for mapping in mappings:
         if is_transferable:
-            cur_votes = VoteTransferable.objects.all().filter(
+            cur_votes = RankedChoiceVote.objects.all().filter(
                 uuid=mapping.uuid, voting=voting_obj
             )
-            cur_votegroups = VoteGroupTransferable.objects.all().filter(
+            cur_votegroups = RankedChoiceVoteGroup.objects.all().filter(
                 uuid=mapping.uuid, voting=voting_obj
             )
-            candidates = CandidateTransferable.objects.all().filter(voting=voting_obj)
+            candidates = RankedChoiceCandidate.objects.all().filter(voting=voting_obj)
             has_voted = True
 
             if len(cur_votes) > len(candidates):
@@ -190,7 +190,7 @@ def close_voting(request, voting_id):
             if len(cur_votegroups) == 0:
                 has_voted = False
 
-            status = VoterStatusTransferable(
+            status = TransferableVotingVoterStatus(
                 voting=voting_obj,
                 usertoken_token=mapping.token.token,
                 usertoken_alias=mapping.token.alias,
@@ -210,7 +210,7 @@ def close_voting(request, voting_id):
             if len(cur_votes) == 0:
                 has_voted = False
 
-            status = VoterStatusRegular(
+            status = NormalVotingVoterStatus(
                 voting=voting_obj,
                 usertoken_token=mapping.token.token,
                 usertoken_alias=mapping.token.alias,
@@ -223,7 +223,7 @@ def close_voting(request, voting_id):
         results = calculate_results_stv(request, voting_obj)
         for voting_round in results["rounds"]:
             for candidate in voting_round["candidates"]:
-                VotingResultTransferable(
+                RankedChoiceVotingResult(
                     voting=voting_obj,
                     candidate_name=candidate["name"],
                     vote_count=candidate["vote_count"],
@@ -261,7 +261,7 @@ def calculate_results_stv(request, voting_obj):
         for person in voting_round["tallies"]:
             obj = {}
             obj["id"] = person
-            obj["name"] = CandidateTransferable.objects.get(id=person).candidate_name
+            obj["name"] = RankedChoiceCandidate.objects.get(id=person).candidate_name
             obj["vote_count"] = voting_round["tallies"][person]
             voting_round["candidates"].append(obj)
             obj["elected"] = False
@@ -295,11 +295,11 @@ def calculate_stv(request, voting_id):
     countdict = {}
     keysdict = {}
 
-    voting_obj = get_object_or_404(VotingTransferable, pk=voting_id)
-    votegroups = VoteGroupTransferable.objects.all().filter(voting=voting_obj)
+    voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
+    votegroups = RankedChoiceVoteGroup.objects.all().filter(voting=voting_obj)
     for vote_group in votegroups:
         votes = (
-            VoteTransferable.objects.all()
+            RankedChoiceVote.objects.all()
             .filter(votegroup=vote_group)
             .order_by("preference")
         )
@@ -324,7 +324,7 @@ def calculate_stv(request, voting_id):
 def admin_voting_list(request):
     closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
     closed_transferable_votings = list(
-        VotingTransferable.objects.filter(is_open=False, is_ended=False)
+        RankedChoiceVoting.objects.filter(is_open=False, is_ended=False)
     )
     closed_votings = sorted(
         (closed_regular_votings + closed_transferable_votings),
@@ -354,13 +354,13 @@ def admin_voting_list(request):
                 open_regular_voting.tokens_not_voted.append(cur_mapping.token)
 
     open_transferable_votings = list(
-        VotingTransferable.objects.filter(is_open=True, is_ended=False)
+        RankedChoiceVoting.objects.filter(is_open=True, is_ended=False)
     )
 
     # Attach voted and not voted tokens to the respective votings
     # Transferable votings
     for open_transferable_voting in open_transferable_votings:
-        cur_mappings = TokenMappingTransferable.objects.all().filter(
+        cur_mappings = RankedChoiceTokenMapping.objects.all().filter(
             voting=open_transferable_voting
         )
 
@@ -368,7 +368,7 @@ def admin_voting_list(request):
         open_transferable_voting.tokens_not_voted = []
         for cur_mapping in cur_mappings:
             cur_votes_count = (
-                VoteTransferable.objects.all()
+                RankedChoiceVote.objects.all()
                 .filter(uuid=cur_mapping.uuid, voting=open_transferable_voting)
                 .count()
             )
@@ -387,7 +387,7 @@ def admin_voting_list(request):
 
     ended_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=True))
     ended_transferable_votings = list(
-        VotingTransferable.objects.filter(is_open=False, is_ended=True)
+        RankedChoiceVoting.objects.filter(is_open=False, is_ended=True)
     )
     ended_votings = sorted(
         (ended_regular_votings + ended_transferable_votings),
