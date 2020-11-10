@@ -1,4 +1,9 @@
+import nplusone
+
 from .base import *
+
+# Show warnings for possible N+1 queries
+nplusone.show_nplusones()
 
 DEBUG = True
 
@@ -16,6 +21,7 @@ DATABASES = {
     }
 }
 
+# Set to True to enable django debug toolbar
 SHOW_DEBUG_TOOLBAR = True
 
 if SHOW_DEBUG_TOOLBAR:
@@ -24,12 +30,13 @@ if SHOW_DEBUG_TOOLBAR:
     DEBUG_TOOLBAR_CONFIG = {
         "SHOW_TOOLBAR_CALLBACK": lambda request: True if DEBUG else False
     }
-    INSTALLED_APPS += ("debug_toolbar",)
-    MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
+# Set to True to enable django-silk
 SHOW_DJANGO_SILK = True
 
 if SHOW_DJANGO_SILK:
     SILKY_PYTHON_PROFILER = True
-    INSTALLED_APPS += ("silk",)
-    MIDDLEWARE += ("silk.middleware.SilkyMiddleware",)
+    INSTALLED_APPS.append("silk")
+    MIDDLEWARE.append("silk.middleware.SilkyMiddleware")

@@ -17,6 +17,14 @@ Admin näkymään pääsee osoitteesta http://localhost:8000/vaalikoppi/admin/vo
 
 Admin-näkymän tunnus on **webbitiimi** ja salasana **kananugetti**.
 
+### Testaus
+
+- Käynnistä projekti komennolla `docker-compose up`
+- Avaa uusi terminal window
+- Testit saa ajettua komennolla `docker exec vaalikoppi pytest election/`
+- Testien kattavuus ja rinnakkaisajo `docker exec vaalikoppi pytest --cov -n auto election/`
+- Testit ja pdb debugger `docker exec vaalikoppi pytest election/ --pdb`
+
 ## Lokaaliajon erityispiirteet Windowsilla
 
 - Juurihakemiston tiedostossa `docker-entrypoint.sh` muuta Windows-tyyliset rivinvaihdot "CRLF" (`\r\n`) Linux-tyylisiksi "LF" (`\n`).
