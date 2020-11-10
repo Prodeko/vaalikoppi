@@ -10,6 +10,7 @@ SESSION_LOCK = True
 
 INSTALLED_APPS = [
     "vaalikoppi",
+    "polymorphic",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
