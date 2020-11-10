@@ -219,7 +219,7 @@ function vote(votingId) {
   );
 }
 
-function voteTransferableElection(votingId) {
+function RankedChoiceVoteElection(votingId) {
   const chosenCandidates = getChosenCandidates(true, votingId).sort(
     compareChosenCandidates
   );
@@ -311,7 +311,6 @@ function submitToken() {
           throw Error("Virheellinen kirjautumiskoodi");
         } else if (res.status === 403) {
           throw Error("Alias ei ole sallittu, tai se on jo varattu");
-        } else if (res.status === 404) {
         }
         throw Error("Kirjautuminen epäonnistui");
       }
@@ -609,7 +608,7 @@ function setupEventListeners() {
 }
 
 function validateAliasSyntax(aliasInput) {
-  const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_\-]+$/;
+  const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_-]+$/;
   const lengthOk = aliasInput.length >= 3 && aliasInput.length <= 20;
   return lengthOk && aliasRegex.test(aliasInput.toUpperCase());
 }
