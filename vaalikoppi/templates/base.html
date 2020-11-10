@@ -9,12 +9,12 @@
     <title>{% block title %}Prodeko Vaalikoppi{% endblock %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="{% static 'css/main.css' %}{% if nocache_rand %}?rand={{ nocache_rand }}{% endif %}" rel="stylesheet">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Raleway:400,700,800" rel="stylesheet">
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script type="text/javascript" src="{% static 'js/custom.js' %}{% if nocache_rand %}?rand={{ nocache_rand }}{% endif %}"></script>
+    <script type="text/javascript" src="{% static 'js/custom.js' %}"></script>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
   </head>
   <body>

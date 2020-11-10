@@ -8,7 +8,6 @@ def index(request):
     data = {
         "is_valid_token": False,
         "user_alias": "",
-        "nocache_rand": random.randint(10000, 99999),
     }
 
     cur_token_obj = get_token_obj(request)
