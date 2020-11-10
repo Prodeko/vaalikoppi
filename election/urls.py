@@ -1,3 +1,4 @@
+import debug_toolbar
 from django.contrib import admin
 from django.urls import include, path
 
@@ -8,4 +9,5 @@ urlpatterns = [
     path("", redirect_view),
     path("vaalikoppi/", include("vaalikoppi.urls", namespace="vaalikoppi")),
     path("admin/", admin.site.urls),
+    path('__debug__/', include(debug_toolbar.urls)),
 ]
