@@ -23,6 +23,7 @@ class GenericVoting(models.Model):
     class Meta:
         abstract = True
 
+
 class Voting(GenericVoting):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
@@ -366,8 +367,10 @@ class GenericVoterStatus(models.Model):
     class Meta:
         abstract = True
 
+
 class VoterStatusRegular(GenericVoterStatus):
     voting = models.ForeignKey(Voting, on_delete=models.CASCADE)
+
 
 class VoterStatusTransferable(GenericVoterStatus):
     voting = models.ForeignKey(VotingTransferable, on_delete=models.CASCADE)

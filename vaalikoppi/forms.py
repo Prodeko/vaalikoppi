@@ -6,7 +6,13 @@ from vaalikoppi.models import Voting, VotingTransferable
 class VotingForm(forms.ModelForm):
     class Meta:
         model = Voting
-        fields = ["voting_name", "voting_description", "max_votes", "is_password_protected", "voting_password"]
+        fields = [
+            "voting_name",
+            "voting_description",
+            "max_votes",
+            "is_password_protected",
+            "voting_password",
+        ]
         labels = {
             "voting_name": "Äänestyksen nimi",
             "voting_description": "Äänestyksen kuvaus",
@@ -19,7 +25,13 @@ class VotingForm(forms.ModelForm):
 class VotingTransferableForm(forms.ModelForm):
     class Meta:
         model = VotingTransferable
-        fields = ["voting_name", "voting_description", "max_votes", "is_password_protected", "voting_password"]
+        fields = [
+            "voting_name",
+            "voting_description",
+            "max_votes",
+            "is_password_protected",
+            "voting_password",
+        ]
         labels = {
             "voting_name": "Äänestyksen nimi",
             "voting_description": "Äänestyksen kuvaus",

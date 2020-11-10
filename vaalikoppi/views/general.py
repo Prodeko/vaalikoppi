@@ -1,9 +1,12 @@
 import random
 
 from django.shortcuts import render
-from vaalikoppi.views.helpers import is_valid_token, get_token_obj
+from silk.profiling.profiler import silk_profile
+from vaalikoppi.views.helpers import get_token_obj, is_valid_token
 from vaalikoppi.views.votings import votings_list_data
 
+
+@silk_profile(name='Index')
 def index(request):
     data = {
         "is_valid_token": False,
@@ -11,7 +14,7 @@ def index(request):
     }
 
     cur_token_obj = get_token_obj(request)
-    
+
     if is_valid_token(request, cur_token_obj):
         data["is_valid_token"] = True
         data["user_alias"] = cur_token_obj.alias

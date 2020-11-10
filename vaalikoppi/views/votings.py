@@ -71,16 +71,18 @@ def is_eligible_to_vote_transferable(request, voting_obj):
                 return True
     return False
 
+
 def is_valid_voting_password(voting_password_typed, voting_obj):
     voting_password_real = voting_obj.voting_password
     voting_requires_password = voting_obj.is_password_protected
-    
-    if (not voting_requires_password):
+
+    if not voting_requires_password:
         return True
-    
-    if(voting_password_typed == voting_password_real):
+
+    if voting_password_typed == voting_password_real:
         return True
     return False
+
 
 # Get votings list data directly
 @validate_token
@@ -90,7 +92,9 @@ def votings_list_data(request, token):
         VotingTransferable.objects.filter(is_open=False, is_ended=False)
     )
     closed_votings = sorted(
-        (closed_regular_votings + closed_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
+        (closed_regular_votings + closed_transferable_votings),
+        key=lambda v: v.pseudo_unique_id(),
+        reverse=True,
     )
 
     open_votings = []
@@ -100,7 +104,9 @@ def votings_list_data(request, token):
         VotingTransferable.objects.filter(is_open=False, is_ended=True)
     )
     ended_votings = sorted(
-        (ended_regular_votings + ended_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
+        (ended_regular_votings + ended_transferable_votings),
+        key=lambda v: v.pseudo_unique_id(),
+        reverse=True,
     )
 
     for voting in Voting.objects.filter(is_open=True, is_ended=False):
@@ -114,23 +120,23 @@ def votings_list_data(request, token):
         else:
             closed_votings.insert(0, voting)
 
-    open_votings = sorted(open_votings, key=lambda v: v.pseudo_unique_id(), reverse=True)
+    open_votings = sorted(
+        open_votings, key=lambda v: v.pseudo_unique_id(), reverse=True
+    )
 
     return {
-            "is_admin": False,
-            "closed_votings": closed_votings,
-            "open_votings": open_votings,
-            "ended_votings": ended_votings,
-        }
+        "is_admin": False,
+        "closed_votings": closed_votings,
+        "open_votings": open_votings,
+        "ended_votings": ended_votings,
+    }
+
 
 # Get votings list rendered as html
 @validate_token
 def votings_list(request, token):
-    return render(
-        request,
-        "voting-list.html",
-        votings_list_data(request)
-    )
+    return render(request, "voting-list.html", votings_list_data(request))
+
 
 @validate_token
 @require_http_methods(["POST"])
@@ -148,19 +154,17 @@ def vote(request, token, voting_id):
     empty_candidate = Candidate.objects.get(voting=voting_obj, empty_candidate=True)
 
     data = json.loads(request.body.decode("utf-8"))
-    
+
     ### BEGIN VOTING PASSWORD CHECK ###
     voting_password_typed = data.get("voting_password")
-    
+
     if not voting_password_typed:
         voting_password_typed = ""
-    
+
     if is_valid_voting_password(voting_password_typed, voting_obj) == False:
-        return JsonResponse(
-            {"message": "Wrong voting password!"}, status=403
-        )
+        return JsonResponse({"message": "Wrong voting password!"}, status=403)
     ### END VOTING PASSWORD CHECK ###
-    
+
     candidates = data.get("candidates")
 
     if not candidates:
@@ -222,19 +226,17 @@ def vote_transferable(request, token, voting_id):
     votes = []
 
     data = json.loads(request.body.decode("utf-8"))
-    
+
     ### BEGIN VOTING PASSWORD CHECK ###
     voting_password_typed = data.get("voting_password")
-    
+
     if not voting_password_typed:
         voting_password_typed = ""
-    
+
     if is_valid_voting_password(voting_password_typed, voting_obj) == False:
-        return JsonResponse(
-            {"message": "Wrong voting password!"}, status=403
-        )
-    ### END VOTING PASSWORD CHECK ###    
-    
+        return JsonResponse({"message": "Wrong voting password!"}, status=403)
+    ### END VOTING PASSWORD CHECK ###
+
     candidates = data.get("candidates")
     if not candidates:
         return JsonResponse({"message": "Candidates not provided"}, status=400)

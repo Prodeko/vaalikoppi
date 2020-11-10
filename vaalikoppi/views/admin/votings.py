@@ -142,6 +142,7 @@ def close_voting_transferable(request, voting_id):
         # to do implement iterative LookupError
         continue
 
+
 @login_required
 @require_http_methods(["POST"])
 def close_voting(request, voting_id):
@@ -188,9 +189,13 @@ def close_voting(request, voting_id):
                 )
             if len(cur_votegroups) == 0:
                 has_voted = False
-            
-            status = VoterStatusTransferable(voting=voting_obj, usertoken_token=mapping.token.token,
-                usertoken_alias = mapping.token.alias, has_voted = has_voted).save()
+
+            status = VoterStatusTransferable(
+                voting=voting_obj,
+                usertoken_token=mapping.token.token,
+                usertoken_alias=mapping.token.alias,
+                has_voted=has_voted,
+            ).save()
         else:
             cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
             has_voted = True
@@ -204,9 +209,13 @@ def close_voting(request, voting_id):
                 )
             if len(cur_votes) == 0:
                 has_voted = False
-            
-            status = VoterStatusRegular(voting=voting_obj, usertoken_token=mapping.token.token,
-                usertoken_alias = mapping.token.alias, has_voted = has_voted).save()
+
+            status = VoterStatusRegular(
+                voting=voting_obj,
+                usertoken_token=mapping.token.token,
+                usertoken_alias=mapping.token.alias,
+                has_voted=has_voted,
+            ).save()
 
         mapping.delete()
 
@@ -237,9 +246,7 @@ def close_voting(request, voting_id):
 
     voting_obj.close_voting()
 
-    return JsonResponse(
-        {"message": "Voting closed"}, status=200
-    )
+    return JsonResponse({"message": "Voting closed"}, status=200)
 
 
 def calculate_results_stv(request, voting_obj):
@@ -312,6 +319,7 @@ def calculate_stv(request, voting_id):
 
     return ballots
 
+
 @login_required
 def admin_voting_list(request):
     closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
@@ -319,12 +327,12 @@ def admin_voting_list(request):
         VotingTransferable.objects.filter(is_open=False, is_ended=False)
     )
     closed_votings = sorted(
-        (closed_regular_votings + closed_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
+        (closed_regular_votings + closed_transferable_votings),
+        key=lambda v: v.pseudo_unique_id(),
+        reverse=True,
     )
 
-    open_regular_votings = list(
-        Voting.objects.filter(is_open=True, is_ended=False)
-    )
+    open_regular_votings = list(Voting.objects.filter(is_open=True, is_ended=False))
 
     # Attach voted and not voted tokens to the respective votings
     # Regular votings
@@ -334,9 +342,13 @@ def admin_voting_list(request):
         open_regular_voting.tokens_voted = []
         open_regular_voting.tokens_not_voted = []
         for cur_mapping in cur_mappings:
-            cur_votes_count = Vote.objects.all().filter(uuid=cur_mapping.uuid, voting=open_regular_voting).count()
+            cur_votes_count = (
+                Vote.objects.all()
+                .filter(uuid=cur_mapping.uuid, voting=open_regular_voting)
+                .count()
+            )
 
-            if (cur_votes_count > 0):
+            if cur_votes_count > 0:
                 open_regular_voting.tokens_voted.append(cur_mapping.token)
             else:
                 open_regular_voting.tokens_not_voted.append(cur_mapping.token)
@@ -348,21 +360,29 @@ def admin_voting_list(request):
     # Attach voted and not voted tokens to the respective votings
     # Transferable votings
     for open_transferable_voting in open_transferable_votings:
-        cur_mappings = TokenMappingTransferable.objects.all().filter(voting=open_transferable_voting)
+        cur_mappings = TokenMappingTransferable.objects.all().filter(
+            voting=open_transferable_voting
+        )
 
         open_transferable_voting.tokens_voted = []
         open_transferable_voting.tokens_not_voted = []
         for cur_mapping in cur_mappings:
-            cur_votes_count = VoteTransferable.objects.all().filter(uuid=cur_mapping.uuid, voting=open_transferable_voting).count()
+            cur_votes_count = (
+                VoteTransferable.objects.all()
+                .filter(uuid=cur_mapping.uuid, voting=open_transferable_voting)
+                .count()
+            )
 
-            if (cur_votes_count > 0):
+            if cur_votes_count > 0:
                 open_transferable_voting.tokens_voted.append(cur_mapping.token)
             else:
                 open_transferable_voting.tokens_not_voted.append(cur_mapping.token)
-    
+
     # Combine regular and transferable votings into one list
     open_votings = sorted(
-        (open_regular_votings + open_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
+        (open_regular_votings + open_transferable_votings),
+        key=lambda v: v.pseudo_unique_id(),
+        reverse=True,
     )
 
     ended_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=True))
@@ -370,7 +390,9 @@ def admin_voting_list(request):
         VotingTransferable.objects.filter(is_open=False, is_ended=True)
     )
     ended_votings = sorted(
-        (ended_regular_votings + ended_transferable_votings), key=lambda v: v.pseudo_unique_id(), reverse=True
+        (ended_regular_votings + ended_transferable_votings),
+        key=lambda v: v.pseudo_unique_id(),
+        reverse=True,
     )
 
     active_tokens_count = len(get_active_tokens(request))
