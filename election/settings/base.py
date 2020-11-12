@@ -8,17 +8,16 @@ SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 SESSION_LOCK = True
 
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://redis:6379",
-        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
-    }
+CACHEOPS_REDIS = "redis://redis:6379/1"
+
+CACHEOPS_DEFAULTS = {"timeout": 60}
+CACHEOPS = {
+    "vaalikoppi.*": {"ops": "all", "cache_on_save": True},
 }
 
 INSTALLED_APPS = [
     "vaalikoppi",
-    "polymorphic",
+    "cacheops",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -61,7 +60,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "election.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},

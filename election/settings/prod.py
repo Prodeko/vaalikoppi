@@ -49,6 +49,10 @@ LOGGING = {
         }
     },
     "loggers": {
-        "django": {"handlers": ["logfile"], "level": "ERROR", "propagate": False,}
+        "django": {
+            "handlers": ["logfile"],
+            "level": "ERROR",
+            "propagate": False,
+        }
     },
 }

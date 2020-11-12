@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.views.decorators.cache import cache_page
 
 # Set SHOW_DJANGO_SILK = True in election.settings.dev and
 # uncomment silk import and @silk_profile to enable django-silk
@@ -9,7 +8,6 @@ from vaalikoppi.views.votings import votings_list_data
 
 
 # @silk_profile(name="Index")
-# @cache_page(60)
 def index(request):
     data = {
         "is_valid_token": False,
