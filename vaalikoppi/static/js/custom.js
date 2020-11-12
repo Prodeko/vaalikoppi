@@ -145,10 +145,10 @@ function showVotingConfirmationModal(
       })
       .then((html) => {
         raiseUserConfirmation(
-          "Äänestäminen onnistui. Äänestysluettelo päivitetään kohta. Odota."
+          "Äänestäminen onnistui. Päivitetään äänestysluettelo."
         );
         // Do not distract the user with things happening too fast
-        window.setTimeout(() => updateVotingListFromHtml(html), 4000);
+        window.setTimeout(() => updateVotingListFromHtml(html), 500);
       })
       .catch((error) => {
         raiseUserWarning(
