@@ -42,8 +42,6 @@ class Voting(models.Model):
         res_empty = [r for r in res_all if r.candidate_name == "Tyhjä"]
         res_non_empty = [r for r in res_all if r.candidate_name != "Tyhjä"]
 
-        print(res_empty, "here", res_non_empty)
-
         return res_empty, res_non_empty
 
     def results(self):
