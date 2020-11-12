@@ -3,7 +3,7 @@ import nplusone
 from .base import *
 
 # Show warnings for possible N+1 queries
-nplusone.show_nplusones()
+# nplusone.show_nplusones()
 
 DEBUG = True
 
@@ -34,7 +34,7 @@ if SHOW_DEBUG_TOOLBAR:
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
 # Set to True to enable django-silk
-SHOW_DJANGO_SILK = True
+SHOW_DJANGO_SILK = False
 
 if SHOW_DJANGO_SILK:
     SILKY_PYTHON_PROFILER = True

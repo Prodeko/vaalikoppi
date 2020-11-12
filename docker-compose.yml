@@ -8,6 +8,9 @@ services:
       - POSTGRES_DB=vaalikoppi
       - POSTGRES_USER=vaalikoppi
 
+  redis:
+    image: redis:6
+
   vaalikoppi:
     build: .
     container_name: vaalikoppi
