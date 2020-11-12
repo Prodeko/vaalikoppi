@@ -97,9 +97,15 @@ def votings_list_data(request, token, is_admin=False):
 
     for v in votings:
         # Set is_eligible so that all votings can be seen on admin view
-        is_eligible = True
         if is_admin:
             is_eligible = True
+        elif v.is_ranked_choice:
+            is_eligible = is_eligible_to_vote_ranked_choice(token, v)
+        elif not v.is_ranked_choice:
+            is_eligible = is_eligible_to_vote_normal(token, v)
+        else:
+            # ... should never end up here
+            is_eligible = False
 
         if v.is_open and is_eligible:
             # Voting is open and user is eligible to vote
