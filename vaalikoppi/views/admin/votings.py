@@ -5,14 +5,14 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 from py3votecore.stv import *
-from vaalikoppi.forms import *
+from vaalikoppi.forms import RankedChoiceVotingForm, VotingForm
 from vaalikoppi.models import *
-from vaalikoppi.views.helpers import get_active_tokens
+from vaalikoppi.views.helpers import votings_list_data
 
 
 @login_required
 def voting_results(request):
-    votings = VotingResult.objects.all()
+    votings = NormalVotingResult.objects.all()
     return render(request, "admin-voting-results.html", {"votings": votings})
 
 
@@ -25,30 +25,30 @@ def admin_votings(request):
 @require_http_methods(["POST"])
 def create_voting(request):
     data = json.loads(request.body.decode("utf-8"))
-    is_transferable = data.get("is_transferable")
+    is_ranked_choice = data.get("is_ranked_choice")
 
-    if is_transferable:
+    if is_ranked_choice:
         RankedChoiceVotingForm(data).save()
     else:
         VotingForm(data).save()
 
-    return JsonResponse({"is_transferable": is_transferable}, status=200)
+    return JsonResponse({"is_ranked_choice": is_ranked_choice}, status=200)
 
 
 @login_required
 @require_http_methods(["POST"])
 def add_candidate(request, voting_id):
     data = json.loads(request.body.decode("utf-8"))
-    is_transferable = data.get("is_transferable")
+    is_ranked_choice = data.get("is_ranked_choice")
     candidate_name = data.get("candidate_name")
 
-    if is_transferable:
+    if is_ranked_choice:
         voting = get_object_or_404(RankedChoiceVoting, pk=voting_id)
         candidate = RankedChoiceCandidate(voting=voting, candidate_name=candidate_name)
         candidate.save()
     else:
-        voting = get_object_or_404(Voting, pk=voting_id)
-        candidate = Candidate(voting=voting, candidate_name=candidate_name)
+        voting = get_object_or_404(NormalVoting, pk=voting_id)
+        candidate = NormalCandidate(voting=voting, candidate_name=candidate_name)
         candidate.save()
 
     return JsonResponse({"message": "success"}, status=200)
@@ -58,12 +58,12 @@ def add_candidate(request, voting_id):
 @require_http_methods(["POST"])
 def remove_candidate(request, candidate_id):
     data = json.loads(request.body.decode("utf-8"))
-    is_transferable = data.get("is_transferable")
+    is_ranked_choice = data.get("is_ranked_choice")
 
-    if is_transferable:
+    if is_ranked_choice:
         get_object_or_404(RankedChoiceCandidate, pk=candidate_id).delete()
     else:
-        get_object_or_404(Candidate, pk=candidate_id).delete()
+        get_object_or_404(NormalCandidate, pk=candidate_id).delete()
 
     return JsonResponse({"message": "success"}, status=200)
 
@@ -72,13 +72,13 @@ def remove_candidate(request, candidate_id):
 @require_http_methods(["POST"])
 def open_voting(request, voting_id):
     data = json.loads(request.body.decode("utf-8"))
-    is_transferable = data.get("is_transferable")
+    is_ranked_choice = data.get("is_ranked_choice")
 
-    if is_transferable:
+    if is_ranked_choice:
         voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     else:
-        voting_obj = get_object_or_404(Voting, pk=voting_id)
-        Candidate(
+        voting_obj = get_object_or_404(NormalVoting, pk=voting_id)
+        NormalCandidate(
             candidate_name="Tyhjä", empty_candidate=True, voting=voting_obj
         ).save()
 
@@ -87,13 +87,13 @@ def open_voting(request, voting_id):
             {"message": "Voting is already open or has ended"}, status=403
         )
 
-    active_tokens = get_active_tokens(request)
-    if is_transferable:
+    active_tokens = Usertoken.objects.filter(activated=True, invalidated=False)
+    if is_ranked_choice:
         for cur_token in active_tokens:
             RankedChoiceTokenMapping(token=cur_token, voting=voting_obj).save()
     else:
         for cur_token in active_tokens:
-            TokenMapping(token=cur_token, voting=voting_obj).save()
+            NormalTokenMapping(token=cur_token, voting=voting_obj).save()
 
     voting_obj.open_voting()
     return JsonResponse({"message": "Voting opened"}, status=200)
@@ -102,68 +102,32 @@ def open_voting(request, voting_id):
 def transfer_election_has_result(request, voting_obj):
     candidates = RankedChoiceCandidate.objects.all().filter(voting=voting_obj)
     for candidate in candidates:
-        if candidate.has_dropped == False and candidate.chosen == False:
+        if not candidate.has_dropped and not candidate.chosen:
             return False
     return True
 
 
 @login_required
 @require_http_methods(["POST"])
-def close_voting_transferable(request, voting_id):
-    voting_obj = get_object_or_404(Voting, pk=voting_id)
-    not_voted_tokens = []
-
-    if not voting_obj.is_open or voting_obj.is_ended:
-        return JsonResponse({"message": "Voting is not open or has ended"}, status=403)
-
-    for mapping in TokenMapping.objects.all().filter(voting=voting_obj):
-        cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
-        if len(cur_votes) > voting_obj.max_votes:
-            return JsonResponse(
-                {
-                    "message": "Security compromised - too many votes from a single voter"
-                },
-                status=500,
-            )
-        if len(cur_votes) == 0:
-            not_voted_tokens.append(mapping.get_token().token)
-
-    voting_obj.close_voting()
-
-    quota = (
-        len(TokenMapping.objects.all().filter(voting=voting_obj))
-        / (voting_obj.max_votes + 1)
-        + 1
-    )
-
-    TokenMapping.objects.all().filter(voting=voting_obj).delete()
-
-    while not transfer_election_has_result(request, voting_obj):
-        # to do implement iterative LookupError
-        continue
-
-
-@login_required
-@require_http_methods(["POST"])
 def close_voting(request, voting_id):
     data = json.loads(request.body.decode("utf-8"))
-    is_transferable = data.get("is_transferable")
+    is_ranked_choice = data.get("is_ranked_choice")
 
-    if is_transferable:
+    if is_ranked_choice:
         voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     else:
-        voting_obj = get_object_or_404(Voting, pk=voting_id)
+        voting_obj = get_object_or_404(NormalVoting, pk=voting_id)
 
     if not voting_obj.is_open or voting_obj.is_ended:
         return JsonResponse({"message": "Voting is not open or has ended"}, status=403)
 
-    if is_transferable:
+    if is_ranked_choice:
         mappings = RankedChoiceTokenMapping.objects.all().filter(voting=voting_obj)
     else:
-        mappings = TokenMapping.objects.all().filter(voting=voting_obj)
+        mappings = NormalTokenMapping.objects.all().filter(voting=voting_obj)
 
     for mapping in mappings:
-        if is_transferable:
+        if is_ranked_choice:
             cur_votes = RankedChoiceVote.objects.all().filter(
                 uuid=mapping.uuid, voting=voting_obj
             )
@@ -190,14 +154,16 @@ def close_voting(request, voting_id):
             if len(cur_votegroups) == 0:
                 has_voted = False
 
-            status = TransferableVotingVoterStatus(
+            status = RankedChoiceVotingVoterStatus(
                 voting=voting_obj,
                 usertoken_token=mapping.token.token,
                 usertoken_alias=mapping.token.alias,
                 has_voted=has_voted,
             ).save()
         else:
-            cur_votes = Vote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
+            cur_votes = NormalVote.objects.all().filter(
+                uuid=mapping.uuid, voting=voting_obj
+            )
             has_voted = True
 
             if len(cur_votes) > voting_obj.max_votes:
@@ -219,7 +185,7 @@ def close_voting(request, voting_id):
 
         mapping.delete()
 
-    if is_transferable:
+    if is_ranked_choice:
         results = calculate_results_stv(request, voting_obj)
         for voting_round in results["rounds"]:
             for candidate in voting_round["candidates"]:
@@ -231,14 +197,16 @@ def close_voting(request, voting_id):
                     dropped=candidate["dropped"],
                     vote_rounds=voting_round["round"],
                 ).save()
-        voting_obj.round = len(results["rounds"])
+        voting_obj.voting_round = len(results["rounds"])
         voting_obj.save()
     else:
         for cur_candidate in voting_obj.candidates.all():
             cur_vote_count = len(
-                Vote.objects.all().filter(voting=voting_obj, candidate=cur_candidate)
+                NormalVote.objects.all().filter(
+                    voting=voting_obj, candidate=cur_candidate
+                )
             )
-            VotingResult(
+            NormalVotingResult(
                 voting=voting_obj,
                 candidate_name=cur_candidate.candidate_name,
                 vote_count=cur_vote_count,
@@ -322,89 +290,19 @@ def calculate_stv(request, voting_id):
 
 @login_required
 def admin_voting_list(request):
-    closed_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=False))
-    closed_transferable_votings = list(
-        RankedChoiceVoting.objects.filter(is_open=False, is_ended=False)
-    )
-    closed_votings = sorted(
-        (closed_regular_votings + closed_transferable_votings),
-        key=lambda v: v.pseudo_unique_id(),
-        reverse=True,
-    )
-
-    open_regular_votings = list(Voting.objects.filter(is_open=True, is_ended=False))
-
-    # Attach voted and not voted tokens to the respective votings
-    # Regular votings
-    for open_regular_voting in open_regular_votings:
-        cur_mappings = TokenMapping.objects.all().filter(voting=open_regular_voting)
-
-        open_regular_voting.tokens_voted = []
-        open_regular_voting.tokens_not_voted = []
-        for cur_mapping in cur_mappings:
-            cur_votes_count = (
-                Vote.objects.all()
-                .filter(uuid=cur_mapping.uuid, voting=open_regular_voting)
-                .count()
-            )
-
-            if cur_votes_count > 0:
-                open_regular_voting.tokens_voted.append(cur_mapping.token)
-            else:
-                open_regular_voting.tokens_not_voted.append(cur_mapping.token)
-
-    open_transferable_votings = list(
-        RankedChoiceVoting.objects.filter(is_open=True, is_ended=False)
-    )
-
-    # Attach voted and not voted tokens to the respective votings
-    # Transferable votings
-    for open_transferable_voting in open_transferable_votings:
-        cur_mappings = RankedChoiceTokenMapping.objects.all().filter(
-            voting=open_transferable_voting
-        )
-
-        open_transferable_voting.tokens_voted = []
-        open_transferable_voting.tokens_not_voted = []
-        for cur_mapping in cur_mappings:
-            cur_votes_count = (
-                RankedChoiceVote.objects.all()
-                .filter(uuid=cur_mapping.uuid, voting=open_transferable_voting)
-                .count()
-            )
-
-            if cur_votes_count > 0:
-                open_transferable_voting.tokens_voted.append(cur_mapping.token)
-            else:
-                open_transferable_voting.tokens_not_voted.append(cur_mapping.token)
-
-    # Combine regular and transferable votings into one list
-    open_votings = sorted(
-        (open_regular_votings + open_transferable_votings),
-        key=lambda v: v.pseudo_unique_id(),
-        reverse=True,
-    )
-
-    ended_regular_votings = list(Voting.objects.filter(is_open=False, is_ended=True))
-    ended_transferable_votings = list(
-        RankedChoiceVoting.objects.filter(is_open=False, is_ended=True)
-    )
-    ended_votings = sorted(
-        (ended_regular_votings + ended_transferable_votings),
-        key=lambda v: v.pseudo_unique_id(),
-        reverse=True,
-    )
-
-    active_tokens_count = len(get_active_tokens(request))
+    data = votings_list_data(request, None, is_admin=True)
+    active_tokens_count = Usertoken.objects.filter(
+        activated=True, invalidated=False
+    ).count()
 
     return render(
         request,
         "admin-voting-list.html",
         {
-            "is_admin": True,
-            "closed_votings": closed_votings,
-            "open_votings": open_votings,
-            "ended_votings": ended_votings,
+            "is_admin": data["is_admin"],
+            "closed_votings": data["closed_votings"],
+            "open_votings": data["open_votings"],
+            "ended_votings": data["ended_votings"],
             "active_tokens_count": active_tokens_count,
         },
     )

@@ -1,30 +1,26 @@
-import random
-
 from django.shortcuts import render
+from django.views.decorators.cache import cache_page
+
 # Set SHOW_DJANGO_SILK = True in election.settings.dev and
 # uncomment silk import and @silk_profile to enable django-silk
 # from silk.profiling.profiler import silk_profile
-from vaalikoppi.views.helpers import get_token_obj, is_valid_token
+from vaalikoppi.views.helpers import get_token_from_session, is_valid_token
 from vaalikoppi.views.votings import votings_list_data
 
 
 # @silk_profile(name="Index")
+# @cache_page(60)
 def index(request):
     data = {
         "is_valid_token": False,
         "user_alias": "",
     }
 
-    cur_token_obj = get_token_obj(request)
+    token = get_token_from_session(request)
+    data = votings_list_data(request, token)
 
-    if is_valid_token(request, cur_token_obj):
+    if token:
         data["is_valid_token"] = True
-        data["user_alias"] = cur_token_obj.alias
-
-        voting_data = votings_list_data(request)
-        data["is_admin"] = voting_data["is_admin"]
-        data["closed_votings"] = voting_data["closed_votings"]
-        data["open_votings"] = voting_data["open_votings"]
-        data["ended_votings"] = voting_data["ended_votings"]
+        data["user_alias"] = token.alias
 
     return render(request, "index.html", data)

@@ -62,7 +62,8 @@ function raiseUserAlert(message) {
   raiseToast(NOTIF_COLOR.ALERT, message);
 }
 
-// Used to sort candidates by position in transferable election confirmation modal
+// Used to sort candidates by position in ranked choice
+// election confirmation modal
 function compareChosenCandidates(a, b) {
   if (a.position.charAt(0) == "-") {
     return 1;
@@ -80,11 +81,11 @@ function compareChosenCandidates(a, b) {
 }
 
 // Voting
-function getChosenCandidates(isTransferable, votingId) {
+function getChosenCandidates(isRankedChoice, votingId) {
   const form = getVotingForm(votingId);
   const chosenCandidates = Array.from(
     form.querySelectorAll(
-      isTransferable ? ".voting-order" : "input[name=candidate]:checked"
+      isRankedChoice ? ".voting-order" : "input[name=candidate]:checked"
     )
   ).map((input) => {
     const candidateId = input.getAttribute("value");
@@ -92,7 +93,7 @@ function getChosenCandidates(isTransferable, votingId) {
       `label[for=candidate-v-${votingId}-${candidateId}]`
     );
     const labelText = nameNode.childNodes[0].textContent;
-    const labelRankedPosition = isTransferable
+    const labelRankedPosition = isRankedChoice
       ? nameNode.previousElementSibling.innerHTML
       : -1;
     return { id: candidateId, name: labelText, position: labelRankedPosition };
@@ -101,7 +102,7 @@ function getChosenCandidates(isTransferable, votingId) {
 }
 
 function showVotingConfirmationModal(
-  isTransferable,
+  isRankedChoice,
   votingId,
   chosenCandidates,
   votingPassword
@@ -114,7 +115,7 @@ function showVotingConfirmationModal(
     ).forEach((elem) => elem.setAttribute("disabled", true));
 
     const data = {
-      candidates: isTransferable
+      candidates: isRankedChoice
         ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
         : chosenCandidates.map((c) => c.id),
       voting_password: votingPassword,
@@ -124,7 +125,7 @@ function showVotingConfirmationModal(
 
     callApi(
       `${SITE_ROOT_PATH}votings/${votingId}/${
-        isTransferable ? "vote-transferable" : "vote"
+        isRankedChoice ? "vote-ranked-choice" : "vote-normal"
       }/`,
       "POST",
       data
@@ -183,7 +184,7 @@ function showVotingConfirmationModal(
 
   // Set modal content
   const candidatesString = chosenCandidates
-    .map((c) => (isTransferable ? `${c.position}.${c.name}` : c.name))
+    .map((c) => (isRankedChoice ? `${c.position}.${c.name}` : c.name))
     .join(", ");
   const singularOrPlural =
     chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n";
@@ -336,7 +337,7 @@ function generateTokens(count) {
   callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
     .then(() => {
       M.toast({ html: "Koodien generointi onnistui.", classes: "green" });
-      setTimeout(() => location.reload(), 1000);
+      setTimeout(() => location.reload(), 500);
     })
     .catch(() =>
       M.toast({ html: "Koodien generointi epäonnistui.", classes: "red" })
@@ -384,7 +385,7 @@ function activateOrInvalidateToken(isActivate, code, number) {
 }
 
 function createVoting() {
-  const isTransferable = document.getElementById("is-transfer-election")
+  const isRankedChoice = document.getElementById("is-ranked-choice-election")
     .checked;
   const isPasswordProtected = document.getElementById(
     "voting-add-is-password-protected"
@@ -396,7 +397,7 @@ function createVoting() {
   const maxVotes = document.getElementById("max-votes").value;
 
   const data = {
-    is_transferable: isTransferable,
+    is_ranked_choice: isRankedChoice,
     is_password_protected: isPasswordProtected,
     voting_name: votingName,
     voting_description: votingDescription,
@@ -413,12 +414,12 @@ function createVoting() {
     );
 }
 
-function addCandidate(votingId, isTransferable) {
+function addCandidate(votingId, isRankedChoice) {
   const candidate = document.getElementById(`voting-${votingId}-candidate-name`)
     .value;
   if (candidate) {
     const data = {
-      is_transferable: isTransferable,
+      is_ranked_choice: isRankedChoice,
       candidate_name: candidate,
     };
     callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
@@ -432,9 +433,9 @@ function addCandidate(votingId, isTransferable) {
   }
 }
 
-function removeCandidate(candidate_id, is_transferable) {
+function removeCandidate(candidate_id, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(
     `${SITE_ROOT_PATH}admin/votings/${candidate_id}/remove/`,
@@ -450,9 +451,9 @@ function removeCandidate(candidate_id, is_transferable) {
     );
 }
 
-function closeVoting(votingId, is_transferable) {
+function closeVoting(votingId, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/close/`, "POST", data)
     .then(async (res) => {
@@ -482,9 +483,9 @@ function closeVoting(votingId, is_transferable) {
     );
 }
 
-function openVoting(votingId, is_transferable) {
+function openVoting(votingId, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
     .then(() => refreshVotingList(true))

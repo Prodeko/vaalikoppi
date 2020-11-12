@@ -1,12 +1,11 @@
 import math
-import uuid
+from uuid import uuid4
 
 from django.db import models
 from django.db.models import Sum
-from polymorphic.models import PolymorphicModel
 
 
-class Voting(PolymorphicModel):
+class Voting(models.Model):
     voting_name = models.CharField(max_length=50)
     voting_description = models.CharField(max_length=200, blank=True)
     max_votes = models.IntegerField(default=1)
@@ -18,29 +17,19 @@ class Voting(PolymorphicModel):
 
     # For the purpose of getting unique DOM element IDs
     def pseudo_unique_id(self):
-        if self.is_transferable:
-            return f"{self.id}-transferable"
-        return f"{self.id}-regular"
+        if self.is_ranked_choice:
+            return f"{self.id}-ranked-choice"
+        return f"{self.id}-normal"
 
     # Returns anything only after the voting has been closed
     def voter_statuses(self):
-        if self.is_transferable:
-            return TransferableVotingVoterStatus.objects.all().filter(voting=self)
+        if self.is_ranked_choice:
+            return RankedChoiceVotingVoterStatus.objects.all().filter(voting=self)
         return NormalVotingVoterStatus.objects.all().filter(voting=self)
-
-    def total_votes(self):
-        if self.is_open:
-            return int(math.floor(self.vote_set.count() / self.max_votes))
-        else:
-            result = self.voting_results.aggregate(sum=Sum("vote_count"))
-            if result:
-                return int(math.floor(result.get("sum") / self.max_votes))
-            else:
-                return 0
 
     def total_votes_abs(self):
         if self.is_open:
-            return self.vote_set.count()
+            return self.votes.count()
         else:
             result = self.voting_results.aggregate(sum=Sum("vote_count"))
             if result:
@@ -48,23 +37,30 @@ class Voting(PolymorphicModel):
             else:
                 return 0
 
+    def grouped_results(self):
+        res_all = list(self.voting_results.all())
+        res_empty = [r for r in res_all if r.candidate_name == "Tyhjä"]
+        res_non_empty = [r for r in res_all if r.candidate_name != "Tyhjä"]
+
+        print(res_empty, "here", res_non_empty)
+
+        return res_empty, res_non_empty
+
     def results(self):
-        return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
-            "-vote_count"
-        )
+        _, res_non_empty = self.grouped_results()
+        return res_non_empty.sort(key=lambda x: -x.vote_count)
 
     def winners(self):
-        return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
-            "-vote_count"
-        )[: self.max_votes]
+        _, res_non_empty = self.grouped_results()
+        return res_non_empty.sort(key=lambda x: -x.vote_count)[: self.max_votes]
 
     def losers(self):
-        return self.voting_results.exclude(candidate_name="Tyhjä").order_by(
-            "-vote_count"
-        )[self.max_votes :]
+        _, res_non_empty = self.grouped_results()
+        return res_non_empty.sort(key=lambda x: -x.vote_count)[self.max_votes :]
 
     def empty_votes(self):
-        return self.voting_results.filter(candidate_name="Tyhjä")[0].vote_count
+        res_empty, _ = self.grouped_results()
+        return res_empty[0].vote_count
 
     def open_voting(self):
         self.is_open = True
@@ -78,21 +74,45 @@ class Voting(PolymorphicModel):
     def __str__(self):
         return self.voting_name
 
+    class Meta:
+        abstract = True
+
 
 class NormalVoting(Voting):
-    is_transferable = False
+    is_ranked_choice = False
+
+    def total_votes(self):
+        if self.is_open:
+            return int(math.floor(self.votes.count() / self.max_votes))
+        else:
+            result = self.voting_results.aggregate(sum=Sum("vote_count"))
+            if result:
+                return int(math.floor(result.get("sum") / self.max_votes))
+            else:
+                return 0
 
 
 class RankedChoiceVoting(Voting):
-    is_transferable = True
+    is_ranked_choice = True
     voting_round = models.IntegerField(default=1)
+
+    def total_votes(self):
+        if self.is_open:
+            return int(self.votegroups.count())
+        else:
+            result = self.voting_results.aggregate(sum=Sum("vote_count"))
+            if result:
+                return int(math.floor(result.get("sum")))
+            else:
+                return 0
 
     def grouped_results(self):
         result = []
-        for i in range(1, self.round + 1):
+        voting_results = list(self.voting_results.all())
+        for i in range(1, self.voting_round + 1):
             round_obj = {}
             round_obj["round"] = i
-            round_obj["candidates"] = list(self.voting_results.filter(vote_rounds=i))
+            round_obj["candidates"] = [r for r in voting_results if r.vote_rounds == i]
             result.append(round_obj)
         return sorted(result, key=lambda k: k["round"], reverse=True)
 
@@ -111,11 +131,15 @@ class RankedChoiceVoting(Voting):
         return f"{self.voting_name} (siirtoäänivaalitapa)"
 
 
-class Candidate(PolymorphicModel):
+class Candidate(models.Model):
     candidate_name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.candidate_name
+
+    class Meta:
+        abstract = True
+
 
 class NormalCandidate(Candidate):
     voting = models.ForeignKey(
@@ -126,7 +150,9 @@ class NormalCandidate(Candidate):
 
 class RankedChoiceCandidate(Candidate):
     voting = models.ForeignKey(
-        RankedChoiceVoting, on_delete=models.CASCADE, related_name="candidates"
+        RankedChoiceVoting,
+        on_delete=models.CASCADE,
+        related_name="candidates",
     )
 
 
@@ -141,8 +167,8 @@ class Usertoken(models.Model):
         return self.token
 
 
-class TokenMapping(PolymorphicModel):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class TokenMapping(models.Model):
+    uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
 
     def get_token(self):
@@ -151,45 +177,59 @@ class TokenMapping(PolymorphicModel):
     def __str__(self):
         return str(self.uuid)
 
+    class Meta:
+        abstract = True
+
+
 class NormalTokenMapping(TokenMapping):
-    voting = models.ForeignKey(NormalVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        NormalVoting, on_delete=models.CASCADE, related_name="token_mappings"
+    )
 
 
 class RankedChoiceTokenMapping(TokenMapping):
-    voting = models.ForeignKey(RankedChoiceVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        RankedChoiceVoting, on_delete=models.CASCADE, related_name="token_mappings"
+    )
 
 
 class RankedChoiceVoteGroup(models.Model):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    voting = models.ForeignKey(RankedChoiceVoting, on_delete=models.CASCADE)
+    uuid = models.UUIDField(default=uuid4, editable=False)
+    voting = models.ForeignKey(
+        RankedChoiceVoting, on_delete=models.CASCADE, related_name="votegroups"
+    )
     is_transferred = models.BooleanField(default=False)
 
 
-class Vote(PolymorphicModel):
-    uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+class Vote(models.Model):
+    uuid = models.UUIDField(default=uuid4, editable=False)
+
+    class Meta:
+        abstract = True
+
 
 class RankedChoiceVote(Vote):
     preference = models.IntegerField(default=0)
-    voting = models.ForeignKey(RankedChoiceVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        RankedChoiceVoting, on_delete=models.CASCADE, related_name="votes"
+    )
     votegroup = models.ForeignKey(RankedChoiceVoteGroup, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(RankedChoiceCandidate, on_delete=models.CASCADE)
 
 
 class NormalVote(Vote):
-    voting = models.ForeignKey(NormalVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        NormalVoting, on_delete=models.CASCADE, related_name="votes"
+    )
+    candidate = models.ForeignKey(NormalCandidate, on_delete=models.CASCADE)
 
 
-class VotingResult(PolymorphicModel):
+class VotingResult(models.Model):
     candidate_name = models.CharField(max_length=50)
     vote_count = models.IntegerField(default=0)
 
-    def vote_share(self):
-        total_votes = self.voting.total_votes_abs()
-        if total_votes > 0:
-            return "{:.1f}".format(
-                round(100 * self.vote_count / total_votes, 1)
-            ).replace(".", ",")
-        return "0,0"
+    class Meta:
+        abstract = True
 
 
 # Voting results are freezed in this table AFTER the voting has ended.
@@ -201,10 +241,9 @@ class NormalVotingResult(VotingResult):
     def vote_share(self):
         total_votes = self.voting.total_votes_abs()
         if total_votes > 0:
-            return "{:.1f}".format(
-                round(100 * self.vote_count / total_votes, 1)
-            ).replace(".", ",")
-        return "0,0"
+            percentage_of_votes = round(100 * self.vote_count / total_votes, 1)
+            return f"{percentage_of_votes}"
+        return "0.0"
 
 
 class RankedChoiceVotingResult(VotingResult):
@@ -216,15 +255,24 @@ class RankedChoiceVotingResult(VotingResult):
     dropped = models.BooleanField(default=False)
 
 
-class VoterStatus(PolymorphicModel):
+class VoterStatus(models.Model):
     usertoken_token = models.CharField(max_length=50, blank=False, unique=False)
     usertoken_alias = models.CharField(max_length=50, blank=True, unique=False)
     has_voted = models.BooleanField(default=True)
+
+    class Meta:
+        abstract = True
 
 
 class NormalVotingVoterStatus(VoterStatus):
     voting = models.ForeignKey(NormalVoting, on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name_plural = "Normal voting voter statuses"
 
-class TransferableVotingVoterStatus(VoterStatus):
+
+class RankedChoiceVotingVoterStatus(VoterStatus):
     voting = models.ForeignKey(RankedChoiceVoting, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "Ranked choice voting voter statuses"
