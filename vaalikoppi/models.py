@@ -23,9 +23,7 @@ class Voting(models.Model):
 
     # Returns anything only after the voting has been closed
     def voter_statuses(self):
-        if self.is_ranked_choice:
-            return RankedChoiceVotingVoterStatus.objects.all().filter(voting=self)
-        return NormalVotingVoterStatus.objects.all().filter(voting=self)
+        return self.voter_statuses
 
     def total_votes_abs(self):
         if self.is_open:
@@ -263,14 +261,18 @@ class VoterStatus(models.Model):
 
 
 class NormalVotingVoterStatus(VoterStatus):
-    voting = models.ForeignKey(NormalVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        NormalVoting, on_delete=models.CASCADE, related_name="voter_statuses"
+    )
 
     class Meta:
         verbose_name_plural = "Normal voting voter statuses"
 
 
 class RankedChoiceVotingVoterStatus(VoterStatus):
-    voting = models.ForeignKey(RankedChoiceVoting, on_delete=models.CASCADE)
+    voting = models.ForeignKey(
+        RankedChoiceVoting, on_delete=models.CASCADE, related_name="voter_statuses"
+    )
 
     class Meta:
         verbose_name_plural = "Ranked choice voting voter statuses"
