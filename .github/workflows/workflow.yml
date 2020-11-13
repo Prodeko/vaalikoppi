@@ -1,14 +1,24 @@
 name: Deploy
 
-on:
-  push:
-    branches: [master]
+on: [push, pull_request]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Run docker-compose stack
+        run: docker-compose up -d
+
+      - name: Sleep for 30 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "10s"
+
+      - name: Run tests
+        run: docker exec vaalikoppi pytest election/
+
       - name: Sentry Release
         uses: getsentry/action-release@v1.0.0
         env:
