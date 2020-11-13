@@ -11,7 +11,13 @@ jobs:
       - name: Run docker-compose stack
         run: docker-compose up -d
 
-      - name: Test with PyTest
+      # Should not do it like this...
+      - name: Sleep for 15 seconds
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "15s"
+
+      - name: Run tests
         run: docker exec vaalikoppi pytest election/
 
       - name: Sentry Release
