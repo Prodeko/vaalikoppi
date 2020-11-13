@@ -44,7 +44,7 @@ const USER_NOTIFICATION = {
   WARNING: genUserNotifObj("red", 6000),
   CONFIRMATION: genUserNotifObj("green", 6000),
   ALERT: genUserNotifObj("orange", 6000),
-}
+};
 
 function showUserNotification(notifType, message) {
   M.toast({
@@ -136,14 +136,16 @@ function showVotingConfirmationModal(
         return res.text();
       })
       .then((html) => {
-        showUserNotification(USER_NOTIFICATION.CONFIRMATION,
+        showUserNotification(
+          USER_NOTIFICATION.CONFIRMATION,
           "Äänestäminen onnistui. Päivitetään äänestysluettelo."
         );
         // Do not distract the user with things happening too fast
         window.setTimeout(() => updateVotingListFromHtml(html), 500);
       })
       .catch((error) => {
-        showUserNotification(USER_NOTIFICATION.WARNING,
+        showUserNotification(
+          USER_NOTIFICATION.WARNING,
           error.message.length > 0
             ? error.message
             : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
@@ -153,7 +155,8 @@ function showVotingConfirmationModal(
 
     e.target.removeAttribute("disabled");
 
-    showUserNotification(USER_NOTIFICATION.ALERT,
+    showUserNotification(
+      USER_NOTIFICATION.ALERT,
       "Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu."
     );
   }
@@ -201,7 +204,10 @@ function vote(votingId) {
   const chosenCandidates = getChosenCandidates(false, votingId);
   const votingPassword = getVotingPasswordTyped(votingId);
   if (chosenCandidates.length === 0) {
-    showUserNotification(USER_NOTIFICATION.WARNING, "Valitse ainakin yksi ehdokas.");
+    showUserNotification(
+      USER_NOTIFICATION.WARNING,
+      "Valitse ainakin yksi ehdokas."
+    );
     return;
   }
   showVotingConfirmationModal(
@@ -229,7 +235,8 @@ async function refreshVotingList(admin = false) {
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
       );
     });
@@ -277,7 +284,8 @@ function logout() {
       }
     })
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Uloskirjautuminen epäonnistui. Päivitä sivu."
       )
     );
@@ -327,11 +335,17 @@ function generateTokens(count) {
 
   callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
     .then(() => {
-      showUserNotification(USER_NOTIFICATION.CONFIRMATION, "Koodien generointi onnistui.");
+      showUserNotification(
+        USER_NOTIFICATION.CONFIRMATION,
+        "Koodien generointi onnistui."
+      );
       setTimeout(() => location.reload(), 500);
     })
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING, "Koodien generointi epäonnistui.")
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Koodien generointi epäonnistui."
+      )
     );
   generateTokensButton.removeAttribute("disabled");
 }
@@ -366,7 +380,8 @@ function activateOrInvalidateToken(isActivate, code, number) {
   )
     .then(() => location.reload())
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         `Koodin ${
           isActivate ? "aktivointi" : "mitätöinti"
         } epäonnistui. Tarkista koodi.`
@@ -397,8 +412,9 @@ function createVoting() {
   callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
-        "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!",
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!"
       )
     );
 }
@@ -414,7 +430,8 @@ function addCandidate(votingId, isRankedChoice) {
     callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
       .then(() => refreshVotingList(true))
       .catch(() =>
-        showUserNotification(USER_NOTIFICATION.WARNING,
+        showUserNotification(
+          USER_NOTIFICATION.WARNING,
           "Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!"
         )
       );
@@ -432,7 +449,8 @@ function removeCandidate(candidate_id, is_ranked_choice) {
   )
     .then(() => refreshVotingList(true))
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!"
       )
     );
@@ -447,9 +465,7 @@ function closeVoting(votingId, is_ranked_choice) {
       const data = await res.json();
       if (res.status !== 200) {
         if (data.message) {
-          showUserNotification(USER_NOTIFICATION.WARNING,
-            data.message
-          );
+          showUserNotification(USER_NOTIFICATION.WARNING, data.message);
         }
       }
       return data;
@@ -462,7 +478,8 @@ function closeVoting(votingId, is_ranked_choice) {
       }
     })
     .catch((err) =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!"
       )
     );
@@ -475,7 +492,8 @@ function openVoting(votingId, is_ranked_choice) {
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!"
       )
     );
@@ -508,7 +526,8 @@ function invalidateActiveTokens() {
   callApi(`${SITE_ROOT_PATH}admin/tokens/invalidate/all/`, "POST")
     .then(() => location.reload())
     .catch(() =>
-      showUserNotification(USER_NOTIFICATION.WARNING,
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Koodien mitätöinti epäonnistui!"
       )
     );
