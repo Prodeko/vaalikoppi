@@ -1,14 +1,6 @@
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
+from election.sentry import *
 
 from .base import *
-
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[DjangoIntegration(), RedisIntegration()],
-    send_default_pii=False,
-)
 
 DEBUG = False
 
