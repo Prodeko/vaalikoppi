@@ -56,3 +56,7 @@ LOGGING = {
         }
     },
 }
+
+# Don't show debg toolbar or sil in production
+SHOW_DEBUG_TOOLBAR = False
+SHOW_DJANGO_SILK = False
