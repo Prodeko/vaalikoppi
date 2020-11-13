@@ -21,10 +21,6 @@ class Voting(models.Model):
             return f"{self.id}-ranked-choice"
         return f"{self.id}-normal"
 
-    # Returns anything only after the voting has been closed
-    def voter_statuses(self):
-        return self.voter_statuses
-
     def total_votes_abs(self):
         if self.is_open:
             return self.votes.count()
