@@ -25,12 +25,12 @@ Lokaaliajossa tietokantaan ja redikseen saa yhteyden seuraavilla komennoilla:
 
 ```
 # Tietokanta
-$ docker exec -it election_db_1 /bin/bash -c 'psql -h localhost -U vaalikoppi'
+$ docker exec -it election_db_1 /bin/sh -c 'psql -h localhost -U vaalikoppi'
 vaalikoppi=# \d
 ...
 
 # Redis
-$ docker exec -it election_redis_1 /bin/bash -c 'redis-cli -n 1'
+$ docker exec -it election_redis_1 /bin/sh -c 'redis-cli -n 1'
 127.0.0.1:6379[1]> KEYS *
 ...
 ```
