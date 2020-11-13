@@ -9,13 +9,13 @@ services:
       - POSTGRES_USER=vaalikoppi
 
   redis:
-    image: redis:6
+    image: redis:6-alpine
 
   vaalikoppi:
     build: .
     container_name: vaalikoppi
     entrypoint: /code/docker-entrypoint.sh
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8000 --nostatic
     volumes:
       - .:/code
     ports:

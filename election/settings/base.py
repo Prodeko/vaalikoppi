@@ -10,7 +10,8 @@ SESSION_LOCK = True
 
 CACHEOPS_REDIS = "redis://redis:6379/1"
 
-CACHEOPS_DEFAULTS = {"timeout": 60}
+# One hour caching by default
+CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
 CACHEOPS = {
     "vaalikoppi.*": {"ops": "all", "cache_on_save": True},
 }
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -60,9 +62,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "election.wsgi.application"
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
-    },
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -78,6 +78,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATIC_URL = "/static/"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 LOGIN_URL = "/admin/"
 LOGIN_REDIRECT_URL = "/vaalikoppi/admin/"

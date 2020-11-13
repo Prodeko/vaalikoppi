@@ -10,9 +10,7 @@ services:
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
-    command: gunicorn election.asgi:application -b 0.0.0.0:8001 -k uvicorn.workers.UvicornWorker
-    volumes:
-      - .:/code
+    command: gunicorn election.wsgi:application -b 0.0.0.0:8001
     ports:
       - "8001:8001"
     environment:
