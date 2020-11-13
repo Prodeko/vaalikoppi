@@ -6,7 +6,7 @@ from sentry_sdk.integrations.redis import RedisIntegration
 
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[DjangoIntegration()],
+    integrations=[DjangoIntegration(), RedisIntegration()],
     send_default_pii=False,
     traces_sample_rate=1.0,
 )

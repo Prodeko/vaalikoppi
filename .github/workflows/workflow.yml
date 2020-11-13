@@ -1,6 +1,6 @@
 name: Deploy
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   deploy:
@@ -20,11 +20,13 @@ jobs:
       - name: Run tests
         run: docker exec vaalikoppi pytest election/
 
-      - name: Sentry Release
-        uses: getsentry/action-release@v1.0.0
+      - name: Sentry release
+        uses: getsentry/action-release@v1.1.2
         env:
+          SENTRY_URL: https://sentry.prodeko.org/
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT_VAALIKOPPI }}
+          SENTRY_ORG: prodeko
+          SENTRY_PROJECT: vaalikoppi
+          SENTRY_LOG_LEVEL: debug
         with:
           environment: production
