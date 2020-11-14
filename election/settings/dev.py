@@ -22,7 +22,7 @@ DATABASES = {
 }
 
 # Set to True to enable django debug toolbar
-SHOW_DEBUG_TOOLBAR = False
+SHOW_DEBUG_TOOLBAR = True
 
 if SHOW_DEBUG_TOOLBAR:
     # Show django debug toolbar always.

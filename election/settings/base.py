@@ -13,6 +13,7 @@ CACHEOPS_REDIS = "redis://redis:6379/1"
 # One hour caching by default
 CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
 CACHEOPS = {
+    "auth.user": {"ops": "get" },
     "vaalikoppi.*": {"ops": "all", "cache_on_save": True},
 }
 
