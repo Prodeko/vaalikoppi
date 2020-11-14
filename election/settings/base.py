@@ -8,8 +8,18 @@ SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 SESSION_LOCK = True
 
+CACHEOPS_REDIS = "redis://redis:6379/1"
+
+# One hour caching by default
+CACHEOPS_DEFAULTS = {"timeout": 60 * 60}
+CACHEOPS = {
+    "auth.user": {"ops": "get" },
+    "vaalikoppi.*": {"ops": "all", "cache_on_save": True},
+}
+
 INSTALLED_APPS = [
     "vaalikoppi",
+    "cacheops",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -21,11 +31,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "election.middleware.SessionLockMiddleware",
@@ -68,6 +78,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATIC_URL = "/static/"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 LOGIN_URL = "/admin/"
 LOGIN_REDIRECT_URL = "/vaalikoppi/admin/"

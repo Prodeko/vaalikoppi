@@ -6,10 +6,10 @@
           <tr><td>Koodi</td><td>Alias</td></tr>
         </thead>
         <tbody>
-          {% for voting_status in voting.voter_statuses %}
-          {% if not voting_status.has_voted %}
-          <tr><td>{{ voting_status.usertoken_token }}</td><td>{{ voting_status.usertoken_alias|escape }}</td></tr>
-          {% endif %}
+          {% for voting_status in voting.voter_statuses.all %}
+            {% if not voting_status.has_voted %}
+              <tr><td>{{ voting_status.usertoken_token }}</td><td>{{ voting_status.usertoken_alias|escape }}</td></tr>
+            {% endif %}
           {% endfor %}
         </tbody>
       </table>

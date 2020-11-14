@@ -36,33 +36,26 @@ function getVotingForm(votingId) {
   return document.getElementById(`voting-form-${votingId}`);
 }
 
-const NOTIF_COLOR = {
-  WARNING: "red",
-  CONFIRMATION: "green",
-  ALERT: "orange",
+function genUserNotifObj(color, displayLength) {
+  return { color: color, displayLength: displayLength };
+}
+
+const USER_NOTIFICATION = {
+  WARNING: genUserNotifObj("red", 6000),
+  CONFIRMATION: genUserNotifObj("green", 6000),
+  ALERT: genUserNotifObj("orange", 6000),
 };
 
-function raiseToast(color, message) {
+function showUserNotification(notifType, message) {
   M.toast({
     html: message,
-    classes: color,
-    displayLength: 6000,
+    classes: notifType.color,
+    displayLength: notifType.displayLength,
   });
 }
 
-function raiseUserWarning(message) {
-  raiseToast(NOTIF_COLOR.WARNING, message);
-}
-
-function raiseUserConfirmation(message) {
-  raiseToast(NOTIF_COLOR.CONFIRMATION, message);
-}
-
-function raiseUserAlert(message) {
-  raiseToast(NOTIF_COLOR.ALERT, message);
-}
-
-// Used to sort candidates by position in transferable election confirmation modal
+// Used to sort candidates by position in ranked choice
+// election confirmation modal
 function compareChosenCandidates(a, b) {
   if (a.position.charAt(0) == "-") {
     return 1;
@@ -80,11 +73,11 @@ function compareChosenCandidates(a, b) {
 }
 
 // Voting
-function getChosenCandidates(isTransferable, votingId) {
+function getChosenCandidates(isRankedChoice, votingId) {
   const form = getVotingForm(votingId);
   const chosenCandidates = Array.from(
     form.querySelectorAll(
-      isTransferable ? ".voting-order" : "input[name=candidate]:checked"
+      isRankedChoice ? ".voting-order" : "input[name=candidate]:checked"
     )
   ).map((input) => {
     const candidateId = input.getAttribute("value");
@@ -92,7 +85,7 @@ function getChosenCandidates(isTransferable, votingId) {
       `label[for=candidate-v-${votingId}-${candidateId}]`
     );
     const labelText = nameNode.childNodes[0].textContent;
-    const labelRankedPosition = isTransferable
+    const labelRankedPosition = isRankedChoice
       ? nameNode.previousElementSibling.innerHTML
       : -1;
     return { id: candidateId, name: labelText, position: labelRankedPosition };
@@ -101,7 +94,7 @@ function getChosenCandidates(isTransferable, votingId) {
 }
 
 function showVotingConfirmationModal(
-  isTransferable,
+  isRankedChoice,
   votingId,
   chosenCandidates,
   votingPassword
@@ -114,7 +107,7 @@ function showVotingConfirmationModal(
     ).forEach((elem) => elem.setAttribute("disabled", true));
 
     const data = {
-      candidates: isTransferable
+      candidates: isRankedChoice
         ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
         : chosenCandidates.map((c) => c.id),
       voting_password: votingPassword,
@@ -124,7 +117,7 @@ function showVotingConfirmationModal(
 
     callApi(
       `${SITE_ROOT_PATH}votings/${votingId}/${
-        isTransferable ? "vote-transferable" : "vote"
+        isRankedChoice ? "vote-ranked-choice" : "vote-normal"
       }/`,
       "POST",
       data
@@ -143,24 +136,27 @@ function showVotingConfirmationModal(
         return res.text();
       })
       .then((html) => {
-        raiseUserConfirmation(
-          "Äänestäminen onnistui. Äänestysluettelo päivitetään kohta. Odota."
+        showUserNotification(
+          USER_NOTIFICATION.CONFIRMATION,
+          "Äänestäminen onnistui. Päivitetään äänestysluettelo."
         );
         // Do not distract the user with things happening too fast
-        window.setTimeout(() => updateVotingListFromHtml(html), 4000);
+        window.setTimeout(() => updateVotingListFromHtml(html), 500);
       })
       .catch((error) => {
-        raiseUserWarning(
+        showUserNotification(
+          USER_NOTIFICATION.WARNING,
           error.message.length > 0
             ? error.message
             : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
-		  näkyykö äänestys vielä äänestämättömänä."
+		        näkyykö äänestys vielä äänestämättömänä."
         );
       });
 
     e.target.removeAttribute("disabled");
 
-    raiseUserAlert(
+    showUserNotification(
+      USER_NOTIFICATION.ALERT,
       "Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu."
     );
   }
@@ -183,7 +179,7 @@ function showVotingConfirmationModal(
 
   // Set modal content
   const candidatesString = chosenCandidates
-    .map((c) => (isTransferable ? `${c.position}.${c.name}` : c.name))
+    .map((c) => (isRankedChoice ? `${c.position}.${c.name}` : c.name))
     .join(", ");
   const singularOrPlural =
     chosenCandidates.length > 1 ? "ehdokkaita:\n" : "ehdokasta:\n";
@@ -208,7 +204,10 @@ function vote(votingId) {
   const chosenCandidates = getChosenCandidates(false, votingId);
   const votingPassword = getVotingPasswordTyped(votingId);
   if (chosenCandidates.length === 0) {
-    raiseUserWarning("Valitse ainakin yksi ehdokas.");
+    showUserNotification(
+      USER_NOTIFICATION.WARNING,
+      "Valitse ainakin yksi ehdokas."
+    );
     return;
   }
   showVotingConfirmationModal(
@@ -219,7 +218,7 @@ function vote(votingId) {
   );
 }
 
-function voteTransferableElection(votingId) {
+function RankedChoiceVoteElection(votingId) {
   const chosenCandidates = getChosenCandidates(true, votingId).sort(
     compareChosenCandidates
   );
@@ -236,7 +235,8 @@ async function refreshVotingList(admin = false) {
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-      raiseUserWarning(
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
         "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
       );
     });
@@ -284,10 +284,10 @@ function logout() {
       }
     })
     .catch(() =>
-      M.toast({
-        html: "Uloskirjautuminen epäonnistui. Päivitä sivu.",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Uloskirjautuminen epäonnistui. Päivitä sivu."
+      )
     );
 }
 
@@ -311,7 +311,6 @@ function submitToken() {
           throw Error("Virheellinen kirjautumiskoodi");
         } else if (res.status === 403) {
           throw Error("Alias ei ole sallittu, tai se on jo varattu");
-        } else if (res.status === 404) {
         }
         throw Error("Kirjautuminen epäonnistui");
       }
@@ -336,11 +335,17 @@ function generateTokens(count) {
 
   callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
     .then(() => {
-      M.toast({ html: "Koodien generointi onnistui.", classes: "green" });
-      setTimeout(() => location.reload(), 1000);
+      showUserNotification(
+        USER_NOTIFICATION.CONFIRMATION,
+        "Koodien generointi onnistui."
+      );
+      setTimeout(() => location.reload(), 500);
     })
     .catch(() =>
-      M.toast({ html: "Koodien generointi epäonnistui.", classes: "red" })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Koodien generointi epäonnistui."
+      )
     );
   generateTokensButton.removeAttribute("disabled");
 }
@@ -375,17 +380,17 @@ function activateOrInvalidateToken(isActivate, code, number) {
   )
     .then(() => location.reload())
     .catch(() =>
-      M.toast({
-        html: `Koodin ${
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        `Koodin ${
           isActivate ? "aktivointi" : "mitätöinti"
-        } epäonnistui. Tarkista koodi.`,
-        classes: "red",
-      })
+        } epäonnistui. Tarkista koodi.`
+      )
     );
 }
 
 function createVoting() {
-  const isTransferable = document.getElementById("is-transfer-election")
+  const isRankedChoice = document.getElementById("is-ranked-choice-election")
     .checked;
   const isPasswordProtected = document.getElementById(
     "voting-add-is-password-protected"
@@ -397,7 +402,7 @@ function createVoting() {
   const maxVotes = document.getElementById("max-votes").value;
 
   const data = {
-    is_transferable: isTransferable,
+    is_ranked_choice: isRankedChoice,
     is_password_protected: isPasswordProtected,
     voting_name: votingName,
     voting_description: votingDescription,
@@ -407,35 +412,35 @@ function createVoting() {
   callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      M.toast({
-        html: "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!"
+      )
     );
 }
 
-function addCandidate(votingId, isTransferable) {
+function addCandidate(votingId, isRankedChoice) {
   const candidate = document.getElementById(`voting-${votingId}-candidate-name`)
     .value;
   if (candidate) {
     const data = {
-      is_transferable: isTransferable,
+      is_ranked_choice: isRankedChoice,
       candidate_name: candidate,
     };
     callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
       .then(() => refreshVotingList(true))
       .catch(() =>
-        M.toast({
-          html: "Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!",
-          classes: "red",
-        })
+        showUserNotification(
+          USER_NOTIFICATION.WARNING,
+          "Ehdokkaan lisääminen ei ehkä onnistunut! Päivitä sivu!"
+        )
       );
   }
 }
 
-function removeCandidate(candidate_id, is_transferable) {
+function removeCandidate(candidate_id, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(
     `${SITE_ROOT_PATH}admin/votings/${candidate_id}/remove/`,
@@ -444,26 +449,23 @@ function removeCandidate(candidate_id, is_transferable) {
   )
     .then(() => refreshVotingList(true))
     .catch(() =>
-      M.toast({
-        html: "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Äänestyksen luominen ei ehkä onnistunut! Päivitä sivu!"
+      )
     );
 }
 
-function closeVoting(votingId, is_transferable) {
+function closeVoting(votingId, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/close/`, "POST", data)
     .then(async (res) => {
       const data = await res.json();
       if (res.status !== 200) {
         if (data.message) {
-          M.toast({
-            html: data.message,
-            classes: "red",
-          });
+          showUserNotification(USER_NOTIFICATION.WARNING, data.message);
         }
       }
       return data;
@@ -476,24 +478,24 @@ function closeVoting(votingId, is_transferable) {
       }
     })
     .catch((err) =>
-      M.toast({
-        html: "Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Äänestyksen sulkeminen ei ehkä onnistunut! Päivitä sivu!"
+      )
     );
 }
 
-function openVoting(votingId, is_transferable) {
+function openVoting(votingId, is_ranked_choice) {
   const data = {
-    is_transferable,
+    is_ranked_choice,
   };
   callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
-      M.toast({
-        html: "Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Äänestyksen avaaminen ei ehkä onnistunut! Päivitä sivu!"
+      )
     );
 }
 
@@ -524,10 +526,10 @@ function invalidateActiveTokens() {
   callApi(`${SITE_ROOT_PATH}admin/tokens/invalidate/all/`, "POST")
     .then(() => location.reload())
     .catch(() =>
-      M.toast({
-        html: "Koodien mitätöinti epäonnistui!",
-        classes: "red",
-      })
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Koodien mitätöinti epäonnistui!"
+      )
     );
 }
 
@@ -609,7 +611,7 @@ function setupEventListeners() {
 }
 
 function validateAliasSyntax(aliasInput) {
-  const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_\-]+$/;
+  const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_-]+$/;
   const lengthOk = aliasInput.length >= 3 && aliasInput.length <= 20;
   return lengthOk && aliasRegex.test(aliasInput.toUpperCase());
 }

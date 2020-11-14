@@ -12,10 +12,28 @@ $ docker-compose up
 
 Tämän jälkeen sivusto pitäisi olla nähtävissä osoitteessa http://localhost:8000/vaalikoppi/.
 
+### Admin
+
 Admin näkymään pääsee osoitteesta http://localhost:8000/vaalikoppi/admin/votings/
 ![Admin näkymä](admin.png)
 
 Admin-näkymän tunnus on **webbitiimi** ja salasana **kananugetti**.
+
+### Yhteys tietokantaan ja redikseen
+
+Lokaaliajossa tietokantaan ja redikseen saa yhteyden seuraavilla komennoilla:
+
+```
+# Tietokanta
+$ docker exec -it election_db_1 /bin/sh -c 'psql -h localhost -U vaalikoppi'
+vaalikoppi=# \d
+...
+
+# Redis
+$ docker exec -it election_redis_1 /bin/sh -c 'redis-cli -n 1'
+127.0.0.1:6379[1]> KEYS *
+...
+```
 
 ### Testaus
 

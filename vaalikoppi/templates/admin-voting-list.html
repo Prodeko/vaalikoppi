@@ -34,13 +34,13 @@
   <div class="card-content grey-text">
     <span class="card-title blue-grey-text text-darken-1 bold-font">Luo uusi äänestys</span>
     <label>
-        <input type="checkbox" class="filled-in" id="is-transfer-election" value="is-transfer-election" />
-        <span>Siirtoäänivaalitapa</span>
+      <input type="checkbox" class="filled-in" id="is-ranked-choice-election" value="is-ranked-choice-election" />
+      <span>Siirtoäänivaalitapa</span>
     </label>
     <br>
     <label>
-        <input type="checkbox" class="filled-in" id="voting-add-is-password-protected" name="is-password-protected" value="is-password-protected" />
-        <span>Äänestyskohtainen salasana vaaditaan</span>
+      <input type="checkbox" class="filled-in" id="voting-add-is-password-protected" name="is-password-protected" value="is-password-protected" />
+      <span>Äänestyskohtainen salasana vaaditaan</span>
     </label>
     <div class="input-field col s3">
       <input id="voting-name" name="voting-name" type="text" class="validate" required>
@@ -73,20 +73,23 @@
           <div class="col s12">
         <span class="card-title bold-font">Auki: {{ voting }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
         <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-        Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
+          {% if voting.is_password_protected %}Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>{% endif %}
         {% if voting.voting_description %}<div class="section grey-text"><p>{{ voting.voting_description }}</p></div>{% endif %}
-          </div>
-    </div>
-    {% if voting.candidates.all %}
-    <div class="divider"></div>
-        <div id="voting-form-{{ voting.id }}" class="row">
-          <ul class="col s12">
-            {% for candidate in voting.candidates.all %}
-              <li>{{ candidate.candidate_name }}</li>
-            {% endfor %}
-          </ul>
       </div>
-    {% endif %}
+    </div>
+    {% with all_candidates=voting.candidates.all %}
+      {% if all_candidates %}
+        <div class="divider"></div>
+          <div id="voting-form-{{ voting.id }}" class="row">
+            <ul class="col s12">
+              {% for candidate in all_candidates %}
+                <li>{{ candidate.candidate_name }}</li>
+              {% endfor %}
+            </ul>
+        </div>
+
+      {% endif %}
+    {% endwith %}
       <div class="divider"></div>
       <div class="row">
         <div class="col s12 votes-left-col">
@@ -97,7 +100,7 @@
             </thead>
             <tbody>
               {% for token in voting.tokens_not_voted %}
-              <tr><td>{{ token.token }}</td><td>{{ token.alias|escape }}</td></tr>
+                <tr><td>{{ token.token }}</td><td>{{ token.alias|escape }}</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -105,7 +108,7 @@
       </div>
       </div>
       <div class="card-action center">
-        <button onclick="closeVoting({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Sulje äänestys</button>
+        <button onclick="closeVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Sulje äänestys</button>
       </div>
     </div>
   {% endfor %}

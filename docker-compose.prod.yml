@@ -1,12 +1,16 @@
 version: "3"
 
 services:
+  redis:
+    image: redis:6-alpine
+    restart: unless-stopped
+    volumes:
+      - "vaalikoppi-redis:/data"
+
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
     command: gunicorn election.asgi:application -b 0.0.0.0:8001 -k uvicorn.workers.UvicornWorker
-    volumes:
-      - .:/code
     ports:
       - "8001:8001"
     environment:
@@ -16,6 +20,10 @@ services:
       - DB_USER=user_vaalikoppi@prodeko-postgres
       - POSTGRESQL_SSL_CA=/code/ca-certs/CombinedCa.crt.pem
       - SENTRY_DSN=https://dda0512eee65464c893202702005be39@sentry.prodeko.org/4
+
+volumes:
+  vaalikoppi-redis:
+    external: true
 
 networks:
   default:

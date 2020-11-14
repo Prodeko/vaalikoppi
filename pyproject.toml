@@ -1,0 +1,9 @@
+[tool.black]
+line-length = 88
+exclude = '''
+    \.git
+  | locale
+  | documentation
+  | ^.*\/migrations\/.*$
+  | ^.*\/node_modules\/.*$
+'''

@@ -1,13 +1,6 @@
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
+from election.sentry import *
 
 from .base import *
-
-sentry_sdk.init(
-    dsn=os.environ.get("SENTRY_DSN"),
-    integrations=[DjangoIntegration()],
-    send_default_pii=False,
-)
 
 DEBUG = False
 
@@ -32,11 +25,6 @@ DATABASES = {
     }
 }
 
-
-MIDDLEWARE += ("whitenoise.middleware.WhiteNoiseMiddleware",)
-
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -48,6 +36,14 @@ LOGGING = {
         }
     },
     "loggers": {
-        "django": {"handlers": ["logfile"], "level": "ERROR", "propagate": False,}
+        "django": {
+            "handlers": ["logfile"],
+            "level": "ERROR",
+            "propagate": False,
+        }
     },
 }
+
+# Don't show debg toolbar or sil in production
+SHOW_DEBUG_TOOLBAR = False
+SHOW_DJANGO_SILK = False

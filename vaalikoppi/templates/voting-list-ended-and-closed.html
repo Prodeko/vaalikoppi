@@ -2,40 +2,40 @@
 {# Suljettu äänestys #}
 {% if closed_votings %}
   {% for voting in closed_votings %}
-  {% if is_admin %}
-    <div class="card grey lighten-3">
-      <div class="card-content blue-grey-text text-lighten-1 center">
-        <span class="card-title text-lighten-1">
-          Avaamaton: {{ voting }}
-        </span>
-        <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-        Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
-        {% if voting.voting_description %}
-          <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
-        {% endif %}
-      </div>
-      <div class="card-action">
-        {% if voting.candidates.all %}
-          {% for candidate in voting.candidates.all %}
-            <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})">
-              {{ candidate.candidate_name }}
-              <i class="material-icons right">close</i>
-            </a>
-          {% endfor %}
-        {% endif %}
-        
-        <div class="input-field col">
-          <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
-          <label for="candidate_name">Ehdokkaan nimi</label>
+    {% if is_admin %}
+      <div class="card grey lighten-3">
+        <div class="card-content blue-grey-text text-lighten-1 center">
+          <span class="card-title text-lighten-1">
+            Avaamaton: {{ voting }}
+          </span>
+          <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
+          Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
+          {% if voting.voting_description %}
+            <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
+          {% endif %}
         </div>
-        <button onclick="addCandidate({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
-          Lisää<i class="material-icons right">add</i>
-        </button>
-        <button onclick="openVoting({{ voting.id }}, {% if voting.is_transferable %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
-          Avaa äänestys
-        </button>
+        <div class="card-action">
+          {% if voting.candidates.all %}
+            {% for candidate in voting.candidates.all %}
+              <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
+                {{ candidate.candidate_name }}
+                <i class="material-icons right">close</i>
+              </a>
+            {% endfor %}
+          {% endif %}
+
+          <div class="input-field col">
+            <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
+            <label for="candidate_name">Ehdokkaan nimi</label>
+          </div>
+          <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
+            Lisää<i class="material-icons right">add</i>
+          </button>
+          <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
+            Avaa äänestys
+          </button>
+        </div>
       </div>
-    </div>
     {% else %}
       <div class="card grey lighten-3">
         <div class="card-content blue-grey-text text-lighten-1 center">
@@ -58,9 +58,9 @@
 
 {# Päättynyt äänestys #}
 {% if ended_votings %}
-<h4>Päättyneet äänestykset</h4>
+  <h4>Päättyneet äänestykset</h4>
   {% for voting in ended_votings %}
-    {% if voting.is_transferable %}
+    {% if voting.is_ranked_choice %}
       <div class="transfer-election closed-voting card prodeko-blue white-text center">
         <div class="card-title-container" onclick="expandResults(this)">
           <h3 class="card-title bold-font">{{ voting }}</h3>
@@ -97,7 +97,7 @@
           Valitaan: {{ voting.winners }}
         </div>
         {% if is_admin %}
-        {% include 'admin-not-voted-tokens-section.html' %}
+          {% include 'admin-not-voted-tokens-section.html' %}
         {% endif %}
       </div>
     {% else %}
@@ -107,18 +107,18 @@
         </div>
         <div class="results">
           <table class="result-table">
-            {% for candidate in voting.results %}
+            {% for result in voting.results %}
               <tr class="candidate {% if candidate.elected %}elected{% endif %} {% if candidate.dropped %}dropped{% endif %}">
                 <td class="candidate-name">
-                  {{ candidate.candidate_name }}
-                  {% if candidate.dropped %}
+                  {{ result.candidate_name }}
+                  {% if result.dropped %}
                     (pudonnut)
-                  {% elif candidate.elected %}
+                  {% elif result.elected %}
                     (valittu)
                   {% endif %}
                 </td>
-                <td>{{ candidate.vote_count }}</td>
-                <td>{{ candidate.vote_share }}&nbsp;%</td>
+                <td>{{ result.vote_count }}</td>
+                <td>{{ result.vote_share }}&nbsp;%</td>
               </tr>
             {% endfor %}
           </table>

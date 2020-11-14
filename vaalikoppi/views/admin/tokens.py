@@ -10,15 +10,14 @@ from django.views.decorators.http import require_http_methods
 from py3votecore.stv import *
 from vaalikoppi.forms import *
 from vaalikoppi.models import *
-from vaalikoppi.views.helpers import get_active_tokens
 
 
 @login_required
 def admin_tokens(request):
-    all_tokens = Usertoken.objects.all()
-    new_tokens = Usertoken.objects.filter(activated=False, invalidated=False).count()
-    active_tokens = get_active_tokens(request).count()
-    invalid_tokens = Usertoken.objects.filter(invalidated=True).count()
+    all_tokens = list(Usertoken.objects.all())
+    new_tokens = len([t for t in all_tokens if not t.activated and not t.invalidated])
+    active_tokens = len([t for t in all_tokens if t.activated and not t.invalidated])
+    invalid_tokens = len([t for t in all_tokens if t.invalidated])
 
     return render(
         request,
@@ -51,7 +50,7 @@ def generate_tokens(request):
         random_gen = random.SystemRandom()
         word_count = 4
 
-        for i in range(0, count):
+        for _ in range(0, count):
             separator_int = random_gen.randint(0, 9)
             cur_token = str(separator_int).join(random_gen.sample(words, word_count))
             Usertoken(token=cur_token).save()

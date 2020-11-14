@@ -10,11 +10,13 @@ urlpatterns = [
     path("user/login/", views.user.user_login, name="user_login"),
     path("user/logout/", views.user.user_logout, name="user_logout"),
     path("votings/list/", views.votings.votings_list, name="votings"),
-    path("votings/<int:voting_id>/vote/", views.votings.vote, name="vote"),
     path(
-        "votings/<int:voting_id>/vote-transferable/",
-        views.votings.vote_transferable,
-        name="vote_transferable",
+        "votings/<int:voting_id>/vote-normal/", views.votings.vote_normal, name="vote"
+    ),
+    path(
+        "votings/<int:voting_id>/vote-ranked-choice/",
+        views.votings.vote_ranked_choice,
+        name="vote_ranked_choice",
     ),
     # Admin - tokens
     path("admin/tokens/", views.admin.tokens.admin_tokens, name="admin_tokens"),
