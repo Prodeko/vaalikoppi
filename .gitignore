@@ -3,6 +3,8 @@ venv/
 node_modules/
 __pycache__
 .DS_Store
+coverage.xml
+.coverage
 
 vaalikoppi/static/css/**/*.css
 !vaalikoppi/static/css/main.css

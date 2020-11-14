@@ -18,7 +18,14 @@ jobs:
           time: "15s"
 
       - name: Run tests
-        run: docker exec vaalikoppi pytest election/
+        run: docker exec vaalikoppi pytest --cov --cov-report=xml election/
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
 
       - name: Sentry release
         uses: getsentry/action-release@v1.1.2
@@ -27,6 +34,5 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: prodeko
           SENTRY_PROJECT: vaalikoppi
-          SENTRY_LOG_LEVEL: debug
         with:
           environment: production
