@@ -63,11 +63,12 @@ class Voting(models.Model):
         self.is_ended = True
         self.save()
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return self.voting_name
 
-    class Meta:
-        abstract = True
 
 
 class NormalVoting(Voting):
@@ -126,11 +127,11 @@ class RankedChoiceVoting(Voting):
 class Candidate(models.Model):
     candidate_name = models.CharField(max_length=50)
 
-    def __str__(self):
-        return self.candidate_name
-
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return self.candidate_name
 
 
 class NormalCandidate(Candidate):
@@ -164,11 +165,11 @@ class TokenMapping(models.Model):
     def get_token(self):
         return self.token
 
-    def __str__(self):
-        return str(self.uuid)
-
     class Meta:
         abstract = True
+
+    def __str__(self):
+        return str(self.uuid)
 
 
 class NormalTokenMapping(TokenMapping):
