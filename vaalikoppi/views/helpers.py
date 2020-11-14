@@ -2,6 +2,7 @@ import re
 
 from django.conf import settings
 from django.shortcuts import render
+from vaalikoppi.exceptions import AliasException
 from vaalikoppi.models import *
 
 
@@ -142,10 +143,6 @@ def votings_list_data(request, token, is_admin=False):
         "closed_votings": closed_votings,
         "ended_votings": ended_votings,
     }
-
-
-class AliasException(Exception):
-    pass
 
 
 def validate_register_alias(request, token_obj, alias):

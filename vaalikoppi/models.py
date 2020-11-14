@@ -70,7 +70,6 @@ class Voting(models.Model):
         return self.voting_name
 
 
-
 class NormalVoting(Voting):
     is_ranked_choice = False
 

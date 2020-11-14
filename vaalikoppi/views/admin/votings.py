@@ -259,7 +259,6 @@ def calculate_results_stv(request, voting_obj):
 
 def calculate_stv(request, voting_id):
     ballots = []
-    ballots2 = []
     countdict = {}
     keysdict = {}
 

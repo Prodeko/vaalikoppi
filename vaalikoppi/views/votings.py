@@ -3,7 +3,7 @@ import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
-from py3votecore.stv import *
+from vaalikoppi.exceptions import JsonResponseException
 from vaalikoppi.models import *
 from vaalikoppi.views.helpers import (
     is_eligible_to_vote_normal,
@@ -25,164 +25,156 @@ def is_valid_voting_password(voting_password_typed, voting_obj):
     return False
 
 
-# Get votings list data directly
-
-
-# Get votings list rendered as html
 @validate_token
 def votings_list(request, token):
     return render(request, "voting-list.html", votings_list_data(request, token))
 
 
+def voting_common_checks(token, voting, submitted_password, candidates):
+    is_eligible = is_eligible_to_vote_normal(token, voting)
+
+    # Check eligibility to vote
+    if not is_eligible:
+        raise JsonResponseException("Not allowed to vote in this voting!", 403)
+
+    # Voting password check
+    if not is_valid_voting_password(submitted_password, voting):
+        raise JsonResponseException("Wrong voting password!", 403)
+
+    # Candidates data must be provided
+    if not candidates:
+        raise JsonResponseException("Candidates not provided.", 400)
+
+
 @validate_token
 @require_http_methods(["POST"])
 def vote_normal(request, token, voting_id):
-    voting_obj = get_object_or_404(NormalVoting, pk=voting_id)
-
-    is_eligible = is_eligible_to_vote_normal(token, voting_obj)
-
-    if not is_eligible:
-        return JsonResponse(
-            {"message": "Not allowed to vote in this voting!"}, status=403
-        )
-
-    candidates = []
-    candidates_noempty = []
-    candidate_objs = []
-    empty_candidate = NormalCandidate.objects.get(
-        voting=voting_obj, empty_candidate=True
-    )
-
-    data = json.loads(request.body.decode("utf-8"))
-
-    ### BEGIN VOTING PASSWORD CHECK ###
-    voting_password_typed = data.get("voting_password")
-
-    if not voting_password_typed:
-        voting_password_typed = ""
-
-    if not is_valid_voting_password(voting_password_typed, voting_obj):
-        return JsonResponse({"message": "Wrong voting password!"}, status=403)
-    ### END VOTING PASSWORD CHECK ###
-
-    candidates = data.get("candidates")
-
-    if not candidates:
-        return JsonResponse({"message": "Candidates not provided"}, status=400)
-
-    candidates_noempty = [x for x in candidates if x != empty_candidate.id]
-
-    if len(candidates_noempty) != len(set(candidates_noempty)):
-        return JsonResponse(
-            {"message": "Multiple votes for same candidate"}, status=400
-        )
-
-    empty_votes = voting_obj.max_votes - len(candidates_noempty)
-
-    for candidate_id in candidates_noempty:
-        try:
-            candidate_obj = NormalCandidate.objects.get(
-                pk=candidate_id, voting=voting_obj
-            )
-            candidate_objs.append(candidate_obj)
-        except (NormalCandidate.DoesNotExist, NormalCandidate.MultipleObjectsReturned):
-            return JsonResponse(
-                {"message": "No such candidate for this voting"}, status=400
-            )
-
-    for i in range(0, empty_votes):
-        candidate_objs.append(empty_candidate)
-
+    """ Cast a vote in a normal voting."""
     try:
-        mapping = NormalTokenMapping.objects.get(token=token, voting=voting_obj)
-    except NormalTokenMapping.DoesNotExist:
-        return JsonResponse({"message": "No uuid for token"}, status=403)
+        # Load post data
+        data = json.loads(request.body.decode("utf-8"))
+        data_submitted_password = data.get("voting_password", "")
+        data_candidates = data.get("candidates")
+        voting = get_object_or_404(NormalVoting, pk=voting_id)
 
-    # Double-check...
-    cur_votes = NormalVote.objects.all().filter(uuid=mapping.uuid, voting=voting_obj)
-    if len(cur_votes) != 0:
-        return JsonResponse({"message": "Already voted in this voting!"}, status=403)
+        # Run common validity checks
+        voting_common_checks(token, voting, data_submitted_password, data_candidates)
 
-    for candidate_obj in candidate_objs:
-        NormalVote(uuid=mapping.uuid, candidate=candidate_obj, voting=voting_obj).save()
+        # Construct helper data
+        empty_candidate = NormalCandidate.objects.get(
+            voting=voting, empty_candidate=True
+        )
+        candidates_noempty = [
+            x for x in data_candidates if x != str(empty_candidate.id)
+        ]
+        empty_votes = voting.max_votes - len(candidates_noempty)
 
-    return votings_list(request)
+        # Can't vote for the same candidate multiple times
+        if len(candidates_noempty) != len(set(candidates_noempty)):
+            raise JsonResponseException("Multiple votes for same candidate.", 403)
+
+        # Check if provided candidate ids are valid for this election
+        candidates = list(
+            NormalCandidate.objects.filter(pk__in=data_candidates, voting=voting)
+        )
+        candidate_ids = [str(c.id) for c in candidates]
+
+        # If data_candidates contains any ids not found in database return error
+        if set(candidate_ids) != set(data_candidates):
+            raise JsonResponseException("No such candidate found.", 403)
+
+        # Append empty votes to candidates list
+        for _ in range(1, empty_votes):
+            candidates.append(empty_candidate)
+
+        # Try to get token mapping connecting a token to this voting
+        try:
+            mapping = NormalTokenMapping.objects.get(token=token, voting=voting)
+        except NormalTokenMapping.DoesNotExist:
+            raise JsonResponseException("No uuid for token.", 403)
+
+        # Double-check that a NormalVote object does not already exist for this token
+        token_votes = NormalVote.objects.all().filter(uuid=mapping.uuid, voting=voting)
+        if len(token_votes) != 0:
+            raise JsonResponseException("Already voted in this voting!", 403)
+
+        for candidate in candidates:
+            NormalVote(uuid=mapping.uuid, candidate=candidate, voting=voting).save()
+
+        # Render the voting list
+        return votings_list(request)
+
+    # Capture raised JsonResponseExceptions and return JsonResponse
+    except JsonResponseException as e:
+        return JsonResponse({"message": e.message}, status=e.status)
 
 
 @validate_token
 @require_http_methods(["POST"])
 def vote_ranked_choice(request, token, voting_id):
-    # NEED TO CHECK THAT POSTS CORRECTLY
-    voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
-    is_eligible = is_eligible_to_vote_ranked_choice(token, voting_obj)
-    if not is_eligible:
-        return JsonResponse(
-            {"message": "Not allowed to vote in this voting!"}, status=403
-        )
-
-    candidates = []
-    candidate_objs = {}
-
-    data = json.loads(request.body.decode("utf-8"))
-
-    ### BEGIN VOTING PASSWORD CHECK ###
-    voting_password_typed = data.get("voting_password")
-
-    if not voting_password_typed:
-        voting_password_typed = ""
-
-    if not is_valid_voting_password(voting_password_typed, voting_obj):
-        return JsonResponse({"message": "Wrong voting password!"}, status=403)
-    ### END VOTING PASSWORD CHECK ###
-
-    candidates = data.get("candidates")
-    if not candidates:
-        return JsonResponse({"message": "Candidates not provided"}, status=400)
-
-    # Candi is pair of id:order
-    for candidate in candidates:
-        try:
-            candidate_obj = RankedChoiceCandidate.objects.get(
-                pk=candidate.split(":")[0], voting=voting_obj
-            )
-            if candidate.split(":")[1] != "-":
-                candidate_objs[candidate.split(":")[1]] = candidate_obj
-        except (
-            RankedChoiceCandidate.DoesNotExist,
-            RankedChoiceCandidate.MultipleObjectsReturned,
-        ):
-            return JsonResponse(
-                {"message": "No such candidate for this voting"}, status=400
-            )
-
+    """ Cast a vote in a ranked choice voting."""
     try:
-        mapping = RankedChoiceTokenMapping.objects.get(token=token, voting=voting_obj)
-    except RankedChoiceTokenMapping.DoesNotExist:
-        return JsonResponse({"message": "No uuid for token"}, status=403)
+        # Load post data
+        data = json.loads(request.body.decode("utf-8"))
+        data_submitted_password = data.get("voting_password", "")
+        data_candidates = data.get("candidates")
+        voting = get_object_or_404(RankedChoiceVoting, pk=voting_id)
+        candidates_and_preferences = {
+            int(c.split(":")[0]): {"preference": c.split(":")[1]}
+            for c in data_candidates
+        }
+        data_candidate_ids = candidates_and_preferences.keys()
 
-    # Double-check..
+        # Run common validity checks
+        voting_common_checks(token, voting, data_submitted_password, data_candidate_ids)
 
-    # !!!!!!!!!! VERY IMPORTANT TODO!!!!!!!!
+        # Check if provided candidate ids are valid for this election
+        candidate_objects = list(
+            RankedChoiceCandidate.objects.filter(
+                pk__in=data_candidate_ids, voting=voting
+            )
+        )
+        candidate_ids = []
 
-    cur_votes = RankedChoiceVoteGroup.objects.all().filter(
-        uuid=mapping.uuid, voting=voting_obj
-    )
-    if len(cur_votes) != 0:
-        return JsonResponse({"message": "Already voted in this voting!"}, status=403)
+        for c in candidate_objects:
+            candidate_ids.append(c.id)
+            candidates_and_preferences[c.id]["model"] = c
 
-    # Create Vote group
-    vote_group = RankedChoiceVoteGroup(
-        uuid=mapping.uuid, voting=voting_obj, is_transferred=False
-    )
-    vote_group.save()
+        # If data_candidates contains any ids not found in database return error
+        if set(candidate_ids) != set(data_candidate_ids):
+            raise JsonResponseException("No such candidate found.", 403)
 
-    for key in candidate_objs:
-        RankedChoiceVote(
-            uuid=mapping.uuid,
-            candidate=candidate_objs[key],
-            voting=voting_obj,
-            preference=key,
-            votegroup=vote_group,
-        ).save()
+        # Try to get token mapping connecting a token to this voting
+        try:
+            mapping = RankedChoiceTokenMapping.objects.get(token=token, voting=voting)
+        except RankedChoiceTokenMapping.DoesNotExist:
+            raise JsonResponseException("No uuid for token.", 403)
 
-    return votings_list(request)
+        # Double-check that a NormalVote object does not already exist for this token
+        cur_votes = RankedChoiceVoteGroup.objects.all().filter(
+            uuid=mapping.uuid, voting=voting
+        )
+        if len(cur_votes) != 0:
+            raise JsonResponseException("Already voted in this voting!", 403)
+
+        # Create Vote group
+        vote_group = RankedChoiceVoteGroup(
+            uuid=mapping.uuid, voting=voting, is_transferred=False
+        )
+        vote_group.save()
+
+        for x in candidates_and_preferences.values():
+            RankedChoiceVote(
+                uuid=mapping.uuid,
+                candidate=x["model"],
+                voting=voting,
+                preference=x["preference"],
+                votegroup=vote_group,
+            ).save()
+
+        # Render the voting list
+        return votings_list(request)
+
+    # Capture raised JsonResponseExceptions and return JsonResponse
+    except JsonResponseException as e:
+        return JsonResponse({"message": e.message}, status=e.status)
