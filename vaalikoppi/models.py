@@ -142,9 +142,7 @@ class NormalCandidate(Candidate):
 
 class RankedChoiceCandidate(Candidate):
     voting = models.ForeignKey(
-        RankedChoiceVoting,
-        on_delete=models.CASCADE,
-        related_name="candidates",
+        RankedChoiceVoting, on_delete=models.CASCADE, related_name="candidates",
     )
 
 
