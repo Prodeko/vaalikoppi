@@ -121,7 +121,7 @@ def vote_ranked_choice(request, token, voting_id):
         voting = get_object_or_404(RankedChoiceVoting, pk=voting_id)
         candidates_and_preferences = {
             int(c.split(":")[0]): {"preference": c.split(":")[1]}
-            for c in data_candidates
+            for c in data_candidates if "-" not in c
         }
         data_candidate_ids = candidates_and_preferences.keys()
 
