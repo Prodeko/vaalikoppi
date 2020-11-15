@@ -1,6 +1,7 @@
 
 {# Avattu äänestys #}
 {% if open_votings %}
+<h4>Avoimet äänestykset</h4>
   {% for voting in open_votings %}
     {% if voting.is_ranked_choice %}
       {# Siirtoäänivaalitapa #}
@@ -63,6 +64,14 @@
         </div>
     {% endif %}
   {% endfor %}
+{% else %}
+  <div class="row">
+    <div class="col s12">
+      <div class="card-panel blue-grey small">
+        <span class="white-text">Ei avoimia äänestyksiä.</span>
+      </div>
+    </div>
+  </div>
 {% endif %}
 
 {% include 'voting-list-ended-and-closed.html' %}

@@ -1,6 +1,7 @@
 
 {# Suljettu äänestys #}
 {% if closed_votings %}
+  <h4>Avaamattomat äänestykset</h4>
   {% for voting in closed_votings %}
     {% if is_admin %}
       <div class="card grey lighten-3">
@@ -58,6 +59,14 @@
       </div>
     {% endif %}
   {% endfor %}
+{% else %}
+  <div class="row">
+    <div class="col s12">
+      <div class="card-panel blue-grey small">
+        <span class="white-text">Ei avaamattomia äänestyksiä.</span>
+      </div>
+    </div>
+  </div>
 {% endif %}
 
 {# Päättynyt äänestys #}
@@ -136,4 +145,12 @@
       </div>
     {% endif %}
   {% endfor %}
+{% else %}
+<div class="row">
+    <div class="col s12">
+      <div class="card-panel blue-grey small">
+        <span class="white-text">Ei päättyneitä äänestyksiä.</span>
+      </div>
+    </div>
+  </div>
 {% endif %}
