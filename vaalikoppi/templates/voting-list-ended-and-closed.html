@@ -1,68 +1,78 @@
 
 {# Suljettu äänestys #}
 {% if closed_votings %}
-  <h4>Avaamattomat äänestykset</h4>
+  <div class="row">
+    <div class="col s12">
+      <div class="card-panel blue-grey darken-1 small">
+        <span class="white-text">Avaamattomia tai suljettuja äänestyksiä {{ closed_votings|length }} kpl.</span>
+      </div>
+    </div>
+  </div>
   {% for voting in closed_votings %}
-    {% if is_admin %}
-      <div class="card grey lighten-3">
-        <div class="card-content blue-grey-text text-lighten-1 center">
-          <span class="card-title text-lighten-1">
-            Avaamaton: {{ voting }}
-          </span>
-          <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-          Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
-          {% if voting.voting_description %}
-            <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
-          {% endif %}
-        </div>
-        <div class="card-action">
-          {% with all_candidates=voting.candidates.all %}
-            {% if all_candidates %}
-              {% for candidate in all_candidates %}
-                <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
-                  {{ candidate.candidate_name }}
-                  <i class="material-icons right">close</i>
-                </a>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
+    <div class="row">
+      <div class="col s12">
+        {% if is_admin %}
+          <div class="card grey lighten-3">
+            <div class="card-content blue-grey-text text-lighten-1 center">
+              <span class="card-title text-lighten-1">
+                Avaamaton: {{ voting }}
+              </span>
+              <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
+              Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
+              {% if voting.voting_description %}
+                <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
+              {% endif %}
+            </div>
+            <div class="card-action">
+              {% with all_candidates=voting.candidates.all %}
+                {% if all_candidates %}
+                  {% for candidate in all_candidates %}
+                    <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
+                      {{ candidate.candidate_name }}
+                      <i class="material-icons right">close</i>
+                    </a>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
 
-          <div class="input-field col">
-            <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
-            <label for="candidate_name">Ehdokkaan nimi</label>
+              <div class="input-field col">
+                <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
+                <label for="candidate_name">Ehdokkaan nimi</label>
+              </div>
+              <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
+                Lisää<i class="material-icons right">add</i>
+              </button>
+              <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
+                Avaa äänestys
+              </button>
+            </div>
           </div>
-          <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
-            Lisää<i class="material-icons right">add</i>
-          </button>
-          <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
-            Avaa äänestys
-          </button>
-        </div>
+        {% else %}
+          <div class="card grey lighten-3">
+            <div class="card-content blue-grey-text text-lighten-1 center">
+              <span class="card-title blue-grey-text text-lighten-1">{% if voting.is_open %}Äänestetty: {% endif %}{{ voting }}</span>
+              {% if voting.voting_description %}
+                <p>{{ voting.voting_description }}</p>
+              {% endif %}
+            </div>
+            <div class="card-action">
+              {% with all_candidates=voting.candidates.all %}
+                {% if all_candidates %}
+                  {% for candidate in all_candidates %}
+                    <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}</a>
+                  {% endfor %}
+                {% endif %}
+              {% endwith %}
+            </div>
+          </div>
+        {% endif %}
       </div>
-    {% else %}
-      <div class="card grey lighten-3">
-        <div class="card-content blue-grey-text text-lighten-1 center">
-          <span class="card-title blue-grey-text text-lighten-1">{% if voting.is_open %}Äänestetty: {% endif %}{{ voting }}</span>
-          {% if voting.voting_description %}
-            <p>{{ voting.voting_description }}</p>
-          {% endif %}
-        </div>
-        <div class="card-action">
-          {% with all_candidates=voting.candidates.all %}
-            {% if all_candidates %}
-              {% for candidate in all_candidates %}
-                <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate.candidate_name }}</a>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
-        </div>
-      </div>
-    {% endif %}
+    </div>
   {% endfor %}
 {% else %}
   <div class="row">
     <div class="col s12">
-      <div class="card-panel blue-grey small">
+      <div class="card-panel blue-grey darken-1 small">
         <span class="white-text">Ei avaamattomia äänestyksiä.</span>
       </div>
     </div>
@@ -71,84 +81,94 @@
 
 {# Päättynyt äänestys #}
 {% if ended_votings %}
-  <h4>Päättyneet äänestykset</h4>
+  <div class="row">
+    <div class="col s12">
+      <div class="card-panel blue-grey darken-1 small">
+        <span class="white-text">Päättyneitä äänestyksiä {{ ended_votings|length }} kpl.</span>
+      </div>
+    </div>
+  </div>
   {% for voting in ended_votings %}
-    {% if voting.is_ranked_choice %}
-      <div class="transfer-election closed-voting card prodeko-blue white-text center">
-        <div class="card-title-container" onclick="expandResults(this)">
-          <h3 class="card-title bold-font">{{ voting }}</h3>
-          {% if voting.grouped_results|length > 1 %}
-            <i class="expand-results material-icons">chevron_right</i>
-          {% endif %}
-        </div>
-        <div class="results">
-          {% for round in voting.grouped_results %}
-            <div class="result">
-              <div class="voting-round">
-                <span class="round-number">{{ round.round }}.</span>
-                kierros
-              </div>
+    <div class="row">
+      <div class="col s12">
+        {% if voting.is_ranked_choice %}
+          <div class="transfer-election closed-voting card prodeko-blue white-text center">
+            <div class="card-title-container" onclick="expandResults(this)">
+              <h3 class="card-title bold-font">{{ voting }}</h3>
+              {% if voting.grouped_results|length > 1 %}
+                <i class="expand-results material-icons">chevron_right</i>
+              {% endif %}
+            </div>
+            <div class="results">
+              {% for round in voting.grouped_results %}
+                <div class="result">
+                  <div class="voting-round">
+                    <span class="round-number">{{ round.round }}.</span>
+                    kierros
+                  </div>
+                  <table class="result-table">
+                    {% for candidate in round.candidates %}
+                      <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
+                        <td class="candidate-name">
+                          {{ candidate.candidate_name }}
+                          {% if candidate.dropped %}
+                            (pudonnut)
+                          {% elif candidate.elected %}
+                            (valittu)
+                          {% endif %}
+                        </td>
+                        <td>{{ candidate.vote_count }}</td>
+                      </tr>
+                    {% endfor %}
+                  </table>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="empty-votes">
+              Valitaan: {{ voting.winners }}
+            </div>
+            {% if is_admin %}
+              {% include 'admin-not-voted-tokens-section.html' %}
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="closed-voting card prodeko-blue white-text center">
+            <div class="card-title-container">
+              <h3 class="card-title bold-font">{{ voting }}</h3>
+            </div>
+            <div class="results">
               <table class="result-table">
-                {% for candidate in round.candidates %}
-                  <tr class="candidate {% if candidate.elected %} elected {% elif candidate.dropped %} dropped {% endif %}">
+                {% for result in voting.voting_results.all %}
+                  <tr class="candidate {% if candidate.elected %}elected{% endif %} {% if candidate.dropped %}dropped{% endif %}">
                     <td class="candidate-name">
-                      {{ candidate.candidate_name }}
-                      {% if candidate.dropped %}
+                      {{ result.candidate_name }}
+                      {% if result.dropped %}
                         (pudonnut)
-                      {% elif candidate.elected %}
+                      {% elif result.elected %}
                         (valittu)
                       {% endif %}
                     </td>
-                    <td>{{ candidate.vote_count }}</td>
+                    <td>{{ result.vote_count }}</td>
+                    <td>{{ result.vote_share }}&nbsp;%</td>
                   </tr>
                 {% endfor %}
               </table>
             </div>
-          {% endfor %}
-        </div>
-        <div class="empty-votes">
-          Valitaan: {{ voting.winners }}
-        </div>
-        {% if is_admin %}
-          {% include 'admin-not-voted-tokens-section.html' %}
+            <div class="empty-votes">
+              Tyhjiä: {{ voting.empty_votes }}
+            </div>
+            {% if is_admin %}
+            {% include 'admin-not-voted-tokens-section.html' %}
+            {% endif %}
+          </div>
         {% endif %}
       </div>
-    {% else %}
-      <div class="closed-voting card prodeko-blue white-text center">
-        <div class="card-title-container">
-          <h3 class="card-title bold-font">{{ voting }}</h3>
-        </div>
-        <div class="results">
-          <table class="result-table">
-            {% for result in voting.voting_results.all %}
-              <tr class="candidate {% if candidate.elected %}elected{% endif %} {% if candidate.dropped %}dropped{% endif %}">
-                <td class="candidate-name">
-                  {{ result.candidate_name }}
-                  {% if result.dropped %}
-                    (pudonnut)
-                  {% elif result.elected %}
-                    (valittu)
-                  {% endif %}
-                </td>
-                <td>{{ result.vote_count }}</td>
-                <td>{{ result.vote_share }}&nbsp;%</td>
-              </tr>
-            {% endfor %}
-          </table>
-        </div>
-        <div class="empty-votes">
-          Tyhjiä: {{ voting.empty_votes }}
-        </div>
-        {% if is_admin %}
-        {% include 'admin-not-voted-tokens-section.html' %}
-        {% endif %}
-      </div>
-    {% endif %}
+    </div>
   {% endfor %}
 {% else %}
 <div class="row">
     <div class="col s12">
-      <div class="card-panel blue-grey small">
+      <div class="card-panel blue-grey darken-1 small">
         <span class="white-text">Ei päättyneitä äänestyksiä.</span>
       </div>
     </div>
