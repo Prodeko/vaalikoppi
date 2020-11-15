@@ -3,7 +3,7 @@
 {% if open_votings %}
   <div class="row">
     <div class="col s12">
-      <div class="card-panel green darken-2 small">
+      <div class="card-panel prodeko-blue small">
         <span class="white-text">Avoimia äänestyksiä {{ open_votings|length }} kpl.</span>
       </div>
     </div>
@@ -28,15 +28,15 @@
                     {% csrf_token %}
                     {% for candidate in all_candidates %}
                       <div class="voting-candidates">
-                        <div class="voting-order blue darken-1" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
+                        <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
                         <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-turqoise blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                         <br>
                       </div>
                     {% endfor %}
                       <div class="section">
                         <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
-                        <button onclick="RankedChoiceVoteElection({{ voting.id }})" class="btn waves-effect waves-light blue darken-2 white-text wide-button bold-font">Äänestä</button>
-                        <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light grey darken-1 white-text wide-button bold-font">Tyhjennä</button>
+                        <button onclick="RankedChoiceVoteElection({{ voting.id }})" class="btn waves-effect waves-light prodeko-blue white-text wide-button bold-font">Äänestä</button>
+                        <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light blue-grey darken-1 white-text wide-button bold-font">Tyhjennä</button>
                       </div>
                   </div>
                 {% endif %}
@@ -63,7 +63,7 @@
                     {% endfor %}
                       <div class="section">
                           <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
-                          <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light blue darken-2 white-text wide-button bold-font">Äänestä</button>
+                          <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light white-text prodeko-blue wide-button bold-font">Äänestä</button>
                       </div>
                   </div>
                   {% endif %}
