@@ -23,28 +23,37 @@
                 <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
               {% endif %}
             </div>
-            <div class="card-action">
-              {% with all_candidates=voting.candidates.all %}
-                {% if all_candidates %}
-                  {% for candidate in all_candidates %}
-                    <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
-                      {{ candidate.candidate_name }}
-                      <i class="material-icons right">close</i>
-                    </a>
-                  {% endfor %}
-                {% endif %}
-              {% endwith %}
-
-              <div class="input-field col">
-                <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
-                <label for="candidate_name">Ehdokkaan nimi</label>
+            <div class="card-action reduced-row-margin">
+              <div class="row">
+                <div class="col s12">
+                  {% with all_candidates=voting.candidates.all %}
+                  {% if all_candidates %}
+                    {% for candidate in all_candidates %}
+                      <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
+                        {{ candidate.candidate_name }}
+                        <i class="material-icons right">close</i>
+                      </a>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+                </div>
               </div>
-              <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button">
-                Lisää<i class="material-icons right">add</i>
-              </button>
-              <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
-                Avaa äänestys
-              </button>
+              <div class="row">
+                <div class="input-field col s12">
+                  <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
+                  <label for="candidate_name">Ehdokkaan nimi</label>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col s12">
+                  <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button bold-font">
+                    Lisää<i class="material-icons right">add</i>
+                  </button>
+                  <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
+                    Avaa äänestys
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         {% else %}

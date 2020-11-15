@@ -53,3 +53,9 @@ input {
 .alias-input-field {
   text-transform: uppercase;
 }
+
+.reduced-row-margin {
+  & > .row {
+    margin-bottom: 0;
+  }
+}
