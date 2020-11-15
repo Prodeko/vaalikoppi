@@ -242,6 +242,7 @@ async function refreshVotingList(admin = false) {
     });
 
   setupEventListeners();
+  resetCandidateOrder();
 }
 
 function updateVotingListFromHtml(html) {
@@ -553,6 +554,7 @@ function playSound(trackNo) {
   }
 }
 
+// Reset chosen ordering of candidates in UI when using STV vote, for particular votingId
 function clearVotes(votingId) {
   const form = getVotingForm(votingId);
   Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
@@ -560,6 +562,10 @@ function clearVotes(votingId) {
     elem.nextElementSibling.classList.remove("green");
     elem.nextElementSibling.classList.add("blue-grey");
   });
+  resetCandidateOrder();
+}
+
+function resetCandidateOrder() {
   votesGiven = 0;
   currentVotingId = -1;
 }
