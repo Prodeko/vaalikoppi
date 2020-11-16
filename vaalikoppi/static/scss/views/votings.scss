@@ -226,23 +226,29 @@
   }
 }
 
-.votes-left-col {
-  .votes-left-expander {
-    font-size: inherit;
-    &:hover {
-      font-weight: bold;
-      text-decoration: underline;
+.votes-left-row {
+
+  margin-bottom: 0;
+
+  .votes-left-col {
+    .votes-left-expander {
+      font-size: inherit;
+      &:hover {
+        font-weight: bold;
+        text-decoration: underline;
+      }
     }
-  }
-  .votes-left-table {
-    thead {
-      font-weight: bold;
+    .votes-left-table {
+      thead {
+        font-weight: bold;
+      }
     }
   }
 }
 
 .closed-voting {
   .votes-left-col {
+    padding: 0.3em 1.5em 0.5em 1.5em;
     .votes-left-expander {
       font-size: 0.8em;
     }

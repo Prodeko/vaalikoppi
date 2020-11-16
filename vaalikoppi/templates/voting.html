@@ -1,23 +1,22 @@
-<div id="voting-list-updater" class="card blue-grey lighten-5">
-<div class="card-content center-align">
-	<p>Olet kirjautunut sisään aliaksella <b>{{ user_alias|escape }}</b>.</p>
-</div>
-  <div class="card-action center-align">
-    <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList()">Päivitä luettelo</button>
-  </div>
+<div class="row">
+  <div class="col s12">
+    <div id="voting-list-updater" class="card blue-grey lighten-5">
+    <div class="card-content center-align">
+      <p>Olet kirjautunut sisään aliaksella <b>{{ user_alias|escape }}</b>.</p>
+    </div>
+      <div class="card-action center-align">
+        <button class="btn waves-effect waves-light white-text candidate bold-font prodeko-blue" onclick="refreshVotingList()">Päivitä luettelo</button>
+      </div>
+    </div>
+    </div>
 </div>
 
-<div id="voting-list-area">
+<div id="voting-list-area" class="reduced-row-margin">
   {% include 'voting-list.html' %}
 </div>
 
 <script type="text/javascript">
 window.addEventListener("load", function () {
-  const token = localStorage.getItem("token");
-  if (token) {
-    // refreshVotingList();
-    // setupEventListeners();
-  }
   setupEventListeners();
 });
 </script>

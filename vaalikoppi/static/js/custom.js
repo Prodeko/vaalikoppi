@@ -256,7 +256,7 @@ function selectVote(elem, votingId) {
   const maxVotes = parseInt(form.getAttribute("data-voting-max-votes"));
   elem.checked = true;
   elem.nextElementSibling.classList.remove("blue-grey");
-  elem.nextElementSibling.classList.add("green");
+  elem.nextElementSibling.classList.add("prodeko-blue");
 
   const formInputs = form.querySelectorAll(
     `input[type=${maxVotes > 1 ? "checkbox" : "radio"}]`
@@ -266,7 +266,7 @@ function selectVote(elem, votingId) {
     if (givenVotes === maxVotes) {
       if (c.id !== elem.id) {
         c.checked = false;
-        c.nextElementSibling.classList.remove("green");
+        c.nextElementSibling.classList.remove("prodeko-blue");
         c.nextElementSibling.classList.add("blue-grey");
       }
     }
@@ -559,7 +559,7 @@ function clearVotes(votingId) {
   const form = getVotingForm(votingId);
   Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
     elem.innerHTML = "-";
-    elem.nextElementSibling.classList.remove("green");
+    elem.nextElementSibling.classList.remove("prodeko-blue");
     elem.nextElementSibling.classList.add("blue-grey");
   });
   resetCandidateOrder();
@@ -595,13 +595,13 @@ function setupEventListeners() {
           const candidateRank = document.getElementById(candidate);
           candidateRank.innerHTML = votesGiven;
           candidateRank.nextElementSibling.classList.remove("blue-grey");
-          candidateRank.nextElementSibling.classList.add("green");
+          candidateRank.nextElementSibling.classList.add("prodeko-blue");
         }
       } else {
         const clickedCandidate = e.target;
         const clickedRank = clickedCandidate.previousElementSibling.innerHTML;
 
-        clickedCandidate.classList.remove("green");
+        clickedCandidate.classList.remove("prodeko-blue");
         clickedCandidate.classList.add("blue-grey");
         clickedCandidate.previousElementSibling.innerHTML = "-";
         Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {

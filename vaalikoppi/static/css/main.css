@@ -62,6 +62,10 @@ input {
   text-transform: uppercase;
 }
 
+.reduced-row-margin > .row {
+  margin-bottom: 0;
+}
+
 .prodeko-blue {
   background-color: #004080;
 }
@@ -349,17 +353,25 @@ nav {
   background-color: #f1f1f1;
 }
 
-.votes-left-col .votes-left-expander {
+.votes-left-row {
+  margin-bottom: 0;
+}
+
+.votes-left-row .votes-left-col .votes-left-expander {
   font-size: inherit;
 }
 
-.votes-left-col .votes-left-expander:hover {
+.votes-left-row .votes-left-col .votes-left-expander:hover {
   font-weight: bold;
   text-decoration: underline;
 }
 
-.votes-left-col .votes-left-table thead {
+.votes-left-row .votes-left-col .votes-left-table thead {
   font-weight: bold;
+}
+
+.closed-voting .votes-left-col {
+  padding: 0.3em 1.5em 0.5em 1.5em;
 }
 
 .closed-voting .votes-left-col .votes-left-expander {
