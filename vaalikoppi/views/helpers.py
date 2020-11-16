@@ -160,6 +160,8 @@ def validate_register_alias(request, token_obj, alias):
         and bool(re.match(alias_regex, alias))
         and 0 == active_token.exclude(token=token_obj.token).filter(alias=alias).count()
     ):
-        Usertoken.objects.filter(token=token_obj.token).update(alias=alias)
+        token = Usertoken.objects.get(token=token_obj.token)
+        token.alias = alias
+        token.save()
     else:
         raise AliasException("Invalid alias provided")
