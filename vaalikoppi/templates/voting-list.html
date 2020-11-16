@@ -3,8 +3,8 @@
 {% if open_votings %}
   <div class="row">
     <div class="col s12">
-      <div class="card-panel prodeko-blue small">
-        <span class="white-text">Avoimia äänestyksiä {{ open_votings|length }} kpl.</span>
+      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+        <span class="">Avoimia äänestyksiä {{ open_votings|length }} kpl.</span>
       </div>
     </div>
   </div>
@@ -29,14 +29,14 @@
                     {% for candidate in all_candidates %}
                       <div class="voting-candidates">
                         <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
-                        <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-turqoise blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
+                        <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                         <br>
                       </div>
                     {% endfor %}
                       <div class="section">
                         <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
-                        <button onclick="RankedChoiceVoteElection({{ voting.id }})" class="btn waves-effect waves-light prodeko-blue white-text wide-button bold-font">Äänestä</button>
-                        <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light blue-grey darken-1 white-text wide-button bold-font">Tyhjennä</button>
+                        <button onclick="RankedChoiceVoteElection({{ voting.id }})" class="btn waves-effect waves-light green darken-2 white-text wide-button bold-font">Äänestä</button>
+                        <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light red darken-2 white-text wide-button bold-font">Tyhjennä</button>
                       </div>
                   </div>
                 {% endif %}
@@ -58,12 +58,12 @@
                     {% csrf_token %}
                     {% for candidate in all_candidates %}
                       <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="selectVote(this, {{ voting.id }})">
-                      <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-green blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
+                      <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                       <br>
                     {% endfor %}
                       <div class="section">
                           <input type="text" class="validate{% if not voting.is_password_protected %} hide{% endif %}" placeholder="Äänestyksen salasana" id="voting-password-{{ voting.id }}">
-                          <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light white-text prodeko-blue wide-button bold-font">Äänestä</button>
+                          <button onclick="vote({{ voting.id }})" class="btn waves-effect waves-light white-text green darken-2 wide-button bold-font">Äänestä</button>
                       </div>
                   </div>
                   {% endif %}
@@ -77,8 +77,8 @@
 {% else %}
   <div class="row">
     <div class="col s12">
-      <div class="card-panel blue-grey darken-1 small">
-        <span class="white-text">Ei avoimia äänestyksiä.</span>
+      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+        <span class="">Ei avoimia äänestyksiä.</span>
       </div>
     </div>
   </div>
