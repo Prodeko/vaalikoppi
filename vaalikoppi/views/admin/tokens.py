@@ -91,6 +91,10 @@ def invalidate_token(request):
 @login_required
 @require_http_methods(["POST"])
 def invalidate_all_tokens(request):
-    Usertoken.objects.all().filter(activated=True).update(invalidated=True)
+    active_tokens = Usertoken.objects.all().filter(activated=True)
+
+    for token in active_tokens:
+      token.invalidated = True
+      token.save()
 
     return JsonResponse({"message": "success"}, status=200)
