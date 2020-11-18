@@ -37,12 +37,8 @@
   </div>
 
 	<div id="voting-list-area" class="reduced-row-margin">
+    {% include 'admin-voting-list.html' %}
 	</div>
 
-  <script type="text/javascript">
-   window.addEventListener("load", function () {
-      refreshVotingList(true);
-    });
-  </script>
 </div>
 {% endblock %}
