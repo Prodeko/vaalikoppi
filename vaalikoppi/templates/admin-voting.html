@@ -28,7 +28,9 @@
     <div class="col s12">
       <div id="voting-list-updater" class="card blue-grey lighten-5">
           <div class="card-action center">
-            <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">Päivitä luettelo</button>
+            <button id="voting-list-refresh-button" class="btn prodeko-blue white-text candidate bold-font" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">
+              Päivitä luettelo
+            </button>
           </div>
       </div>
     </div>

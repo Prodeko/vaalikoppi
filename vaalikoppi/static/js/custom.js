@@ -228,8 +228,15 @@ function RankedChoiceVoteElection(votingId) {
 
 // Currently only used in admin mode
 async function refreshVotingList(admin = false) {
+  const votingListRefreshButton = document.getElementById("voting-list-refresh-button");
+  const votingListRefreshButtonText = votingListRefreshButton.innerHTML;
   const votingArea = document.getElementById("voting-list-area");
   const adminPath = admin ? "admin/" : "";
+  const failMsg = "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.";
+
+  votingListRefreshButton.innerHTML = "Päivitetään...";
+  votingListRefreshButton.disabled = true;
+  votingArea.innerHTML = "<p>Äänestysluetteloa päivitetään parhaillaan.</p>";
 
   await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
@@ -237,10 +244,23 @@ async function refreshVotingList(admin = false) {
     .catch(() => {
       showUserNotification(
         USER_NOTIFICATION.WARNING,
-        "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
+        failMsg
       );
+      votingArea.innerHTML = "<p>" + failMsg + "</p>";
     });
 
+  votingListRefreshButton.innerHTML = "Luettelo päivitetty!"
+
+  // Prevent from clicking the button unnecessarily many times within a short time
+  var timeoutDuration = 5000;
+  if (admin) {
+    timeoutDuration = 1000;
+  }
+  window.setTimeout(() => {
+    votingListRefreshButton.innerHTML = votingListRefreshButtonText;
+    votingListRefreshButton.disabled = false;
+    votingListRefreshButton.blur();
+  }, timeoutDuration);
   setupEventListeners();
   resetCandidateOrder();
 }
@@ -249,6 +269,7 @@ function updateVotingListFromHtml(html) {
   const votingArea = document.getElementById("voting-list-area");
   votingArea.innerHTML = html;
   setupEventListeners();
+  resetCandidateOrder();
 }
 
 function selectVote(elem, votingId) {
