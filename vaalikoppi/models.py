@@ -227,14 +227,7 @@ class NormalVotingResult(VotingResult):
     voting = models.ForeignKey(
         NormalVoting, on_delete=models.CASCADE, related_name="voting_results"
     )
-
-    def vote_share(self):
-        total_votes = self.voting.total_votes_abs()
-        if total_votes > 0:
-            percentage_of_votes = round(100 * self.vote_count / total_votes, 1)
-            return f"{percentage_of_votes}"
-        return "0.0"
-
+    vote_share = models.FloatField(default=0.0)
 
 class RankedChoiceVotingResult(VotingResult):
     voting = models.ForeignKey(

@@ -136,6 +136,12 @@ def close_voting(request, voting_id):
     data = json.loads(request.body.decode("utf-8"))
     is_ranked_choice = data.get("is_ranked_choice")
 
+    def calc_vote_share(vote_count, tot_votes_abs):
+        if tot_votes_abs > 0:
+            percentage_of_votes = round(100 * vote_count / tot_votes_abs, 1)
+            return f"{percentage_of_votes}"
+        return "0.0"
+
     if is_ranked_choice:
         voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
     else:
@@ -229,10 +235,12 @@ def close_voting(request, voting_id):
                     voting=voting_obj, candidate=cur_candidate
                 )
             )
+            cur_vote_share = calc_vote_share(cur_vote_count, voting_obj.total_votes_abs())
             NormalVotingResult(
                 voting=voting_obj,
                 candidate_name=cur_candidate.candidate_name,
                 vote_count=cur_vote_count,
+                vote_share=cur_vote_share,
             ).save()
 
     voting_obj.close_voting()
