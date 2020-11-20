@@ -15,7 +15,7 @@
           {# Siirtoäänivaalitapa #}
           <div class="card blue-grey lighten-5">
             <div class="card-content grey-text center">
-              <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
+              <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting }}</span>
                 {% if voting.voting_description %}
                   <p>{{ voting.voting_description }}</p>
                 {% endif %}
@@ -47,7 +47,7 @@
           {# Enemmistöäänivaalitapa #}
           <div class="card blue-grey lighten-5">
             <div class="card-content grey-text center">
-              <span class="card-title blue-grey-text text-darken-1 bold-font">{{ voting }}</span>
+              <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting }}</span>
               {% if voting.voting_description %}<p>{{ voting.voting_description }}</p>{% endif %}
               <p>Ääniä käytettävissä {{ voting.max_votes }} kpl.</p>
             </div>
