@@ -99,7 +99,6 @@ function showVotingConfirmationModal(
   chosenCandidates,
   votingPassword
 ) {
-
   function getVotingConfirmationModalInstance() {
     const modalEle = document.getElementById("voting-modal");
     return M.Modal.getInstance(modalEle);
@@ -111,7 +110,9 @@ function showVotingConfirmationModal(
       form.querySelectorAll("input[name=candidate]:checked")
     ).forEach((elem) => elem.setAttribute("disabled", true));
     const modalInstance = getVotingConfirmationModalInstance();
-    const confirmationModalTextArea = document.getElementById("voting-modal-text");
+    const confirmationModalTextArea = document.getElementById(
+      "voting-modal-text"
+    );
     const closeModalButton = document.getElementById("voting-modal-close");
 
     const data = {
@@ -155,7 +156,7 @@ function showVotingConfirmationModal(
           updateVotingListFromHtml(html);
           e.target.removeAttribute("disabled");
           closeModalButton.removeAttribute("disabled");
-        } , 500);
+        }, 500);
       })
       .catch((error) => {
         confirmationModalTextArea.innerHTML =
@@ -167,7 +168,8 @@ function showVotingConfirmationModal(
         closeModalButton.removeAttribute("disabled");
       });
 
-    confirmationModalTextArea.innerHTML = "Äänesi on lähetetty. Odotetaan vahvistusta äänestyspalvelimelta. \
+    confirmationModalTextArea.innerHTML =
+      "Äänesi on lähetetty. Odotetaan vahvistusta äänestyspalvelimelta. \
     Jos mitään ei tapahdu 30 sekunnin kuluessa, päivitä sivu.";
   }
 
@@ -239,11 +241,14 @@ function RankedChoiceVoteElection(votingId) {
 
 // Currently only used in admin mode
 async function refreshVotingList(admin = false) {
-  const votingListRefreshButton = document.getElementById("voting-list-refresh-button");
+  const votingListRefreshButton = document.getElementById(
+    "voting-list-refresh-button"
+  );
   const votingListRefreshButtonText = votingListRefreshButton.innerHTML;
   const votingArea = document.getElementById("voting-list-area");
   const adminPath = admin ? "admin/" : "";
-  const failMsg = "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.";
+  const failMsg =
+    "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.";
 
   votingListRefreshButton.innerHTML = "Päivitetään...";
   votingListRefreshButton.disabled = true;
@@ -256,14 +261,11 @@ async function refreshVotingList(admin = false) {
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
-      showUserNotification(
-        USER_NOTIFICATION.WARNING,
-        failMsg
-      );
+      showUserNotification(USER_NOTIFICATION.WARNING, failMsg);
       votingArea.innerHTML = "<p>" + failMsg + "</p>";
     });
 
-  votingListRefreshButton.innerHTML = "Luettelo päivitetty!"
+  votingListRefreshButton.innerHTML = "Luettelo päivitetty!";
 
   // Prevent from clicking the button unnecessarily many times within a short time
   var timeoutDuration = 5000;
