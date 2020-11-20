@@ -14,10 +14,13 @@ def index(request):
     }
 
     token = get_token_from_session(request)
-    data = votings_list_data(request, token)
+    token_is_valid = token is not None and token.activated and not token.invalidated
 
-    if token:
-        data["is_valid_token"] = token.activated and not token.invalidated
+    # Do not even attempt to fetch votings in the case of an invalid token
+    # in order to save valuable database queries
+    if token_is_valid:
+        data = votings_list_data(request, token)
+        data["is_valid_token"] = token_is_valid
         data["user_alias"] = token.alias
 
     return render(request, "index.html", data)
