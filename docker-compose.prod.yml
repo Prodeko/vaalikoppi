@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     command: gunicorn election.asgi:application -b 0.0.0.0:8001 -k uvicorn.workers.UvicornWorker
     ports:
-      - "8001:8001"
+      - "8001"
     environment:
       - DJANGO_SETTINGS_MODULE=election.settings.prod
       - SECRET_KEY=ANSIBLE_REPLACE_SECRET_KEY
