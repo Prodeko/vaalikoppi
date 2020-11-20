@@ -99,12 +99,20 @@ function showVotingConfirmationModal(
   chosenCandidates,
   votingPassword
 ) {
+
+  function getVotingConfirmationModalInstance() {
+    const modalEle = document.getElementById("voting-modal");
+    return M.Modal.getInstance(modalEle);
+  }
+
   function setVotingConfirmationEventListener(e) {
-    const votingArea = document.getElementById("voting-list-area");
     const form = getVotingForm(votingId);
     Array.from(
       form.querySelectorAll("input[name=candidate]:checked")
     ).forEach((elem) => elem.setAttribute("disabled", true));
+    const modalInstance = getVotingConfirmationModalInstance();
+    const confirmationModalTextArea = document.getElementById("voting-modal-text");
+    const closeModalButton = document.getElementById("voting-modal-close");
 
     const data = {
       candidates: isRankedChoice
@@ -113,6 +121,7 @@ function showVotingConfirmationModal(
       voting_password: votingPassword,
     };
 
+    closeModalButton.setAttribute("disabled", true);
     e.target.setAttribute("disabled", true);
 
     callApi(
@@ -141,24 +150,25 @@ function showVotingConfirmationModal(
           "Äänestäminen onnistui. Päivitetään äänestysluettelo."
         );
         // Do not distract the user with things happening too fast
-        window.setTimeout(() => updateVotingListFromHtml(html), 500);
+        window.setTimeout(() => {
+          modalInstance.close();
+          updateVotingListFromHtml(html);
+          e.target.removeAttribute("disabled");
+          closeModalButton.removeAttribute("disabled");
+        } , 500);
       })
       .catch((error) => {
-        showUserNotification(
-          USER_NOTIFICATION.WARNING,
+        confirmationModalTextArea.innerHTML =
           error.message.length > 0
             ? error.message
             : "Äänestäminen saattoi epäonnistua. Päivitä sivu ja tarkista,\
-		        näkyykö äänestys vielä äänestämättömänä."
-        );
+            näkyykö äänestys vielä äänestämättömänä.";
+        e.target.removeAttribute("disabled");
+        closeModalButton.removeAttribute("disabled");
       });
 
-    e.target.removeAttribute("disabled");
-
-    showUserNotification(
-      USER_NOTIFICATION.ALERT,
-      "Ääntäsi käsitellään. Odota. Jos mitään ei tapahdu 30 sekunnin kulussa, päivitä sivu."
-    );
+    confirmationModalTextArea.innerHTML = "Äänesi on lähetetty. Odotetaan vahvistusta äänestyspalvelimelta. \
+    Jos mitään ei tapahdu 30 sekunnin kuluessa, päivitä sivu.";
   }
 
   // Initialize modal
@@ -174,6 +184,7 @@ function showVotingConfirmationModal(
         "click",
         setVotingConfirmationEventListener
       ),
+    dismissible: false,
   });
   const instance = M.Modal.getInstance(modal);
 
@@ -228,8 +239,18 @@ function RankedChoiceVoteElection(votingId) {
 
 // Currently only used in admin mode
 async function refreshVotingList(admin = false) {
+  const votingListRefreshButton = document.getElementById("voting-list-refresh-button");
+  const votingListRefreshButtonText = votingListRefreshButton.innerHTML;
   const votingArea = document.getElementById("voting-list-area");
   const adminPath = admin ? "admin/" : "";
+  const failMsg = "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä.";
+
+  votingListRefreshButton.innerHTML = "Päivitetään...";
+  votingListRefreshButton.disabled = true;
+
+  if (!admin) {
+    votingArea.innerHTML = "<p>Äänestysluetteloa päivitetään parhaillaan.</p>";
+  }
 
   await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
@@ -237,10 +258,23 @@ async function refreshVotingList(admin = false) {
     .catch(() => {
       showUserNotification(
         USER_NOTIFICATION.WARNING,
-        "Äänestysten haku ei onnistunut. Päivitä sivu. Jos koetit äänestää, katso, näkyykö äänestys jo äänestettynä."
+        failMsg
       );
+      votingArea.innerHTML = "<p>" + failMsg + "</p>";
     });
 
+  votingListRefreshButton.innerHTML = "Luettelo päivitetty!"
+
+  // Prevent from clicking the button unnecessarily many times within a short time
+  var timeoutDuration = 5000;
+  if (admin) {
+    timeoutDuration = 1000;
+  }
+  window.setTimeout(() => {
+    votingListRefreshButton.innerHTML = votingListRefreshButtonText;
+    votingListRefreshButton.disabled = false;
+    votingListRefreshButton.blur();
+  }, timeoutDuration);
   setupEventListeners();
   resetCandidateOrder();
 }
@@ -249,6 +283,7 @@ function updateVotingListFromHtml(html) {
   const votingArea = document.getElementById("voting-list-area");
   votingArea.innerHTML = html;
   setupEventListeners();
+  resetCandidateOrder();
 }
 
 function selectVote(elem, votingId) {

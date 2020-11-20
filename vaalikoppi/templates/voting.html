@@ -5,7 +5,9 @@
       <p>Olet kirjautunut sisään aliaksella <b>{{ user_alias|escape }}</b>.</p>
     </div>
       <div class="card-action center-align">
-        <button class="btn waves-effect waves-light white-text candidate bold-font prodeko-blue" onclick="refreshVotingList()">Päivitä luettelo</button>
+        <button id="voting-list-refresh-button" class="btn candidate bold-font prodeko-blue" onclick="refreshVotingList()">
+          Päivitä luettelo
+        </button>
       </div>
     </div>
     </div>

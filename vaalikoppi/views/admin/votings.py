@@ -15,11 +15,34 @@ def voting_results(request):
     votings = NormalVotingResult.objects.all()
     return render(request, "admin-voting-results.html", {"votings": votings})
 
-
 @login_required
-def admin_votings(request):
-    return render(request, "admin-voting.html")
+def admin_votings_list_data(request):
+    data = votings_list_data(request, None, is_admin=True)
+    active_tokens_count = Usertoken.objects.filter(
+        activated=True, invalidated=False
+    ).count()
 
+    return {
+        "is_admin": data["is_admin"],
+        "closed_votings": data["closed_votings"],
+        "open_votings": data["open_votings"],
+        "ended_votings": data["ended_votings"],
+        "active_tokens_count": active_tokens_count,
+    }
+
+def admin_votings(request):
+    return render(
+        request,
+        "admin-voting.html", 
+        admin_votings_list_data(request)
+    )
+
+def admin_voting_list(request):
+    return render(
+        request,
+        "admin-voting-list.html",
+        admin_votings_list_data(request),
+    )
 
 @login_required
 @require_http_methods(["POST"])
@@ -285,23 +308,3 @@ def calculate_stv(request, voting_id):
         ballots.append({"count": countdict[key], "ballot": value})
 
     return ballots
-
-
-@login_required
-def admin_voting_list(request):
-    data = votings_list_data(request, None, is_admin=True)
-    active_tokens_count = Usertoken.objects.filter(
-        activated=True, invalidated=False
-    ).count()
-
-    return render(
-        request,
-        "admin-voting-list.html",
-        {
-            "is_admin": data["is_admin"],
-            "closed_votings": data["closed_votings"],
-            "open_votings": data["open_votings"],
-            "ended_votings": data["ended_votings"],
-            "active_tokens_count": active_tokens_count,
-        },
-    )
