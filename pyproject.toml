@@ -7,3 +7,12 @@ exclude = '''
   | ^.*\/migrations\/.*$
   | ^.*\/node_modules\/.*$
 '''
+[tool.curlylint.rules]
+aria_role = true
+django_forms_rendering = true
+html_has_lang = true
+image_alt = true
+indent = 2
+meta_viewport = true
+no_autofocus = true
+tabindex_no_positive = true

@@ -4,11 +4,12 @@
   "description": "Prodeko's election platform",
   "scripts": {
     "eslint": "eslint --ext .js vaalikoppi",
-    "eslint-fix": "eslint --ext .js --fix vaalikoppi"
+    "eslint-fix": "eslint --ext .js --fix vaalikoppi",
+    "curlylint": "curlylint vaalikoppi"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run eslint-fix"
+      "pre-commit": "npm run eslint-fix && npm run curlylint"
     }
   },
   "repository": {
