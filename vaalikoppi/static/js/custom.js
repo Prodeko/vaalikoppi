@@ -170,7 +170,7 @@ function showVotingConfirmationModal(
 
     confirmationModalTextArea.innerHTML =
       "Äänesi on lähetetty. Odotetaan vahvistusta äänestyspalvelimelta. \
-    Jos mitään ei tapahdu 30 sekunnin kuluessa, päivitä sivu.";
+    Jos mitään ei tapahdu 5 sekunnin kuluessa, päivitä sivu.";
   }
 
   // Initialize modal
