@@ -14,6 +14,7 @@ class Voting(models.Model):
     treshold = models.FloatField(default=500.0)
     is_password_protected = models.BooleanField(default=False)
     voting_password = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     # For the purpose of getting unique DOM element IDs
     def pseudo_unique_id(self):
@@ -159,7 +160,9 @@ class Usertoken(models.Model):
 
 class TokenMapping(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    token = models.ForeignKey(Usertoken, on_delete=models.CASCADE)
+    token = models.ForeignKey(
+        Usertoken, on_delete=models.CASCADE, related_name="%(class)s_token"
+    )
 
     def get_token(self):
         return self.token

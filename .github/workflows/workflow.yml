@@ -17,6 +17,9 @@ jobs:
         with:
           time: "15s"
 
+      - name: Run linters
+        run: docker exec vaalikoppi curlylint vaalikoppi
+
       - name: Run tests
         run: docker exec vaalikoppi pytest --cov --cov-report=xml election/
 

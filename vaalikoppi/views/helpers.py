@@ -1,7 +1,6 @@
 import re
 
 from django.conf import settings
-from django.db.models import Prefetch
 from django.shortcuts import render
 from vaalikoppi.exceptions import AliasException
 from vaalikoppi.models import *
@@ -38,16 +37,12 @@ def get_token_from_session(request):
     return None
 
 
-def is_eligible_to_vote_normal(token, voting, token_mapping=None):
-    if token_mapping is None:
-        try:
-            token_mapping = voting.token_mappings.get(token=token)
-        except NormalTokenMapping.DoesNotExist:
-            return False
+def is_eligible_to_vote_normal(token, voting):
+    token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+    if not token_mapping:
+        return False
 
-    # votes_count = len(filter_related_set(voting.votes.all(), "uuid", token_mapping.uuid))
-    votes_count = voting.votes.all().filter(uuid=token_mapping.uuid).count()
-
+    votes_count = len([v for v in voting.votes.all() if v.uuid == token_mapping.uuid])
     # User hasn't voted yet, ok to vote
     if votes_count == 0:
         return True
@@ -57,21 +52,21 @@ def is_eligible_to_vote_normal(token, voting, token_mapping=None):
     return False
 
 
-def is_eligible_to_vote_ranked_choice(token, voting, token_mapping=None):
-    if token_mapping is None:
-        try:
-            token_mapping = voting.token_mappings.all().get(token=token)
-        except RankedChoiceTokenMapping.DoesNotExist:
-            return False
+def is_eligible_to_vote_ranked_choice(token, voting):
+    token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+    if not token_mapping:
+        return False
 
-    votes_by_token_count = voting.votes.all().filter(uuid=token_mapping.uuid).count()
+    votes_by_token_count = len(
+        [v for v in voting.votes.all() if v.uuid == token_mapping.uuid]
+    )
     candidates_in_election_count = voting.candidates.all().count()
 
     if votes_by_token_count == candidates_in_election_count:
         return False
 
-    votegroups_by_token = (
-        voting.votegroups.all().filter(uuid=token_mapping.uuid).count()
+    votegroups_by_token = len(
+        [v for v in voting.votegroups.all() if v.uuid == token_mapping.uuid]
     )
 
     # User hasn't voted yet, ok to vote
@@ -84,37 +79,31 @@ def is_eligible_to_vote_ranked_choice(token, voting, token_mapping=None):
 
 
 def votings_list_data(request, token, is_admin=False):
-    def get_current_token_token_mapping(mapping_list):
-        return next(iter(mapping_list), None)
+    # Prefetch related for 'voter_statuses' is only used in admin view
+    args_default = [
+        "candidates",
+        "voting_results",
+        "token_mappings",
+        "token_mappings__token",
+        "votes",
+    ]
+    args_ranked_choice = [
+        "votegroups",
+    ]
+    args_admin = ["voter_statuses"]
+
+    args = args_default
+    if is_admin:
+        args += args_admin
 
     v1 = list(
-        RankedChoiceVoting.objects.prefetch_related(
-            "candidates",
-            "voting_results",
-            "votegroups",
-            "token_mappings",
-            Prefetch(
-                "token_mappings",
-                RankedChoiceTokenMapping.objects.all().filter(token=token),
-                to_attr="current_token_token_mapping",
-            ),
-        ).all()
+        RankedChoiceVoting.objects.prefetch_related(*(args + args_ranked_choice)).all()
     )
 
-    v2 = list(
-        NormalVoting.objects.prefetch_related(
-            "candidates",
-            "voting_results",
-            "token_mappings",
-            Prefetch(
-                "token_mappings",
-                NormalTokenMapping.objects.all().filter(token=token),
-                to_attr="current_token_token_mapping",
-            ),
-        ).all()
-    )
+    v2 = list(NormalVoting.objects.prefetch_related(*(args)).all())
 
     votings = v1 + v2
+    votings.sort(key=lambda x: x.created_at, reverse=True)
 
     open_votings = []
     closed_votings = []
@@ -127,13 +116,9 @@ def votings_list_data(request, token, is_admin=False):
         elif token is None or not v.is_open or v.is_ended:
             is_eligible = False
         elif v.is_ranked_choice:
-            is_eligible = is_eligible_to_vote_ranked_choice(
-                token, v, get_current_token_token_mapping(v.current_token_token_mapping)
-            )
+            is_eligible = is_eligible_to_vote_ranked_choice(token, v)
         elif not v.is_ranked_choice:
-            is_eligible = is_eligible_to_vote_normal(
-                token, v, get_current_token_token_mapping(v.current_token_token_mapping)
-            )
+            is_eligible = is_eligible_to_vote_normal(token, v)
         else:
             # ... should never end up here
             is_eligible = False
@@ -155,16 +140,13 @@ def votings_list_data(request, token, is_admin=False):
 
         # Enhance voting objects for admin view
         if is_admin:
-            v.tokens_voted = []
             v.tokens_not_voted = []
             mappings = v.token_mappings.all()
 
             for m in mappings:
                 votes_count = len(v.votes.all())
 
-                if votes_count > 0:
-                    v.tokens_voted.append(m.token)
-                else:
+                if votes_count == 0:
                     v.tokens_not_voted.append(m.token)
 
     return {
