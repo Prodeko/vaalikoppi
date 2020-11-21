@@ -94,7 +94,7 @@ def invalidate_all_tokens(request):
     active_tokens = Usertoken.objects.all().filter(activated=True)
 
     for token in active_tokens:
-      token.invalidated = True
-      token.save()
+        token.invalidated = True
+        token.save()
 
     return JsonResponse({"message": "success"}, status=200)

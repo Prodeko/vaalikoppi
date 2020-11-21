@@ -15,6 +15,7 @@ def voting_results(request):
     votings = NormalVotingResult.objects.all()
     return render(request, "admin-voting-results.html", {"votings": votings})
 
+
 @login_required
 def admin_votings_list_data(request):
     data = votings_list_data(request, None, is_admin=True)
@@ -30,19 +31,14 @@ def admin_votings_list_data(request):
         "active_tokens_count": active_tokens_count,
     }
 
+
 def admin_votings(request):
-    return render(
-        request,
-        "admin-voting.html", 
-        admin_votings_list_data(request)
-    )
+    return render(request, "admin-voting.html", admin_votings_list_data(request))
+
 
 def admin_voting_list(request):
-    return render(
-        request,
-        "admin-voting-list.html",
-        admin_votings_list_data(request),
-    )
+    return render(request, "admin-voting-list.html", admin_votings_list_data(request),)
+
 
 @login_required
 @require_http_methods(["POST"])
@@ -135,6 +131,12 @@ def transfer_election_has_result(request, voting_obj):
 def close_voting(request, voting_id):
     data = json.loads(request.body.decode("utf-8"))
     is_ranked_choice = data.get("is_ranked_choice")
+
+    def calc_vote_share(vote_count, tot_votes_abs):
+        if tot_votes_abs > 0:
+            percentage_of_votes = round(100 * vote_count / tot_votes_abs, 1)
+            return f"{percentage_of_votes}"
+        return "0.0"
 
     if is_ranked_choice:
         voting_obj = get_object_or_404(RankedChoiceVoting, pk=voting_id)
@@ -229,10 +231,14 @@ def close_voting(request, voting_id):
                     voting=voting_obj, candidate=cur_candidate
                 )
             )
+            cur_vote_share = calc_vote_share(
+                cur_vote_count, voting_obj.total_votes_abs()
+            )
             NormalVotingResult(
                 voting=voting_obj,
                 candidate_name=cur_candidate.candidate_name,
                 vote_count=cur_vote_count,
+                vote_share=cur_vote_share,
             ).save()
 
     voting_obj.close_voting()
