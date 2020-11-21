@@ -1,4 +1,3 @@
-
 {# Suljettu äänestys #}
 {% if closed_votings %}
   <div class="row">
@@ -14,28 +13,31 @@
         {% if is_admin %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
-              <span class="card-title text-lighten-1">
-                Avaamaton: {{ voting }}
-              </span>
-              <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-              Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>
+              <span class="card-title text-lighten-1">Avaamaton: {{ voting }}</span>
+              <p>Salasana vaaditaan:
+                <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
+                Salasana:
+                <span class="bold-font">{{ voting.voting_password }}</span>
+              </p>
               {% if voting.voting_description %}
-                <div class="section grey-text"><p>{{ voting.voting_description }}</p></div>
+                <div class="section grey-text">
+                  <p>{{ voting.voting_description }}</p>
+                </div>
               {% endif %}
             </div>
             <div class="card-action reduced-row-margin">
               <div class="row">
                 <div class="col s12">
                   {% with all_candidates=voting.candidates.all %}
-                  {% if all_candidates %}
-                    {% for candidate in all_candidates %}
-                      <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
-                        {{ candidate.candidate_name }}
-                        <i class="material-icons right">close</i>
-                      </a>
-                    {% endfor %}
-                  {% endif %}
-                {% endwith %}
+                    {% if all_candidates %}
+                      {% for candidate in all_candidates %}
+                        <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})">
+                          {{ candidate.candidate_name }}
+                          <i class="material-icons right">close</i>
+                        </a>
+                      {% endfor %}
+                    {% endif %}
+                  {% endwith %}
                 </div>
               </div>
               <div class="row">
@@ -136,9 +138,6 @@
             <div class="empty-votes">
               Valitaan: {{ voting.winners }}
             </div>
-            {% if is_admin %}
-              {% include 'admin-not-voted-tokens-section.html' %}
-            {% endif %}
           </div>
         {% else %}
           <div class="closed-voting card prodeko-blue white-text center">
@@ -166,16 +165,16 @@
             <div class="empty-votes">
               Tyhjiä: {{ voting.empty_votes }}
             </div>
-            {% if is_admin %}
-            {% include 'admin-not-voted-tokens-section.html' %}
-            {% endif %}
           </div>
+        {% endif %}
+        {% if is_admin %}
+          {% include 'admin-not-voted-tokens-section.html' %}
         {% endif %}
       </div>
     </div>
   {% endfor %}
 {% else %}
-<div class="row">
+  <div class="row">
     <div class="col s12">
       <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
         <span class="">Ei päättyneitä äänestyksiä.</span>

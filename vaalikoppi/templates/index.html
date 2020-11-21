@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block body %}
-    <div class="container">
-      {% if is_valid_token is True %}
-        {% include 'voting.html' %}
-      {% else %}
-        {% include 'login.html' %}
-      {% endif %}
-    </div>
+  <div class="container">
+    {% if is_valid_token is True %}
+      {% include 'voting.html' %}
+    {% else %}
+      {% include 'login.html' %}
+    {% endif %}
+  </div>
 {% endblock %}

@@ -5,10 +5,10 @@
       <div class="card-content text-lighten-1">
         <table class="highlight bordered">
           <thead>
-              <tr>
-                <th></th>
-                <th>Lukumäärä</th>
-              </tr>
+            <tr>
+              <th></th>
+              <th>Lukumäärä</th>
+            </tr>
           </thead>
           <tbody>
             <tr>
@@ -78,7 +78,7 @@
             <label for="voting-add-voting-password">Äänestyskohtainen salasana</label>
           </div>
         </div>
-        
+
         <button class="btn waves-effect waves-light wide-button bold-font prodeko-blue" onclick="createVoting()" name="action">Luo äänestys
           <i class="material-icons right">send</i>
         </button>
@@ -97,47 +97,54 @@
     </div>
   </div>
   {% for voting in open_votings %}
-  <div class="row">
-    <div class="col s12">
+    <div class="row">
+      <div class="col s12">
         <div class="card blue-grey lighten-5">
           <div class="card-content blue-grey-text text-darken-1 center">
             <div class="row">
               <div class="col s12">
-            <span class="card-title bold-font">Auki: {{ voting }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
-            <p>Salasana vaaditaan: <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-              {% if voting.is_password_protected %}Salasana: <span class="bold-font">{{ voting.voting_password }}</span></p>{% endif %}
-            {% if voting.voting_description %}<div class="section grey-text"><p>{{ voting.voting_description }}</p></div>{% endif %}
-          </div>
-        </div>
-        {% with all_candidates=voting.candidates.all %}
-          {% if all_candidates %}
+                <span class="card-title bold-font">Auki: {{ voting }}, Äänestänyt: {{ voting.total_votes }}/{{ active_tokens_count }}</span>
+                <p>Salasana vaaditaan:
+                  <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
+                  {% if voting.is_password_protected %}Salasana:
+                    <span class="bold-font">{{ voting.voting_password }}</span>
+                  {% endif %}
+                </p>
+                {% if voting.voting_description %}
+                  <div class="section grey-text">
+                    <p>{{ voting.voting_description }}</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            {% with all_candidates=voting.candidates.all %}
+              {% if all_candidates %}
+                <div class="divider"></div>
+                <div id="voting-form-{{ voting.id }}" class="row">
+                  <ul class="col s12">
+                    {% for candidate in all_candidates %}
+                      <li>{{ candidate.candidate_name }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endif %}
+            {% endwith %}
             <div class="divider"></div>
-              <div id="voting-form-{{ voting.id }}" class="row">
-                <ul class="col s12">
-                  {% for candidate in all_candidates %}
-                    <li>{{ candidate.candidate_name }}</li>
-                  {% endfor %}
-                </ul>
+            <div class="row votes-left-row">
+              <div class="col s12 votes-left-col">
+                <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.pseudo_unique_id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
+                <table id="votes-left-table-{{ voting.pseudo_unique_id }}" class="votes-left-table hide">
+                  <thead>
+                    <tr><td>Koodi</td><td>Alias</td></tr>
+                  </thead>
+                  <tbody>
+                    {% for token in voting.tokens_not_voted %}
+                      <tr><td>{{ token.token }}</td><td>{{ token.alias|escape }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
             </div>
-
-          {% endif %}
-        {% endwith %}
-          <div class="divider"></div>
-          <div class="row votes-left-row">
-            <div class="col s12 votes-left-col">
-              <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.pseudo_unique_id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
-              <table id="votes-left-table-{{ voting.pseudo_unique_id }}" class="votes-left-table hide">
-                <thead>
-                  <tr><td>Koodi</td><td>Alias</td></tr>
-                </thead>
-                <tbody>
-                  {% for token in voting.tokens_not_voted %}
-                    <tr><td>{{ token.token }}</td><td>{{ token.alias|escape }}</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
           </div>
           <div class="card-action center">
             <button onclick="closeVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Sulje äänestys</button>
