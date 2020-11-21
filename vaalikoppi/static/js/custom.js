@@ -253,10 +253,6 @@ async function refreshVotingList(admin = false) {
   votingListRefreshButton.innerHTML = "Päivitetään...";
   votingListRefreshButton.disabled = true;
 
-  if (!admin) {
-    votingArea.innerHTML = "<p>Äänestysluetteloa päivitetään parhaillaan.</p>";
-  }
-
   await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
@@ -268,7 +264,7 @@ async function refreshVotingList(admin = false) {
   votingListRefreshButton.innerHTML = "Luettelo päivitetty!";
 
   // Prevent from clicking the button unnecessarily many times within a short time
-  var timeoutDuration = 5000;
+  var timeoutDuration = 3000;
   if (admin) {
     timeoutDuration = 1000;
   }
