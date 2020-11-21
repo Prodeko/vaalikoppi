@@ -1,4 +1,5 @@
 from django.shortcuts import render
+
 # Set SHOW_DJANGO_SILK = True in election.settings.dev and
 # uncomment silk import and @silk_profile to enable django-silk
 # from silk.profiling.profiler import silk_profile

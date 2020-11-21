@@ -229,6 +229,7 @@ class NormalVotingResult(VotingResult):
     )
     vote_share = models.FloatField(default=0.0)
 
+
 class RankedChoiceVotingResult(VotingResult):
     voting = models.ForeignKey(
         RankedChoiceVoting, on_delete=models.CASCADE, related_name="voting_results"
