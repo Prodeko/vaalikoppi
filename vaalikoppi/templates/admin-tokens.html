@@ -13,9 +13,9 @@
       {% csrf_token %}
       <div class="card blue-grey lighten-5">
         <div class="card-action center">
-          <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
-          <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font">Tulosta koodit</a>
-          <button id="invalidate-active-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font" onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
+          <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
+          <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue">Tulosta koodit</a>
+          <button id="invalidate-active-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
         </div>
       </div>
       {% if tokens %}
@@ -52,7 +52,7 @@
 
         <div class="card blue-grey lighten-5">
           <div class="card-content blue-grey-text text-lighten-1">
-            <span class="card-title center blue-grey-text text-lighten-1">Hallitse koodeja</span>
+            <span class="card-title center blue-grey-text text-darken-1">Hallitse koodeja</span>
             <div class="card-content">
               <input type="text" id="search" onkeyup="searchFunction()" placeholder="Etsi koodia.." style="box-sizing:border-box" autofocus>
             </div>

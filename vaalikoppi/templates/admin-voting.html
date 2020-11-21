@@ -5,7 +5,7 @@
 <div class="container reduced-row-margin">
   <div class="row">
     <div class="col s12">
-      <div id="voting-sound-panel" class="card blue-grey lighten-4">
+      <div id="voting-sound-panel" class="card blue-grey lighten-5">
         <audio id="sound-track-1" class="sound-track">
           <source src="{% static 'music/rummut.mp3' %}" type="audio/mpeg">
         </audio>
@@ -17,8 +17,8 @@
         </audio>
           
         <div class="card-action center">
-          <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(1)">Rumpujen pärinää</button>
-          <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font light-blue" data-playing="0" onclick="playSound(2)">Tuplaus</button>
+          <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" data-playing="0" onclick="playSound(1)">Rumpujen pärinää</button>
+          <button class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" data-playing="0" onclick="playSound(2)">Tuplaus</button>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
     <div class="col s12">
       <div id="voting-list-updater" class="card blue-grey lighten-5">
           <div class="card-action center">
-            <button id="voting-list-refresh-button" class="btn prodeko-blue white-text candidate bold-font" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">
+            <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">
               Päivitä luettelo
             </button>
           </div>

@@ -114,7 +114,7 @@ nav {
 }
 
 #login-container .loading-token-notification {
-  color: #26a69a;
+  color: green;
 }
 
 #login-container .wrong-token-warning {
