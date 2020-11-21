@@ -84,12 +84,11 @@ def votings_list_data(request, token, is_admin=False):
         "candidates",
         "voting_results",
         "token_mappings",
+        "token_mappings__token",
         "votes",
     ]
-    args_normal = ["token_mappings__token"]
     args_ranked_choice = [
         "votegroups",
-        "token_mappings__token",
     ]
     args_admin = ["voter_statuses"]
 
@@ -101,7 +100,7 @@ def votings_list_data(request, token, is_admin=False):
         RankedChoiceVoting.objects.prefetch_related(*(args + args_ranked_choice)).all()
     )
 
-    v2 = list(NormalVoting.objects.prefetch_related(*(args + args_normal)).all())
+    v2 = list(NormalVoting.objects.prefetch_related(*(args)).all())
 
     votings = v1 + v2
     votings.sort(key=lambda x: x.created_at, reverse=True)
