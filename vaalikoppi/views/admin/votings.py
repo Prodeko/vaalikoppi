@@ -32,12 +32,14 @@ def admin_votings_list_data(request):
     }
 
 
+@login_required
 def admin_votings(request):
     return render(request, "admin-voting.html", admin_votings_list_data(request))
 
 
+@login_required
 def admin_voting_list(request):
-    return render(request, "admin-voting-list.html", admin_votings_list_data(request),)
+    return render(request, "admin-voting-list.html", admin_votings_list_data(request))
 
 
 @login_required
