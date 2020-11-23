@@ -15,7 +15,7 @@ Tämän jälkeen sivusto pitäisi olla nähtävissä osoitteessa http://localhos
 ### Admin
 
 Admin näkymään pääsee osoitteesta http://localhost:8000/vaalikoppi/admin/votings/
-![Admin näkymä](admin.png)
+![Admin näkymä](vaalikoppi.png)
 
 Admin-näkymän tunnus on **webbitiimi** ja salasana **kananugetti**.
 
