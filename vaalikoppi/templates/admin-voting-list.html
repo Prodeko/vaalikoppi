@@ -135,11 +135,17 @@
                 <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.pseudo_unique_id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
                 <table id="votes-left-table-{{ voting.pseudo_unique_id }}" class="votes-left-table hide">
                   <thead>
-                    <tr><td>Koodi</td><td>Alias</td></tr>
+                    <tr>
+                      <td>Koodi</td>
+                      <td>Alias</td>
+                    </tr>
                   </thead>
                   <tbody>
                     {% for token in voting.tokens_not_voted %}
-                      <tr><td>{{ token.token }}</td><td>{{ token.alias|escape }}</td></tr>
+                      <tr>
+                        <td>{{ token.token }}</td>
+                        <td>{{ token.alias|escape }}</td>
+                      </tr>
                     {% endfor %}
                   </tbody>
                 </table>
