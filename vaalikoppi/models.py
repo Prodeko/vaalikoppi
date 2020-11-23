@@ -219,7 +219,7 @@ class NormalVote(Vote):
 
 class VotingResult(models.Model):
     candidate_name = models.CharField(max_length=50)
-    vote_count = models.IntegerField(default=0)
+    vote_count = models.FloatField(default=0)
 
     class Meta:
         abstract = True
