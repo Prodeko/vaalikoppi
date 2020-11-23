@@ -38,7 +38,12 @@ def get_token_from_session(request):
 
 
 def is_eligible_to_vote_normal(token, voting):
-    token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+    #token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+
+    token_mappings = [t for t in voting.token_mappings.all() if t.token == token]
+    if len(token_mappings) == 1:
+        token_mapping = token_mappings[0]
+
     if not token_mapping:
         return False
 
@@ -53,7 +58,12 @@ def is_eligible_to_vote_normal(token, voting):
 
 
 def is_eligible_to_vote_ranked_choice(token, voting):
-    token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+    #token_mapping = next(t for t in voting.token_mappings.all() if t.token == token)
+
+    token_mappings = [t for t in voting.token_mappings.all() if t.token == token]
+    if len(token_mappings) == 1:
+        token_mapping = token_mappings[0]
+
     if not token_mapping:
         return False
 
