@@ -144,7 +144,7 @@ def votings_list_data(request, token, is_admin=False):
             mappings = v.token_mappings.all()
 
             for m in mappings:
-                votes_count = len(v.votes.all())
+                votes_count = len([v for v in v.votes.all() if v.uuid == m.uuid])
 
                 if votes_count == 0:
                     v.tokens_not_voted.append(m.token)
