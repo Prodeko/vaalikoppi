@@ -3,12 +3,14 @@ version: "3"
 services:
   redis:
     image: redis:6-alpine
+    container_name: vaalikoppi_redis
     restart: unless-stopped
     volumes:
-      - "vaalikoppi-redis:/data"
+      - vaalikoppi-redis:/data
 
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
+    container_name: vaalikoppi
     restart: unless-stopped
     command: uvicorn --host vaalikoppi --workers 5 --interface asgi3 --loop asyncio --lifespan off election.asgi:application
     environment:
