@@ -10,9 +10,7 @@ services:
   vaalikoppi:
     image: prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi:latest
     restart: unless-stopped
-    command: gunicorn election.asgi:application -b 0.0.0.0:8001 -k uvicorn.workers.UvicornWorker
-    ports:
-      - "8001"
+    command: uvicorn --host vaalikoppi --workers 5 --interface asgi3 --loop asyncio --lifespan off election.asgi:application
     environment:
       - DJANGO_SETTINGS_MODULE=election.settings.prod
       - SECRET_KEY=ANSIBLE_REPLACE_SECRET_KEY
