@@ -43,7 +43,7 @@ $ docker exec -it election_redis_1 /bin/sh -c 'redis-cli -n 1'
 - Testien kattavuus ja rinnakkaisajo `docker exec vaalikoppi pytest --cov -n auto election/`
 - Testit ja pdb debugger `docker exec vaalikoppi pytest election/ --pdb`
 
-## Lokaaliajon erityispiirteet Windowsilla
+### Lokaaliajon erityispiirteet Windowsilla
 
 - Juurihakemiston tiedostossa `docker-entrypoint.sh` muuta Windows-tyyliset rivinvaihdot "CRLF" (`\r\n`) Linux-tyylisiksi "LF" (`\n`).
   Rivinvaihtojen ikävyys johtuu siitä, että Windows-koneilla Git tyypillisesti muuntaa rivinvaihdot checkoutissa. Tämän voi muuttaa asetuksista.
@@ -53,9 +53,11 @@ $ docker exec -it election_redis_1 /bin/sh -c 'redis-cli -n 1'
   Jos ei tämän jälkeen vielä toimi: aja Docker Desktopin uninstalleri. Käynnistä Windows uudelleen. Asenna Docker Desktop uudestaan.
 - Jos ei vieläkään toimi, `docker-compose stop`, `docker-compose build`, `docker-compose up`
 
-### Deployaus Prodekon palvelimelle
+## Deployaus Prodekon palvelimelle
 
-## Azure
+[Github Actions](./.github/workflows/deploy.yml) pipeline päivittää vaalikopin automaattisesti kun master branch päivittyy.
+
+#### Deployaus manuaalisesti
 
 1. Kirjaudu Prodekon docker registryyn: `az acr login --name prodekoregistry`
 2. Buildaa image: `docker build . -t prodekoregistry.azurecr.io/vaalikoppi/vaalikoppi`
