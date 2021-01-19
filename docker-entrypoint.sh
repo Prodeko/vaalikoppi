@@ -20,6 +20,9 @@ echo "Creating migrations..."
 python3 manage.py makemigrations
 python3 manage.py migrate
 
+echo "Collecting static files..."
+python3 manage.py collectstatic
+
 # Create a superuser for development
 echo "Creating superuser..."
 python manage.py shell -c "from django.contrib.auth import get_user_model; \

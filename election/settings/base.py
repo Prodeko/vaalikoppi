@@ -8,7 +8,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "keep_this_secret_in_prod")
 
 SESSION_LOCK = True
 
-CACHEOPS_REDIS = "redis://redis:6379/1"
+CACHEOPS_REDIS = "redis://vaalikoppi_redis:6379/1"
 
 # One hour caching by default
 CACHEOPS_DEFAULTS = {"timeout": 60 * 60}

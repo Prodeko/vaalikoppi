@@ -1,0 +1,52 @@
+name: Build and deploy
+
+on:
+  push:
+    branches:
+      - master
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
+      - name: Docker login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push image
+        run: |
+          docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi
+          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Deploy project
+        uses: ./.github/workflows/deploy
+
+      - name: Upload release to Sentry
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_URL: https://sentry.prodeko.org/
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: prodeko
+          SENTRY_PROJECT: vaalikoppi
+        with:
+          environment: production
