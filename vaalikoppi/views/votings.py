@@ -124,10 +124,11 @@ def vote_ranked_choice(request, token, voting_id):
             for c in data_candidates
             if "-" not in c
         }
-        data_candidate_ids = candidates_and_preferences.keys()
 
         # Run common validity checks
-        voting_common_checks(token, voting, data_submitted_password, data_candidate_ids)
+        voting_common_checks(token, voting, data_submitted_password, data_candidates)
+
+        data_candidate_ids = candidates_and_preferences.keys()
 
         # Check if provided candidate ids are valid for this election
         candidate_objects = list(
