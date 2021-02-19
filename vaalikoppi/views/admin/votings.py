@@ -181,7 +181,7 @@ def close_voting(request, voting_id):
             if len(cur_votegroups) == 0:
                 has_voted = False
 
-            status = RankedChoiceVotingVoterStatus(
+            RankedChoiceVotingVoterStatus(
                 voting=voting_obj,
                 usertoken_token=mapping.token.token,
                 usertoken_alias=mapping.token.alias,
@@ -203,7 +203,7 @@ def close_voting(request, voting_id):
             if len(cur_votes) == 0:
                 has_voted = False
 
-            status = NormalVotingVoterStatus(
+            NormalVotingVoterStatus(
                 voting=voting_obj,
                 usertoken_token=mapping.token.token,
                 usertoken_alias=mapping.token.alias,
