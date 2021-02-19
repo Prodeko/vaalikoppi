@@ -152,8 +152,6 @@ def votings_list_data(request, token, is_admin=False):
             mappings = list(v.token_mappings.all().filter(uuid__isnull=False))
             votes = list(v.votes.all().filter(uuid__isnull=False))
 
-            v.eligible_token_count = len(mappings)
-
             for m in mappings:
                 votes_count = len([vote for vote in votes if vote.uuid == m.uuid])
 
