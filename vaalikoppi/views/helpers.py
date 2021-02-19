@@ -147,10 +147,13 @@ def votings_list_data(request, token, is_admin=False):
         # Enhance voting objects for admin view
         if is_admin:
             v.tokens_not_voted = []
-            mappings = v.token_mappings.all()
+
+            # Force queryset evaluation by calling list() and filter()
+            mappings = list(v.token_mappings.all().filter(uuid__isnull=False))
+            votes = list(v.votes.all().filter(uuid__isnull=False))
 
             for m in mappings:
-                votes_count = len([v for v in v.votes.all() if v.uuid == m.uuid])
+                votes_count = len([vote for vote in votes if vote.uuid == m.uuid])
 
                 if votes_count == 0:
                     v.tokens_not_voted.append(m.token)
