@@ -8,6 +8,8 @@ ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "0.0.0.0"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
 
 DATABASES = {
     "default": {
@@ -15,14 +17,9 @@ DATABASES = {
         "NAME": "vaalikoppi",
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
-        "HOST": "prodeko-postgres.postgres.database.azure.com",
-        "PORT": "5432",
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
         "ATOMIC_REQUESTS": True,
-        "CONN_MAX_AGE": 1800,
-        "OPTIONS": {
-            "sslmode": "verify-ca",
-            "sslrootcert": os.environ.get("POSTGRESQL_SSL_CA", ""),
-        },
     }
 }
 
