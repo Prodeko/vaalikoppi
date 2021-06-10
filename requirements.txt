@@ -1,4 +1,4 @@
-Django==3.1.8
+Django==3.1.12
 psycopg2-binary==2.8.6
 python3-vote-core==20170329.0
 whitenoise==5.2.0
