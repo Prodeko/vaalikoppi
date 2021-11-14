@@ -250,8 +250,23 @@ def close_voting(request, voting_id):
 
 def calculate_results_stv(request, voting_obj):
     inputs = calculate_stv(request, voting_obj.id)
-    results = STV(inputs, required_winners=voting_obj.max_votes).as_dict()
 
+    stv_success = False
+    cur_max_votes = voting_obj.max_votes
+    results = {}
+
+    # For cases with less voted candidates than candidates intended to be selected:
+    # Iteratively lower max_votes to reach a number that actually can be selected
+    # with the votes given.
+    # Eventually, when max_votes=0 (no votes given at all), no one gets selected and this allows  
+    # to close an empty voting (really, I promise..).
+    while(not(stv_success) and cur_max_votes >= 0):
+        try:
+            results = STV(inputs, required_winners=cur_max_votes).as_dict()
+            stv_success = True
+        except:
+            cur_max_votes -= 1
+    
     counter = 1
     for voting_round in results["rounds"]:
         voting_round["round"] = counter
