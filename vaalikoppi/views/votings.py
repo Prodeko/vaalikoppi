@@ -74,18 +74,18 @@ def vote_normal(request, token, voting_id):
             raise JsonResponseException("Multiple votes for same candidate.", 403)
 
         # Check if provided candidate ids are valid for this election
+        # Obs! Use candidates_noempty here, the right number of empties added later
         candidates = list(
-            NormalCandidate.objects.filter(pk__in=data_candidates, voting=voting)
+            NormalCandidate.objects.filter(pk__in=candidates_noempty, voting=voting)
         )
         candidate_ids = [str(c.id) for c in candidates]
 
         # If data_candidates contains any ids not found in database return error
-        if set(candidate_ids) != set(data_candidates):
+        if set(candidate_ids) != set(candidates_noempty):
             raise JsonResponseException("No such candidate found.", 403)
 
         # Append empty votes to candidates list
-        for _ in range(1, empty_votes):
-            candidates.append(empty_candidate)
+        candidates.extend([empty_candidate] * empty_votes)
 
         # Try to get token mapping connecting a token to this voting
         try:
