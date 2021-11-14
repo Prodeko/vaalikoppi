@@ -56,7 +56,7 @@
                   <div id="voting-form-{{ voting.id }}" class="voting-form" data-voting-max-votes="{{ voting.max_votes }}">
                     {% csrf_token %}
                     {% for candidate in all_candidates %}
-                      <input type="{% if voting.max_votes > 1 %}checkbox{% else %}radio{% endif %}" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="selectVote(this, {{ voting.id }})">
+                      <input type="checkbox" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}" onchange="selectVote(this, {{ voting.id }})">
                       <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                       <br>
                     {% endfor %}

@@ -284,26 +284,36 @@ function updateVotingListFromHtml(html) {
   resetCandidateOrder();
 }
 
+// Select a candidate in normal voting
 function selectVote(elem, votingId) {
   const form = document.getElementById(`voting-form-${votingId}`);
   const maxVotes = parseInt(form.getAttribute("data-voting-max-votes"));
-  elem.checked = true;
-  elem.nextElementSibling.classList.remove("blue-grey");
-  elem.nextElementSibling.classList.add("prodeko-blue");
-
   const formInputs = form.querySelectorAll(
-    `input[type=${maxVotes > 1 ? "checkbox" : "radio"}]`
+    `input[type="checkbox"]`
   );
   const givenVotes = Array.from(formInputs).filter((c) => c.checked).length;
-  formInputs.forEach((c) => {
-    if (givenVotes === maxVotes) {
+
+  function toggleCandCol(cand) {
+    if (cand.checked) {
+      cand.nextElementSibling.classList.remove("blue-grey");
+      cand.nextElementSibling.classList.add("prodeko-blue");
+    } else {
+      cand.nextElementSibling.classList.add("blue-grey");
+      cand.nextElementSibling.classList.remove("prodeko-blue");
+    }
+  }
+  // Update candidate bar colour, always toggle for the current selection
+  toggleCandCol(elem);
+
+  // If too many candidates are selected, unselect all except this one
+  if (givenVotes > maxVotes) {
+    formInputs.forEach((c) => {
       if (c.id !== elem.id) {
         c.checked = false;
-        c.nextElementSibling.classList.remove("prodeko-blue");
-        c.nextElementSibling.classList.add("blue-grey");
+        toggleCandCol(c);
       }
-    }
-  });
+    });
+  }
 }
 
 // User login / logout
