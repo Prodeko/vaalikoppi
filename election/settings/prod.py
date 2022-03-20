@@ -4,7 +4,7 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "0.0.0.0"]
+ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "0.0.0.0", "kukka.digital"]
 
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
