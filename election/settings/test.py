@@ -7,7 +7,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "vote.kukka.digital"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "vote.kukka.digital", "127.0.0.1"]
 
 # Use different redis db for tests
 CACHEOPS_REDIS = "redis://redis:6379/1"
