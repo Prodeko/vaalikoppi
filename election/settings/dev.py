@@ -7,7 +7,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "kukka.digital"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "vote.kukka.digital"]
 
 DATABASES = {
     "default": {
