@@ -7,7 +7,7 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0"]
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "kukka.digital"]
 
 # Use different redis db for tests
 CACHEOPS_REDIS = "redis://redis:6379/1"
