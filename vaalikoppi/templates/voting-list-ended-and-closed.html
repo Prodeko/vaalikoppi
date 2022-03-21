@@ -48,7 +48,7 @@
               </div>
               <div class="row">
                 <div class="col s12">
-                  <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
+                  <button onclick="addCandidate({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light wide-button bold-font athene-green">
                     Lisää<i class="material-icons right">add</i>
                   </button>
                   <button onclick="openVoting({{ voting.id }}, {% if voting.is_ranked_choice %}true{% else %}false{% endif %})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
@@ -103,7 +103,7 @@
     <div class="row">
       <div class="col s12">
         {% if voting.is_ranked_choice %}
-          <div class="transfer-election closed-voting card prodeko-blue white-text center">
+          <div class="transfer-election closed-voting card athene-green white-text center">
             <div class="card-title-container" onclick="expandResults(this)">
               <h3 class="card-title bold-font">{{ voting }}</h3>
               {% if voting.grouped_results|length > 1 %}
@@ -140,7 +140,7 @@
             </div>
           </div>
         {% else %}
-          <div class="closed-voting card prodeko-blue white-text center">
+          <div class="closed-voting card athene-green white-text center">
             <div class="card-title-container">
               <h3 class="card-title bold-font">{{ voting }}</h3>
             </div>

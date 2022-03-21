@@ -27,7 +27,7 @@
                     {% csrf_token %}
                     {% for candidate in all_candidates %}
                       <div class="voting-candidates">
-                        <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
+                        <div class="voting-order athene-green" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="{{ candidate.id }}">-</div>
                         <label for="candidate-v-{{ voting.id }}-{{ candidate.id }}" value="candidate-v-{{ voting.id }}-{{ candidate.id }}" class="transfer-vote-candidate waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{ candidate.candidate_name }}</label>
                         <br>
                       </div>

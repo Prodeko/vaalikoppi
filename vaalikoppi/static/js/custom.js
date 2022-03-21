@@ -296,10 +296,10 @@ function selectVote(elem, votingId) {
   function toggleCandCol(cand) {
     if (cand.checked) {
       cand.nextElementSibling.classList.remove("blue-grey");
-      cand.nextElementSibling.classList.add("prodeko-blue");
+      cand.nextElementSibling.classList.add("athene-green");
     } else {
       cand.nextElementSibling.classList.add("blue-grey");
-      cand.nextElementSibling.classList.remove("prodeko-blue");
+      cand.nextElementSibling.classList.remove("athene-green");
     }
   }
   // Update candidate bar colour, always toggle for the current selection
@@ -602,7 +602,7 @@ function clearVotes(votingId) {
   const form = getVotingForm(votingId);
   Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {
     elem.innerHTML = "-";
-    elem.nextElementSibling.classList.remove("prodeko-blue");
+    elem.nextElementSibling.classList.remove("athene-green");
     elem.nextElementSibling.classList.add("blue-grey");
   });
   resetCandidateOrder();
@@ -638,13 +638,13 @@ function setupEventListeners() {
           const candidateRank = document.getElementById(candidate);
           candidateRank.innerHTML = votesGiven;
           candidateRank.nextElementSibling.classList.remove("blue-grey");
-          candidateRank.nextElementSibling.classList.add("prodeko-blue");
+          candidateRank.nextElementSibling.classList.add("athene-green");
         }
       } else {
         const clickedCandidate = e.target;
         const clickedRank = clickedCandidate.previousElementSibling.innerHTML;
 
-        clickedCandidate.classList.remove("prodeko-blue");
+        clickedCandidate.classList.remove("athene-green");
         clickedCandidate.classList.add("blue-grey");
         clickedCandidate.previousElementSibling.innerHTML = "-";
         Array.from(form.querySelectorAll(".voting-order")).forEach((elem) => {

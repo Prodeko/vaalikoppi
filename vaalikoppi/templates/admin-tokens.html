@@ -13,9 +13,9 @@
     {% csrf_token %}
     <div class="card blue-grey lighten-5">
       <div class="card-action center">
-        <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
-        <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue">Tulosta koodit</a>
-        <button id="invalidate-active-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
+        <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font athene-green" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
+        <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font athene-green">Tulosta koodit</a>
+        <button id="invalidate-active-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font athene-green" onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
       </div>
     </div>
     {% if tokens %}
