@@ -21,7 +21,7 @@ python3 manage.py makemigrations
 python3 manage.py migrate
 
 echo "Collecting static files..."
-python3 manage.py collectstatic
+python3 manage.py collectstatic --noinput
 
 # Create a superuser for development
 echo "Creating superuser..."
