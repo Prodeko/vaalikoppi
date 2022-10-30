@@ -17,7 +17,6 @@ wait_for_psql
 
 # Create and run migrations
 echo "Creating migrations..."
-python3 manage.py makemigrations
 python3 manage.py migrate
 
 echo "Collecting static files..."

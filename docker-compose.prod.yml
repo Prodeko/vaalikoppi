@@ -5,6 +5,7 @@ services:
     build: .
     container_name: vaalikoppi
     restart: unless-stopped
+    entrypoint: /code/docker-entrypoint.sh
     command: uvicorn --host 0.0.0.0 --port ${PORT} --workers 5 --interface asgi3 --loop asyncio --lifespan off election.asgi:application
     env_file:
       - .env
