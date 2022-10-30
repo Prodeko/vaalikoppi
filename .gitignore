@@ -5,6 +5,7 @@ __pycache__
 .DS_Store
 coverage.xml
 .coverage
+.env
 
 election/static/**
 vaalikoppi/static/css/**/*.css

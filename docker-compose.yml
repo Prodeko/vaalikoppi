@@ -3,10 +3,8 @@ version: "3"
 services:
   db:
     image: postgres:11
-    environment:
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=vaalikoppi
-      - POSTGRES_USER=vaalikoppi
+    env_file:
+      - .env
 
   redis:
     image: redis:6-alpine
@@ -24,4 +22,4 @@ services:
     depends_on:
       - db
     environment:
-      - DJANGO_SETTINGS_MODULE=election.settings.dev
+      - DJANGO_SETTINGS_MODULE=election.settings.prod
