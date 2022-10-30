@@ -4,25 +4,6 @@ from .base import *
 
 DEBUG = False
 
-ALLOWED_HOSTS = ["vaalikoppi.prodeko.org", "0.0.0.0", "vote.kukka.digital", "127.0.0.1"]
-
-DB_USER = os.environ.get("DB_USER")
-DB_PASSWORD = os.environ.get("DB_PASSWORD")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "vaalikoppi",
-        "USER": DB_USER,
-        "PASSWORD": DB_PASSWORD,
-        "HOST": DB_HOST,
-        "PORT": DB_PORT,
-        "ATOMIC_REQUESTS": True,
-    }
-}
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

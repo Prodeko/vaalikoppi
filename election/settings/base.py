@@ -83,3 +83,23 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 LOGIN_URL = "/admin/"
 LOGIN_REDIRECT_URL = "/vaalikoppi/admin/"
+
+
+ALLOWED_HOSTS = ["localhost"]
+
+DB_USER = os.environ.get("POSTGRES_USER")
+DB_NAME = os.environ.get("POSTGRES_DATABASE")
+DB_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+DB_PORT = os.environ.get("DB_PORT")
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": "db",
+        "PORT": 5432,
+        "ATOMIC_REQUESTS": True,
+    }
+}

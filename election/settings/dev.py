@@ -7,19 +7,6 @@ from .base import *
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "vote.kukka.digital", "127.0.0.1"]
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "vaalikoppi",
-        "USER": "vaalikoppi",
-        "PASSWORD": "secret",
-        "HOST": "db",
-        "PORT": "",
-        "ATOMIC_REQUESTS": True,
-    }
-}
 
 # Set to True to enable django debug toolbar
 SHOW_DEBUG_TOOLBAR = False
