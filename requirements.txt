@@ -2,7 +2,7 @@ Django==3.1.8
 psycopg2-binary==2.8.6
 python3-vote-core==20170329.0
 whitenoise==5.2.0
-sentry-sdk==0.19.4
+sentry-sdk==1.14.0
 pylint==2.6.0
 pylint-django==2.3.0
 django-sass==1.0.0
