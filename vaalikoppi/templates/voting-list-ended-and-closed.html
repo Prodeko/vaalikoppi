@@ -128,7 +128,9 @@
                             (valittu)
                           {% endif %}
                         </td>
-                        <td>{{ candidate.vote_count|floatformat:4 }}</td>
+                        {% if not voting.hide_vote_counts %}
+                          <td>{{ candidate.vote_count|floatformat:4 }}</td>
+                        {% endif %}
                       </tr>
                     {% endfor %}
                   </table>
@@ -156,8 +158,10 @@
                         (valittu)
                       {% endif %}
                     </td>
-                    <td>{{ result.vote_count|floatformat:0 }}</td>
-                    <td>{{ result.vote_share|floatformat:1 }}&nbsp;%</td>
+                    {% if not voting.hide_vote_counts %}
+                      <td>{{ result.vote_count|floatformat:0 }}</td>
+                      <td>{{ result.vote_share|floatformat:1 }}&nbsp;%</td>
+                    {% endif %}
                   </tr>
                 {% endfor %}
               </table>

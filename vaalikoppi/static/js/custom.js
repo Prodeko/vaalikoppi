@@ -439,6 +439,10 @@ function createVoting() {
   const isPasswordProtected = document.getElementById(
     "voting-add-is-password-protected"
   ).checked;
+  const hideVoteCounts = document.getElementById(
+    "voting-hide-vote-counts"
+  ).checked;
+
   const votingName = document.getElementById("voting-name").value;
   const votingDescription = document.getElementById("voting-description").value;
   const votingPassword = document.getElementById("voting-add-voting-password")
@@ -448,6 +452,7 @@ function createVoting() {
   const data = {
     is_ranked_choice: isRankedChoice,
     is_password_protected: isPasswordProtected,
+    hide_vote_counts: hideVoteCounts,
     voting_name: votingName,
     voting_description: votingDescription,
     voting_password: votingPassword,

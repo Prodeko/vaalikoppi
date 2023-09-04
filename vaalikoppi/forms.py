@@ -8,6 +8,7 @@ fields = [
     "max_votes",
     "is_password_protected",
     "voting_password",
+    "hide_vote_counts",
 ]
 labels = {
     "voting_name": "Äänestyksen nimi",
@@ -15,6 +16,7 @@ labels = {
     "max_votes": "Ääniä käytössä",
     "is_password_protected": "Äänestyskohtainen salasana vaaditaan",
     "voting_password": "Äänestyskohtainen salasana",
+    "hide_vote_counts": "Älä näytä äänten määrää",
 }
 
 

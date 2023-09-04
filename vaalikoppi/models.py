@@ -15,6 +15,7 @@ class Voting(models.Model):
     is_password_protected = models.BooleanField(default=False)
     voting_password = models.CharField(max_length=50, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    hide_vote_counts = models.BooleanField(default=False)
 
     # For the purpose of getting unique DOM element IDs
     def pseudo_unique_id(self):
