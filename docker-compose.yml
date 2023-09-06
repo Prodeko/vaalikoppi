@@ -2,7 +2,7 @@ version: "3"
 
 services:
   db:
-    image: postgres:11
+    image: postgres:14
     environment:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=vaalikoppi
@@ -13,15 +13,7 @@ services:
     container_name: vaalikoppi_redis
 
   vaalikoppi:
-    build: .
-    container_name: vaalikoppi
-    entrypoint: /code/docker-entrypoint.sh
-    command: python3 manage.py runserver 0.0.0.0:8000 --nostatic
-    volumes:
-      - .:/code
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    environment:
-      - DJANGO_SETTINGS_MODULE=election.settings.dev
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
+    
