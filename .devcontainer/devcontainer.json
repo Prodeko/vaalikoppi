@@ -14,7 +14,7 @@
 				"rust-lang.rust-analyzer",
 				"tamasfe.even-better-toml",
 				"serayuzgur.crates",
-				"adpyke.vscode-sql-formatter"
+				"ms-ossdata.vscode-postgresql"
 			]
 		}
 	}
