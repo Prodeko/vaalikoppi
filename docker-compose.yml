@@ -16,4 +16,6 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
+    ports:
+      - 80:80
     
