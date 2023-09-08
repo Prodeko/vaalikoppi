@@ -8,6 +8,9 @@ RUN rustup component add rustfmt
 RUN USER=root cargo new --bin vaalikoppi
 WORKDIR /vaalikoppi
 RUN git config --global --add safe.directory /vaalikoppi
+
+# Install SQLx CLI for database migrations (see README)
+RUN cargo install sqlx-cli --no-default-features --features native-tls,postgres
 COPY ./Cargo.* .
 RUN cargo build
 COPY . .
