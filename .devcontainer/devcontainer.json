@@ -14,8 +14,14 @@
 				"rust-lang.rust-analyzer",
 				"tamasfe.even-better-toml",
 				"serayuzgur.crates",
-				"ms-ossdata.vscode-postgresql"
-			]
+				"ms-ossdata.vscode-postgresql",
+				"adpyke.vscode-sql-formatter"
+			],
+			"settings": {
+				"[sql]": {
+					"editor.defaultFormatter": "adpyke.vscode-sql-formatter"
+				}
+			}
 		}
 	}
 }
