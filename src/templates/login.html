@@ -1,0 +1,49 @@
+<div id="login-container">
+  <div class="card blue-grey lighten-5">
+    <div class="card-content blue-grey-text text-lighten-1 center">
+      <span class="card-title blue-grey-text text-darken-1 bold-font">
+        Kirjaudu syöttämällä kirjautumiskoodi ja alias
+      </span>
+
+      <div class="row">
+        <div class="input-field col s12">
+          <input type="text" id="type-token-field" class="token-input-field" size="50" >
+          <label for="type-token-field">Kirjautumiskoodi</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s12">
+          <input type="text" id="type-alias-field" class="alias-input-field" size="50" onkeyup="instaValidateAliasSyntax(this)">
+          <label for="type-alias-field">Alias</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s12 left-align login-instructions">
+          <h6>Kirjautumiskoodi</h6>
+          <p>Saat kirjautumiskoodin vaalitoimitsijoilta. Se mitätöidään, jos poistut vaalilähetyksestä.
+            Tarvitset uuden koodin, jos palaat äänestämään.
+          </p>
+          <h6>Aliaksen käyttö</h6>
+          <p>Alias on itse itsellesi määrittämä pseudonyymi.
+            Äänestyksen aikana vaalitoimitsijat näkevät, miltä aliaksilta ääni on vielä antamatta.
+            Tarvittaessa aliastasi voidaan kutsua vaalilähetyksessä.
+          </p>
+          <p>Alias on 3&ndash;20 merkkiä pitkä. Voit käyttää siihen merkkejä A&ndash;Ö, 0&ndash;9, - ja _.
+            Aliaksen täytyy alkaa kirjaimella tai numerolla.
+          </p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col s12">
+          <span id="login-notification-area">
+            Syötä kirjautumistiedot ylle
+          </span>
+        </div>
+      </div>
+    </div>
+    {% csrf_token %}
+    <div class="card-action center">
+      <button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="submitToken()">Kirjaudu</button>
+    </div>
+  </div>
+</div>

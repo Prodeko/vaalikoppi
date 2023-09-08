@@ -1,0 +1,38 @@
+<html lang="fi">
+  <head>
+    <style type="text/css">
+      p {
+        font-size: 14pt;
+      }
+
+      table {
+        width: 100%;
+      }
+
+      table, td {
+        border: 2px solid black;
+      }
+
+      td {
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      {% for token in tokens %}
+        <tr>
+          {% if not forloop.counter|divisibleby:2 %}
+            <td>
+              <p>{{ token }}</p>
+            </td>
+          {% else %}
+            <td>
+              <p>{{ token }}</p>
+            </td>
+          {% endif %}
+        </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+  <div class="container">
+    <div class="card blue-grey lighten-5">
+      <div class="card-content center">
+        {% if votings %}
+          <table class="highlight bordered">
+            <thead>
+              <tr>
+                <th>Äänestys</th>
+                <th>Ehdokas</th>
+                <th>Äänimäärä</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for result in votings %}
+                <tr>
+                  <td>{{ result.voting }}</td>
+                  <td>{{ result.candidate_name }}</td>
+                  <td>{{ result.vote_count }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <span class="card-title blue-grey-text text-lighten-1">Ei valmistuneita äänestyksiä.</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
