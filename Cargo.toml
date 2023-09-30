@@ -14,4 +14,5 @@ rand = "0.8.5"
 serde = { version = "1.0.188", features=["derive"]}
 sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio"]}
 tokio = { version = "1.32.0", features = ["macros", "io-util", "rt-multi-thread"]}
+tower = "0.4.13"
 validator = { version = "0.16.1", features = ["derive"]}
