@@ -1933,6 +1933,7 @@ dependencies = [
  "chrono",
  "dotenv",
  "postgres",
+ "serde",
  "sqlx",
  "tokio",
  "validator",
