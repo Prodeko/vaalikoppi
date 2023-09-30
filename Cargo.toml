@@ -10,6 +10,7 @@ axum = "0.6.20"
 chrono = { version = "0.4.29", features = []}
 dotenv = "0.15.0"
 postgres = "0.19.7"
+rand = "0.8.5"
 serde = { version = "1.0.188", features=["derive"]}
 sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio"]}
 tokio = { version = "1.32.0", features = ["macros", "io-util", "rt-multi-thread"]}
