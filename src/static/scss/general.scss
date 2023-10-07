@@ -1,0 +1,61 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  border: none;
+  height: 100%;
+}
+
+body {
+  font-family: "Raleway", sans-serif;
+  font-size: 1.2em;
+  color: #1e3553;
+  scroll-behavior: smooth;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+section {
+  padding-top: 80px;
+  background-color: #fafafa;
+  min-height: 100%;
+}
+
+i {
+  cursor: pointer;
+}
+
+#logo {
+  width: 220px;
+  margin: 10px auto 0px auto;
+}
+
+#vaalikoppi-logo {
+  width: 100%;
+}
+
+.logos {
+  width: 100%;
+  padding-top: 100px;
+  padding-bottom: 75px;
+}
+
+input {
+  text-align: center;
+}
+
+.alias-input-field {
+  text-transform: uppercase;
+}
+
+.reduced-row-margin {
+  & > .row {
+    margin-bottom: 0;
+  }
+}

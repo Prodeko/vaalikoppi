@@ -1,0 +1,18 @@
+#login-container {
+
+  .loading-token-notification {
+    color:green;
+  }
+
+  .wrong-token-warning {
+    color: red;
+  }
+
+  .login-instructions h6 {
+    font-weight: bold;
+  }
+  
+  .login-instructions p {
+    margin-bottom: 1em;
+  }
+}
