@@ -5,8 +5,8 @@ use tower::ServiceBuilder;
 mod admin;
 mod index;
 
-pub async fn serve(_db: Pool<Postgres>) {
-    let app = router().layer(ServiceBuilder::new().layer(Extension(_db)));
+pub async fn serve(db: Pool<Postgres>) {
+    let app = router().layer(ServiceBuilder::new().layer(Extension(db)));
     let address = &"0.0.0.0:80".parse().unwrap();
     axum::Server::bind(address)
         .serve(app.into_make_service())
