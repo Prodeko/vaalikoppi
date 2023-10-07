@@ -1,12 +1,25 @@
+use std::sync::Arc;
+
 use axum::{Extension, Router};
 use sqlx::{Pool, Postgres};
 use tower::ServiceBuilder;
 
+use crate::config::Config;
+
 mod admin;
 mod index;
 
-pub async fn serve(db: Pool<Postgres>) {
-    let app = router().layer(ServiceBuilder::new().layer(Extension(db)));
+#[derive(Clone)]
+pub struct Context {
+    db: Pool<Postgres>,
+    config: Arc<Config>,
+}
+
+pub async fn serve(db: Pool<Postgres>, config: Config) {
+    let app = router().layer(ServiceBuilder::new().layer(Extension(Context {
+        config: Arc::new(config),
+        db,
+    })));
     let address = &"0.0.0.0:80".parse().unwrap();
     axum::Server::bind(address)
         .serve(app.into_make_service())

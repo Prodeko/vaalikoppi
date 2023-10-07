@@ -25,5 +25,5 @@ async fn main() {
         .await
         .expect("Running DB migrations failed");
 
-    serve(pool).await;
+    serve(pool, config).await;
 }
