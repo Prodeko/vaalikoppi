@@ -1,6 +1,10 @@
+mod helpers;
+mod http;
+mod models;
+
 use dotenv::dotenv;
-use vaalikoppi::helpers::create_pg_pool;
-use vaalikoppi::http;
+use helpers::create_pg_pool;
+use http::serve;
 
 #[tokio::main]
 async fn main() {
@@ -15,5 +19,5 @@ async fn main() {
         .await
         .expect("Running DB migrations failed");
 
-    http::serve(pool).await;
+    serve(pool).await;
 }
