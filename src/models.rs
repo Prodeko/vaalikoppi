@@ -11,42 +11,42 @@ trait Voteable {
 
 #[derive(Validate, Debug)]
 pub struct Voting {
-    id: VotingId,
+    pub id: VotingId,
     #[validate(length(min = 1, max = 128))]
-    name: String,
+    pub name: String,
     #[validate(length(min = 0, max = 128))]
-    description: String,
-    is_open: bool,
-    created_at: DateTime<Utc>,
-    hide_vote_counts: bool,
-    number_of_votes: u8,
-    candidates: Vec<CandidateId>,
+    pub description: String,
+    pub is_open: bool,
+    pub created_at: DateTime<Utc>,
+    pub hide_vote_counts: bool,
+    pub number_of_votes: u8,
+    pub candidates: Vec<CandidateId>,
 }
 
 #[derive(Debug)]
 pub struct HasVoted {
-    voting_id: VotingId,
-    token_id: TokenId,
-    has_voted: bool,
+    pub voting_id: VotingId,
+    pub token_id: TokenId,
+    pub has_voted: bool,
 }
 
 #[derive(Debug)]
 pub struct Vote {
-    voting_id: VotingId,
-    candidate: CandidateId,
-    rank: u8,
+    pub voting_id: VotingId,
+    pub candidate: CandidateId,
+    pub rank: u8,
 }
 
 #[derive(Debug)]
 pub struct Token {
-    id: TokenId,
-    is_activated: bool,
-    is_trashed: bool,
+    pub id: TokenId,
+    pub is_activated: bool,
+    pub is_trashed: bool,
 }
 
 #[derive(Debug)]
 pub struct VotingStatus {
-    voting: VotingId,
-    token: TokenId,
-    has_voted: bool,
+    pub voting: VotingId,
+    pub token: TokenId,
+    pub has_voted: bool,
 }
