@@ -10,7 +10,7 @@ trait Voteable {
 }
 
 #[derive(Validate, Debug)]
-struct Voting {
+pub struct Voting {
     id: VotingId,
     #[validate(length(min = 1, max = 128))]
     name: String,
@@ -24,28 +24,28 @@ struct Voting {
 }
 
 #[derive(Debug)]
-struct HasVoted {
+pub struct HasVoted {
     voting_id: VotingId,
     token_id: TokenId,
     has_voted: bool,
 }
 
 #[derive(Debug)]
-struct Vote {
+pub struct Vote {
     voting_id: VotingId,
     candidate: CandidateId,
     rank: u8,
 }
 
 #[derive(Debug)]
-struct Token {
+pub struct Token {
     id: TokenId,
     is_activated: bool,
     is_trashed: bool,
 }
 
 #[derive(Debug)]
-struct VotingStatus {
+pub struct VotingStatus {
     voting: VotingId,
     token: TokenId,
     has_voted: bool,
