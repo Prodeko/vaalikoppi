@@ -9,9 +9,13 @@ pub fn router() -> Router {
 #[template(path = "index.html")] // using the template in this path, relative
                                  // to the `templates` dir in the crate root
 
-struct HelloTemplate {}
+struct HelloTemplate<'a> {
+    is_valid_token: &'a bool,
+}
 
 async fn get_root() -> Html<String> {
-    let root = HelloTemplate {};
+    let root = HelloTemplate {
+        is_valid_token: &false,
+    };
     Html(root.render().unwrap())
 }

@@ -1,7 +1,11 @@
 {% extends "base.html" %}
 
 {% block body %}
-<p>
-  Hello from index-temp.html!
-</p>
+<div class="container">
+  {% if is_valid_token %}
+    <p>Successfully logged in!</p>
+  {% else %}
+   {% include "login.html" %}
+  {% endif %}
+</div>
 {% endblock %}
