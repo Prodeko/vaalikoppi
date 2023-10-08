@@ -8,6 +8,7 @@ use crate::config::Config;
 
 mod admin;
 mod index;
+mod static_files;
 
 #[derive(Clone)]
 pub struct Context {
@@ -28,5 +29,7 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
 }
 
 fn router() -> Router {
-    index::router().merge(admin::tokens::router())
+    index::router()
+        .merge(admin::tokens::router())
+        .merge(static_files::router())
 }
