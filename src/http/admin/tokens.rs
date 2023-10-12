@@ -1,19 +1,23 @@
-use axum::{extract::Json, routing::post, Extension, Router};
+use axum::{
+    extract::{Json, State},
+    routing::post,
+    Router,
+};
 use serde::Deserialize;
-use sqlx::{Pool, Postgres, QueryBuilder};
+use sqlx::{Postgres, QueryBuilder};
 
-use crate::{helpers::generate_token, models::Token};
+use crate::{helpers::generate_token, http::AppState, models::Token};
 
 #[derive(Deserialize)]
 struct GenerateTokenInput {
     count: u32,
 }
 
-pub fn router() -> Router {
+pub fn router() -> Router<AppState> {
     Router::new().route("/tokens", post(generate_tokens))
 }
 
-async fn generate_tokens(db: Extension<Pool<Postgres>>, Json(input): Json<GenerateTokenInput>) {
+async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateTokenInput>) {
     if input.count == 0 {
         return;
     }
@@ -35,7 +39,7 @@ async fn generate_tokens(db: Extension<Pool<Postgres>>, Json(input): Json<Genera
             .push_bind(token.is_trashed);
     });
 
-    let result = query_builder.build().execute(&db.0).await;
+    let result = query_builder.build().execute(&state.0.db).await;
 
     match result {
         Ok(res) => println!(

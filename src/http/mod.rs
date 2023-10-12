@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use axum::{Extension, Router};
+use axum::Router;
 use sqlx::{Pool, Postgres};
-use tower::ServiceBuilder;
 
 use crate::config::Config;
 
@@ -11,16 +10,19 @@ mod index;
 mod static_files;
 
 #[derive(Clone)]
-pub struct Context {
-    db: Pool<Postgres>,
-    config: Arc<Config>,
+pub struct AppState {
+    pub db: Pool<Postgres>,
+    pub config: Arc<Config>,
 }
 
 pub async fn serve(db: Pool<Postgres>, config: Config) {
-    let app = router().layer(ServiceBuilder::new().layer(Extension(Context {
+    let state = AppState {
         config: Arc::new(config),
         db,
-    })));
+    };
+
+    let app: Router = router().with_state(state);
+
     let address = &"0.0.0.0:80".parse().unwrap();
     axum::Server::bind(address)
         .serve(app.into_make_service())
@@ -28,7 +30,7 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         .unwrap();
 }
 
-fn router() -> Router {
+fn router() -> Router<AppState> {
     index::router()
         .merge(admin::tokens::router())
         .merge(static_files::router())
