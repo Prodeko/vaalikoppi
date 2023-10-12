@@ -6,6 +6,7 @@ use sqlx::{Pool, Postgres};
 use crate::config::Config;
 
 mod admin;
+mod error;
 mod index;
 mod static_files;
 
