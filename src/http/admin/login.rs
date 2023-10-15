@@ -1,13 +1,16 @@
-use axum::{extract::State, Json};
+use axum::{debug_handler, extract::State, routing::post, Json, Router};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
+use tower_cookies::{Cookie, Cookies};
 
 use crate::http::{
     error::{Error, Result},
     AppState,
 };
 
+pub const AUTH_TOKEN: &str = "admin-token";
 const TOKEN_EXPIRY_DURATION_HOURS: i64 = 24;
 
 #[derive(Deserialize)]
@@ -22,13 +25,16 @@ struct JsonWebTokenClaims {
 }
 
 #[derive(Serialize)]
-struct LoginResponse {
-    token: String,
-    exp: i64,
+struct LoginResponse {}
+
+pub fn router() -> Router<AppState> {
+    Router::new().route("/login", post(json_web_token_login))
 }
 
-fn json_web_token_login(
+#[debug_handler]
+async fn json_web_token_login(
     state: State<AppState>,
+    cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
 ) -> Result<Json<LoginResponse>> {
     if login_payload.token != state.config.admin_password {
@@ -36,8 +42,10 @@ fn json_web_token_login(
     }
 
     let current_timestamp = Utc::now();
+    let expiration_time = current_timestamp + Duration::hours(TOKEN_EXPIRY_DURATION_HOURS);
+
     let claims = JsonWebTokenClaims {
-        exp: (current_timestamp + Duration::hours(TOKEN_EXPIRY_DURATION_HOURS)).timestamp(),
+        exp: expiration_time.timestamp(),
         iat: current_timestamp.timestamp(),
     };
 
@@ -49,10 +57,14 @@ fn json_web_token_login(
 
     token_result
         .map(|token| {
-            Json(LoginResponse {
-                token,
-                exp: claims.exp,
-            })
+            cookies.add(
+                Cookie::build(AUTH_TOKEN, token.clone())
+                    .http_only(true)
+                    .secure(true)
+                    .expires(OffsetDateTime::from_unix_timestamp(claims.exp).unwrap())
+                    .finish(),
+            );
+            Json(LoginResponse {})
         })
         .map_err(|_| Error::LoginFail)
 }

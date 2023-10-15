@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use sqlx::{Pool, Postgres};
+use tower_cookies::CookieManagerLayer;
 
 use crate::config::Config;
 
@@ -22,7 +23,7 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         db,
     };
 
-    let app: Router = router().with_state(state);
+    let app: Router = router().layer(CookieManagerLayer::new()).with_state(state);
 
     let address = &"0.0.0.0:80".parse().unwrap();
     axum::Server::bind(address)
