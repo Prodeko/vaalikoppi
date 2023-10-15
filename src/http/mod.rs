@@ -34,6 +34,6 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
 
 fn router() -> Router<AppState> {
     index::router()
-        .merge(admin::tokens::router())
+        .nest("/admin", admin::router())
         .merge(static_files::router())
 }
