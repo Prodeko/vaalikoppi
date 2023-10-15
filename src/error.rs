@@ -5,8 +5,14 @@ use axum::{
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+pub enum AuthFailedError {
+    MissingToken,
+    InvalidToken,
+}
+
 pub enum Error {
     LoginFail,
+    AuthFailed(AuthFailedError),
 }
 
 impl IntoResponse for Error {
