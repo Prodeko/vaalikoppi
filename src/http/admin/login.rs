@@ -18,8 +18,8 @@ struct LoginPayload {
     token: String,
 }
 
-#[derive(Serialize)]
-struct JsonWebTokenClaims {
+#[derive(Serialize, Deserialize)]
+pub struct JsonWebTokenClaims {
     exp: i64,
     iat: i64,
 }
