@@ -61,7 +61,7 @@ async fn json_web_token_login(
                 Cookie::build(AUTH_TOKEN, token.clone())
                     .http_only(true)
                     .secure(true)
-                    .expires(OffsetDateTime::from_unix_timestamp(claims.exp).unwrap())
+                    .expires(OffsetDateTime::from_unix_timestamp(claims.exp).unwrap()) // TODO: Fix nasty conversion between datetime types
                     .finish(),
             );
             Json(LoginResponse {})
