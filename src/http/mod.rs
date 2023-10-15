@@ -7,7 +7,6 @@ use tower_cookies::CookieManagerLayer;
 use crate::config::Config;
 
 mod admin;
-mod error;
 mod index;
 mod static_files;
 

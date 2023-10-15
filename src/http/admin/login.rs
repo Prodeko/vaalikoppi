@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use tower_cookies::{Cookie, Cookies};
 
-use crate::http::{
+use crate::{
     error::{Error, Result},
-    AppState,
+    http::AppState,
 };
 
 pub const AUTH_TOKEN: &str = "admin-token";
