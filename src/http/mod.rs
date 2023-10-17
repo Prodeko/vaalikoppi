@@ -22,7 +22,9 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         db,
     };
 
-    let app: Router = router().layer(CookieManagerLayer::new()).with_state(state);
+    let app: Router = router(state.clone())
+        .layer(CookieManagerLayer::new())
+        .with_state(state);
 
     let address = &"0.0.0.0:80".parse().unwrap();
     axum::Server::bind(address)
@@ -31,8 +33,8 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         .unwrap();
 }
 
-fn router() -> Router<AppState> {
+fn router(state: AppState) -> Router<AppState> {
     index::router()
-        .nest("/admin", admin::router())
+        .nest("/admin", admin::router(state))
         .merge(static_files::router())
 }

@@ -3,6 +3,7 @@ mod ctx;
 pub mod error;
 mod helpers;
 mod http;
+mod middleware;
 mod models;
 
 use dotenv::dotenv;
