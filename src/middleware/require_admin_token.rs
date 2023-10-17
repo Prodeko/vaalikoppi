@@ -6,7 +6,7 @@ use crate::{
         Result,
     },
     http::{
-        admin::login::{JsonWebTokenClaims, AUTH_TOKEN},
+        login::{JsonWebTokenClaims, AUTH_TOKEN},
         AppState,
     },
 };

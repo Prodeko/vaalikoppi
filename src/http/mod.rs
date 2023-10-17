@@ -1,14 +1,15 @@
 use std::sync::Arc;
 
-use axum::Router;
+use axum::{middleware::from_fn_with_state, Router};
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::config::Config;
+use crate::{config::Config, middleware::require_admin_token::resolve_ctx};
 
-pub mod admin;
 mod index;
+pub mod login;
 mod static_files;
+pub mod tokens;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -22,19 +23,22 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         db,
     };
 
-    let app: Router = router(state.clone())
+    let app: Router = router()
+        .layer(from_fn_with_state(state.clone(), resolve_ctx))
         .layer(CookieManagerLayer::new())
         .with_state(state);
 
     let address = &"0.0.0.0:80".parse().unwrap();
+
     axum::Server::bind(address)
         .serve(app.into_make_service())
         .await
         .unwrap();
 }
 
-fn router(state: AppState) -> Router<AppState> {
+fn router() -> Router<AppState> {
     index::router()
-        .nest("/admin", admin::router(state))
+        .merge(tokens::router())
+        .merge(login::router())
         .merge(static_files::router())
 }
