@@ -5,11 +5,13 @@ use axum::{
 
 pub type Result<T> = core::result::Result<T, Error>;
 
+#[derive(Clone, Debug)]
 pub enum AuthFailedError {
     MissingToken,
     InvalidToken,
 }
 
+#[derive(Clone, Debug)]
 pub enum Error {
     LoginFail,
     AuthFailed(AuthFailedError),
