@@ -10,6 +10,7 @@ mod index;
 pub mod login;
 mod static_files;
 pub mod tokens;
+pub mod user;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -40,5 +41,6 @@ fn router() -> Router<AppState> {
     index::router()
         .merge(tokens::router())
         .merge(login::router())
+        .merge(user::router())
         .merge(static_files::router())
 }
