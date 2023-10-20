@@ -15,6 +15,7 @@ pub enum AuthFailedError {
 pub enum Error {
     LoginFail,
     AuthFailed(AuthFailedError),
+    InternalServerError,
 }
 
 impl IntoResponse for Error {
