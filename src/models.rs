@@ -50,3 +50,24 @@ pub struct VotingStatus {
     pub token: TokenId,
     pub has_voted: bool,
 }
+
+#[derive(Debug)]
+pub struct CandidateResult {
+    pub elected: bool,
+    pub dropped: bool,
+    pub name: CandidateId,
+    pub vote_count: f64,
+}
+
+#[derive(Debug)]
+pub struct VotingRoundResult {
+    pub round: u64,
+    pub candidate_results: Vec<CandidateResult>,
+}
+
+#[derive(Debug)]
+pub struct VotingResult<'a> {
+    pub voting: &'a Voting,
+    pub round_results: Vec<VotingRoundResult>,
+    pub winners: Vec<CandidateId>,
+}

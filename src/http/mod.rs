@@ -11,6 +11,7 @@ pub mod login;
 mod static_files;
 pub mod tokens;
 pub mod user;
+mod votings;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -43,4 +44,5 @@ fn router() -> Router<AppState> {
         .merge(login::router())
         .merge(user::router())
         .merge(static_files::router())
+        .nest("/votings", votings::router())
 }
