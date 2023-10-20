@@ -2,4 +2,4 @@
 
 ## Migraatiot
 
-Tyhjän migraation saa luotua komennolla `sqlx migrate add <kuvaus_ilman_välilyöntejä>`
+Tyhjän migraation saa luotua komennolla `sqlx migrate add <kuvaus_ilman_välilyöntejä> -r`
