@@ -1,26 +1,31 @@
 -- Add up migration script here
 CREATE TABLE voting_round_result (
-    voting_id int REFERENCES voting NOT NULL,
-    round int REFERENCES voting_result NOT NULL,
+    voting_id integer NOT NULL REFERENCES voting,
+    round integer NOT NULL,
     dropped_candidate_name text,
-    FOREIGN KEY dropped_candidate_name REFERENCES candidate_result_data(name),
     PRIMARY KEY (voting_id, round)
 );
 
 CREATE TABLE candidate_result_data (
-    name text NOT NULL PRIMARY KEY,
-    round int NOT NULL,
-    voting_id int NOT NULL,
+    name text NOT NULL,
+    round integer NOT NULL,
+    voting_id integer NOT NULL,
     vote_count double precision NOT NULL,
-    FOREIGN KEY (round, voting_id) REFERENCES voting_round_result,
+    FOREIGN KEY (voting_id, round) REFERENCES voting_round_result(voting_id, round),
+    FOREIGN KEY (voting_id, name) REFERENCES candidate(voting_id, name),
     PRIMARY KEY (name, round, voting_id)
 );
 
+ALTER TABLE
+    voting_round_result
+ADD
+    CONSTRAINT fk_ensure_dropped_candidate_has_data FOREIGN KEY (voting_id, dropped_candidate_name, round) REFERENCES candidate_result_data(voting_id, name, round);
+
 CREATE TABLE passing_candidate_result (
-    voting_id int NOT NULL,
+    voting_id integer NOT NULL,
     name text NOT NULL,
-    round int NOT NULL,
-    FOREIGN KEY (voting_id, name, round) REFERENCES candidate_result_data,
-    PRIMARY KEY (voting_id, name, round),
+    round integer NOT NULL,
     is_selected BOOLEAN NOT NULL,
+    FOREIGN KEY (voting_id, name, round) REFERENCES candidate_result_data(voting_id, name, round),
+    PRIMARY KEY (voting_id, name, round)
 );
