@@ -52,17 +52,22 @@ pub struct VotingStatus {
 }
 
 #[derive(Debug)]
-pub struct CandidateResult {
-    pub elected: bool,
-    pub dropped: bool,
+pub struct CandidateResultData {
     pub name: CandidateId,
     pub vote_count: f64,
 }
 
 #[derive(Debug)]
+pub struct PassingCandidateResult {
+    pub data: CandidateResultData,
+    pub is_elected: bool,
+}
+
+#[derive(Debug)]
 pub struct VotingRoundResult {
     pub round: u64,
-    pub candidate_results: Vec<CandidateResult>,
+    pub candidate_results: Vec<PassingCandidateResult>,
+    pub dropped_candidate: Option<CandidateResultData>,
 }
 
 #[derive(Debug)]
