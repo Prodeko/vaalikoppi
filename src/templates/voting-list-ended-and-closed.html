@@ -105,18 +105,27 @@
                 </div>
                 <table class="result-table">
                   {% for candidate in round.candidate_results %}
-                    <tr class="candidate {% if candidate.elected %} elected {% else if candidate.dropped %} dropped {% endif %}">
+                    <tr class="candidate {% if candidate.is_elected %} elected {% endif %}">
                       <td class="candidate-name">
-                        {{ candidate.name }}
-                        {% if candidate.dropped %}
-                          (pudonnut)
-                        {% else if candidate.elected %}
+                        {{ candidate.data.name }}
+                        {% if candidate.is_elected %}
                           (valittu)
                         {% endif %}
                       </td>
-                      <td>{{ "{:.4}"|format(candidate.vote_count) }}</td>
+                      <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
                     </tr>
                   {% endfor %}
+                  {% match round.dropped_candidate %}
+                    {% when Some with (candidate_data) %}
+                      <tr class="candidate dropped">
+                        <td class="candidate-name">
+                          {{ candidate_data.name }}
+                          (pudonnut)
+                        </td>
+                        <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+                      </tr>
+                    {% when None %}
+                  {% endmatch %}
                 </table>
               </div>
             {% endfor %}

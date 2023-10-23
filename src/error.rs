@@ -2,24 +2,40 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use serde::Serialize;
+use serde_with::{serde_as, DisplayFromStr};
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Clone, Debug)]
+#[derive(Serialize, Debug)]
 pub enum AuthFailedError {
     MissingToken,
     InvalidToken,
 }
 
-#[derive(Clone, Debug)]
+#[serde_as]
+#[derive(Serialize, Debug)]
 pub enum Error {
     LoginFail,
     AuthFailed(AuthFailedError),
     InternalServerError,
+    DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response()
+    }
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(val: sqlx::Error) -> Self {
+        Self::DatabaseError(val)
+    }
+}
+
+impl core::fmt::Display for Error {
+    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
+        write!(fmt, "{self:?}")
     }
 }
