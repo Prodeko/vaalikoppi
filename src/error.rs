@@ -25,6 +25,7 @@ pub enum Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
+        println!("{:?}", self);
         (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response()
     }
 }

@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::iter;
 use validator::Validate;
 
@@ -24,23 +25,40 @@ trait Voteable {
 
 #[derive(Debug, sqlx::Type)]
 #[sqlx(type_name = "voting_state", rename_all = "lowercase")]
+
 pub enum SqlxVotingState {
     Draft,
     Open,
     Closed,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum VotingState {
     Draft,
     Open,
+    #[serde(rename_all = "camelCase")]
     Closed {
         round_results: Vec<VotingRoundResult>,
         winners: Vec<CandidateId>,
     },
 }
 
-#[derive(Validate, Debug)]
+impl From<SqlxVotingState> for VotingState {
+    fn from(value: SqlxVotingState) -> Self {
+        match value {
+            SqlxVotingState::Draft => Self::Draft,
+            SqlxVotingState::Open => Self::Open,
+            SqlxVotingState::Closed => Self::Closed {
+                round_results: vec![],
+                winners: vec![],
+            },
+        }
+    }
+}
+
+#[derive(Validate, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Voting {
     pub id: VotingId,
     #[validate(length(min = 1, max = 128))]
@@ -50,8 +68,18 @@ pub struct Voting {
     pub state: VotingState,
     pub created_at: DateTime<Utc>,
     pub hide_vote_counts: bool,
-    pub number_of_votes: i32,
     pub candidates: Vec<CandidateId>,
+}
+
+#[derive(Validate, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct VotingCreate {
+    #[validate(length(min = 1, max = 128))]
+    pub name: String,
+    #[validate(length(min = 0, max = 128))]
+    pub description: String,
+    pub hide_vote_counts: bool,
+    pub candidates: Option<Vec<CandidateId>>,
 }
 
 #[derive(Debug)]
@@ -82,19 +110,22 @@ pub struct VoteCastStatus {
     pub has_voted: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CandidateResultData {
     pub name: CandidateId,
     pub vote_count: f64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PassingCandidateResult {
     pub data: CandidateResultData,
     pub is_selected: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct VotingRoundResult {
     pub round: i32,
     pub candidate_results: Vec<PassingCandidateResult>,

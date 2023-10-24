@@ -2,14 +2,15 @@ use std::collections::HashMap;
 
 use askama::Template;
 use axum::{
+    debug_handler,
     extract::{Path, State},
     middleware::from_fn,
     response::Html,
     routing::{delete, get, post, put},
-    Router,
+    Json, Router,
 };
 use chrono::{DateTime, Utc};
-use sqlx::{Pool, Postgres};
+use sqlx::{postgres::PgRow, Pool, Postgres, QueryBuilder, Row};
 
 use crate::{
     ctx::Ctx,
@@ -17,7 +18,7 @@ use crate::{
     middleware::require_admin_token::require_admin,
     models::{
         CandidateId, CandidateResultData, PassingCandidateResult, SqlxVotingState, Voting,
-        VotingId, VotingRoundResult, VotingState,
+        VotingCreate, VotingId, VotingRoundResult, VotingState,
     },
 };
 
@@ -25,16 +26,76 @@ use super::AppState;
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/:id", post(post_voting))
+        .route("/", post(post_voting))
         .route("/:id", put(put_voting))
         .route("/:id", delete(delete_voting))
         .route_layer(from_fn(require_admin))
         .route("/", get(get_votings))
 }
 
-async fn post_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
-    Html("hello world".to_string())
+#[debug_handler]
+async fn post_voting(
+    state: State<AppState>,
+    Json(voting_create): Json<VotingCreate>,
+) -> Result<Json<Voting>> {
+    let mut tx = state.db.begin().await?;
+
+    let mut voting = sqlx::query!(
+        "
+        INSERT INTO voting (name, description, state, created_at, hide_vote_counts)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING
+            id,
+            name,
+            description,
+            state AS \"state: SqlxVotingState\",
+            created_at,
+            hide_vote_counts;
+        ",
+        voting_create.name,
+        voting_create.description,
+        SqlxVotingState::Draft as SqlxVotingState,
+        Utc::now(),
+        voting_create.hide_vote_counts,
+    )
+    .map(|row| Voting {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        state: VotingState::from(row.state),
+        created_at: row.created_at,
+        hide_vote_counts: row.hide_vote_counts,
+        candidates: vec![],
+    })
+    .fetch_one(&mut *tx)
+    .await?;
+
+    let cloned_id = voting.id.clone();
+    let candidates_result = voting_create.candidates.map(|candidates| async {
+        let mut query_builder: QueryBuilder<Postgres> =
+            QueryBuilder::new("INSERT INTO candidate(voting_id, name) ");
+
+        query_builder.push_values(candidates, |mut b, name| {
+            b.push_bind(cloned_id).push_bind(name);
+        });
+
+        query_builder.push("RETURNING name");
+
+        query_builder
+            .build()
+            .map(|row: PgRow| row.get::<String, &'static str>("name"))
+            .fetch_all(&mut *tx)
+            .await
+    });
+
+    voting.candidates = match candidates_result {
+        Some(candidates) => candidates.await,
+        None => Ok(vec![]),
+    }?;
+
+    Ok(Json(voting))
 }
+
 async fn put_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
     Html("hello world".to_string())
 }
@@ -91,9 +152,9 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
                 r.round as round,
                 d.name as dropped_candidate_name,
                 d.vote_count as dropped_candidate_vote_count,
-                COALESCE(ARRAY_AGG(p.name), '{}') as candidate_names,
-                COALESCE(ARRAY_AGG(p.is_selected), '{}') as candidate_is_selected,
-                COALESCE(ARRAY_AGG(p.vote_count), '{}') as candidate_vote_count
+                COALESCE(NULLIF(ARRAY_AGG(p.name), '{NULL}'), '{}') as candidate_names,
+                COALESCE(NULLIF(ARRAY_AGG(p.is_selected), '{NULL}'), '{}') as candidate_is_selected,
+                COALESCE(NULLIF(ARRAY_AGG(p.vote_count), '{NULL}'), '{}') as candidate_vote_count
             FROM
                 voting_round_result as r
                 LEFT JOIN passing_candidate_result_data as p
@@ -103,7 +164,7 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
             GROUP BY (r.voting_id, r.round, d.name, d.vote_count)
         ),
         candidates_by_voting AS (
-            SELECT v.id, COALESCE(ARRAY_AGG(c.name), '{}') as candidates
+            SELECT v.id, COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') as candidates
             FROM voting AS v LEFT JOIN candidate AS c ON v.id = c.voting_id
             GROUP BY v.id
         )
@@ -116,7 +177,6 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
             v.description as \"description!: String\",
             v.created_at as \"created_at!: DateTime<Utc>\",
             v.hide_vote_counts as \"hide_vote_counts!: bool\",
-            v.number_of_votes as \"number_of_votes!: i32\",
             c.candidates as \"candidates!: Vec<CandidateId>\",
             r.round as \"round?: i32\",
             r.dropped_candidate_name as \"dropped_candidate_name?: String\",
@@ -126,9 +186,9 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
             r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\"
         FROM
             voting AS v
-            LEFT JOIN candidates_by_voting AS c ON v.id = c.id
+            INNER JOIN candidates_by_voting AS c ON v.id = c.id
             LEFT JOIN round_results AS r ON v.id = r.voting_id
-        ORDER BY round ASC;
+        ORDER BY round, v.created_at ASC;
         "
         ).fetch_all(&db);
 
@@ -210,7 +270,6 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
                     state,
                     created_at: rec.created_at,
                     hide_vote_counts: rec.hide_vote_counts,
-                    number_of_votes: rec.number_of_votes,
                 };
 
                 votings.insert(rec.id, voting);
