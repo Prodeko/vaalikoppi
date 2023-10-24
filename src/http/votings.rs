@@ -12,11 +12,12 @@ use chrono::{DateTime, Utc};
 use sqlx::{Pool, Postgres};
 
 use crate::{
+    ctx::Ctx,
     error::{Error, Result},
     middleware::require_admin_token::require_admin,
     models::{
         CandidateId, CandidateResultData, PassingCandidateResult, SqlxVotingState, Voting,
-        VotingId, VotingResult, VotingRoundResult, VotingState,
+        VotingId, VotingRoundResult, VotingState,
     },
 };
 
@@ -40,21 +41,28 @@ async fn put_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
 async fn delete_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
     Html("hello world".to_string())
 }
-async fn get_votings(state: State<AppState>) -> askama::Html {
-    get_all_votings_html(state.db.clone()).await
+async fn get_votings(context: Ctx, state: State<AppState>) -> Result<Html<String>> {
+    get_all_votings_html(state.db.clone(), context.is_admin()).await
+}
+
+#[derive(Debug)]
+struct VotingResult<'a> {
+    voting: &'a Voting,
+    round_results: &'a Vec<VotingRoundResult>,
+    winners: &'a Vec<CandidateId>,
 }
 
 #[derive(Template)]
 #[template(path = "voting-list.html", ext = "html")]
 struct VotingsTemplate<'a> {
-    open_votings: Vec<Voting>,
-    closed_votings: Vec<Voting>,
-    ended_votings: Vec<VotingResult>,
-    csrf_token: &'a str,
+    open_votings: Vec<&'a Voting>,
+    closed_votings: Vec<&'a Voting>,
+    ended_votings: Vec<VotingResult<'a>>,
+    // csrf_token: &'a str,
     is_admin: bool,
 }
 
-async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
+async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html<String>> {
     let rows = sqlx::query!(
         "
         with passing_candidate_result_data AS (
@@ -100,6 +108,7 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
             GROUP BY v.id
         )
 
+        --- The return type of ARRAY_AGG has to be mangled so it returns an empty list. This is not exactly type safe.
         SELECT
             v.id as \"id!: VotingId\",
             v.state as \"state!: SqlxVotingState\",
@@ -159,7 +168,6 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
 
         let voting = votings.get_mut(&rec.id);
 
-        // TODO clean up these ugly matches
         match voting {
             Some(v) => match (&mut v.state, round_result) {
                 (VotingState::Draft, None) => Ok(()),
@@ -184,7 +192,6 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
                     Ok(())
                 }
             },
-
             None => {
                 let state = match rec.state {
                     SqlxVotingState::Draft => VotingState::Draft,
@@ -212,37 +219,33 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
         }
     })?;
 
-    // .map(|row| {
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //
-    //     VotingRoundResult {
-    //         candidate_results,
-    //         dropped_candidate,
-    //         round: row.round,
-    //     }
-    // }).fetch_all(&db);
+    let mut closed_votings: Vec<&Voting> = vec![];
+    let mut open_votings: Vec<&Voting> = vec![];
+    let mut results_votings: Vec<VotingResult> = vec![];
 
-    //let (open_votings, closed_votings): (Vec<_>, Vec<_>) =
-    //    votings.into_iter().partition(|v| v.is_open);
-    //
-    //let template = VotingsTemplate {
-    //    closed_votings,
-    //    open_votings,
-    //    ended_votings:
-    //}
-    //template
-    //    .render()
-    //    .map(|s| Html(s))
-    //    .map_err(|_| Error::InternalServerError)
-    todo!()
+    votings.values().for_each(|f| match &f.state {
+        VotingState::Draft => closed_votings.push(f),
+        VotingState::Open => open_votings.push(f),
+        VotingState::Closed {
+            round_results,
+            winners,
+        } => results_votings.push(VotingResult {
+            round_results,
+            winners,
+            voting: f,
+        }),
+    });
+
+    let template = VotingsTemplate {
+        open_votings,
+        closed_votings,
+        ended_votings: results_votings,
+        // csrf_token: todo!(),
+        is_admin,
+    };
+
+    template
+        .render()
+        .map(|s| Html(s))
+        .map_err(|_| Error::InternalServerError)
 }
