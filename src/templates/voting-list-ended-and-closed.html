@@ -52,7 +52,7 @@
         {% else %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
-              <span class="card-title blue-grey-text text-lighten-1">{% if voting.is_open %}Äänestetty: {% endif %}{{ voting.name }}</span>
+              <span class="card-title blue-grey-text text-lighten-1">{% match voting.state %}{% when Open %}Äänestetty: {% endmatch %}{{ voting.name }}</span>
               {% if !voting.description.is_empty() %}
                 <p>{{ voting.description }}</p>
               {% endif %}
@@ -105,10 +105,10 @@
                 </div>
                 <table class="result-table">
                   {% for candidate in round.candidate_results %}
-                    <tr class="candidate {% if candidate.is_elected %} elected {% endif %}">
+                    <tr class="candidate {% if candidate.is_selected %} elected {% endif %}">
                       <td class="candidate-name">
                         {{ candidate.data.name }}
-                        {% if candidate.is_elected %}
+                        {% if candidate.is_selected %}
                           (valittu)
                         {% endif %}
                       </td>
