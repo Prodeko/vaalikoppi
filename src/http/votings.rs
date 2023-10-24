@@ -100,7 +100,6 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
             GROUP BY v.id
         )
 
-        --- The return type of ARRAY_AGG has to be mangled so it returns an empty list. This is not exactly type safe.
         SELECT
             v.id as \"id!: VotingId\",
             v.state as \"state!: SqlxVotingState\",
@@ -110,56 +109,82 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
             v.hide_vote_counts as \"hide_vote_counts!: bool\",
             v.number_of_votes as \"number_of_votes!: i32\",
             c.candidates as \"candidates!: Vec<CandidateId>\",
-            r.round,
-            r.dropped_candidate_name as \"dropped_candidate_name?: CandidateId\",
+            r.round as \"round?: i32\",
+            r.dropped_candidate_name as \"dropped_candidate_name?: String\",
             r.dropped_candidate_vote_count as \"dropped_candidate_vote_count?: f64\",
-            r.candidate_names as \"candidate_names!: Vec<CandidateId>\",
-            r.candidate_is_selected as \"candidate_is_selected!: Vec<bool>\",
-            r.candidate_vote_count as \"candidate_vote_count!: Vec<f64>\"
+            r.candidate_names as \"candidate_names?: Vec<CandidateId>\",
+            r.candidate_is_selected as \"candidate_is_selected?: Vec<bool>\",
+            r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\"
         FROM
             voting AS v
             LEFT JOIN candidates_by_voting AS c ON v.id = c.id
             LEFT JOIN round_results AS r ON v.id = r.voting_id
+        ORDER BY round ASC;
         "
         ).fetch_all(&db);
 
     let mut votings: HashMap<VotingId, Voting> = HashMap::new();
-    let mut round_results_map: HashMap<VotingId, Vec<VotingRoundResult>> = HashMap::new();
 
     let rows = rows.await?;
-    rows.into_iter().for_each(|rec| {
+    rows.into_iter().try_for_each(|rec| {
         let candidate_results = rec
             .candidate_names
-            .into_iter()
-            .zip(rec.candidate_is_selected.into_iter())
-            .zip(rec.candidate_vote_count.into_iter())
-            .map(|((name, is_selected), vote_count)| PassingCandidateResult {
-                data: CandidateResultData { name, vote_count },
-                is_selected,
-            })
-            .collect::<Vec<PassingCandidateResult>>();
+            .zip(rec.candidate_is_selected)
+            .zip(rec.candidate_vote_count)
+            .map(|((names, is_selecteds), vote_counts)| {
+                names
+                    .into_iter()
+                    .zip(is_selecteds.into_iter())
+                    .zip(vote_counts.into_iter())
+                    .map(|((name, is_selected), vote_count)| PassingCandidateResult {
+                        data: CandidateResultData { name, vote_count },
+                        is_selected,
+                    })
+                    .collect::<Vec<PassingCandidateResult>>()
+            });
 
         let dropped_candidate: Option<CandidateResultData> = rec
             .dropped_candidate_name
             .zip(rec.dropped_candidate_vote_count)
             .map(|(name, vote_count)| CandidateResultData { name, vote_count });
 
-        let round_result = VotingRoundResult {
-            round: rec.round,
-            dropped_candidate,
-            candidate_results,
-        };
+        let round_result: Option<VotingRoundResult> =
+            rec.round
+                .zip(candidate_results)
+                .map(|(round, results)| VotingRoundResult {
+                    round,
+                    dropped_candidate,
+                    candidate_results: results,
+                });
 
         let voting = votings.get_mut(&rec.id);
 
+        // TODO clean up these ugly matches
         match voting {
-            Some(v) => match &v.state {
-                VotingState::Closed {
-                    round_results,
-                    winners,
-                } => todo!(),
-                _ => (),
+            Some(v) => match (&mut v.state, round_result) {
+                (VotingState::Draft, None) => Ok(()),
+                (VotingState::Draft, Some(_)) => Err(Error::CorruptDatabaseError),
+                (VotingState::Open, None) => Ok(()),
+                (VotingState::Open, Some(_)) => Err(Error::CorruptDatabaseError),
+                (
+                    VotingState::Closed {
+                        round_results: _,
+                        winners: _,
+                    },
+                    None,
+                ) => Err(Error::CorruptDatabaseError),
+                (
+                    VotingState::Closed {
+                        round_results,
+                        winners: _,
+                    },
+                    Some(result),
+                ) => {
+                    round_results.push(result);
+                    Ok(())
+                }
             },
+
             None => {
                 let state = match rec.state {
                     SqlxVotingState::Draft => VotingState::Draft,
@@ -182,11 +207,11 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
                 };
 
                 votings.insert(rec.id, voting);
+                Ok(())
             }
-        };
-    });
+        }
+    })?;
 
-    todo!();
     // .map(|row| {
     //
     //
@@ -219,4 +244,5 @@ async fn get_all_votings_html(db: Pool<Postgres>) -> Result<Html<String>> {
     //    .render()
     //    .map(|s| Html(s))
     //    .map_err(|_| Error::InternalServerError)
+    todo!()
 }

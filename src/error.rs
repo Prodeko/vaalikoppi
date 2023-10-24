@@ -20,6 +20,7 @@ pub enum Error {
     AuthFailed(AuthFailedError),
     InternalServerError,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
+    CorruptDatabaseError,
 }
 
 impl IntoResponse for Error {
