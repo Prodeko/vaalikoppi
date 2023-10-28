@@ -18,7 +18,7 @@ CREATE TABLE token (
 
 CREATE TABLE candidate (
     name text NOT NULL,
-    voting_id int REFERENCES voting NOT NULL,
+    voting_id int REFERENCES voting ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (voting_id, name)
 );
 
@@ -27,13 +27,12 @@ CREATE TABLE vote (
     candidate_name text NOT NULL,
     voting_id int NOT NULL,
     rank int DEFAULT 1,
-    FOREIGN KEY (candidate_name, voting_id) REFERENCES candidate(name, voting_id)
+    FOREIGN KEY (candidate_name, voting_id) REFERENCES candidate(name, voting_id) ON DELETE CASCADE
 );
 
 CREATE TABLE has_voted (
     token_id text REFERENCES token NOT NULL,
-    voting_id int REFERENCES voting NOT NULL,
-    has_voted boolean NOT NULL,
+    voting_id int REFERENCES voting ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (token_id, voting_id)
 );
 

@@ -4,36 +4,36 @@ use askama::Template;
 use axum::{
     debug_handler,
     extract::{Path, State},
-    middleware::from_fn,
+    middleware::{from_fn, from_fn_with_state},
     response::Html,
-    routing::{delete, get, post, put},
+    routing::{delete, get, patch, post},
     Json, Router,
 };
 use chrono::{DateTime, Utc};
-use sqlx::{postgres::PgRow, Pool, Postgres, QueryBuilder, Row};
+use sqlx::{postgres::PgRow, Executor, Pool, Postgres, QueryBuilder, Row};
 
 use crate::{
     ctx::Ctx,
     error::{Error, Result},
-    middleware::require_admin_token::require_admin,
+    middleware::{require_admin_token::require_admin, resolve_voting::resolve_voting},
     models::{
-        CandidateId, CandidateResultData, PassingCandidateResult, SqlxVotingState, Voting,
-        VotingCreate, VotingId, VotingRoundResult, VotingState,
+        CandidateId, CandidateResultData, PassingCandidateResult, Voting, VotingCreate, VotingId,
+        VotingRoundResult, VotingState, VotingStateWithoutResults, VotingUpdate,
     },
 };
 
 use super::AppState;
 
-pub fn router() -> Router<AppState> {
+pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
-        .route("/", post(post_voting))
-        .route("/:id", put(put_voting))
+        .route("/:id", patch(patch_voting))
         .route("/:id", delete(delete_voting))
+        .route_layer(from_fn_with_state(state, resolve_voting))
+        .route("/", post(post_voting))
         .route_layer(from_fn(require_admin))
         .route("/", get(get_votings))
 }
 
-#[debug_handler]
 async fn post_voting(
     state: State<AppState>,
     Json(voting_create): Json<VotingCreate>,
@@ -48,13 +48,13 @@ async fn post_voting(
             id,
             name,
             description,
-            state AS \"state: SqlxVotingState\",
+            state AS \"state: VotingStateWithoutResults\",
             created_at,
             hide_vote_counts;
         ",
         voting_create.name,
         voting_create.description,
-        SqlxVotingState::Draft as SqlxVotingState,
+        VotingStateWithoutResults::Draft as VotingStateWithoutResults,
         Utc::now(),
         voting_create.hide_vote_counts,
     )
@@ -70,38 +70,228 @@ async fn post_voting(
     .fetch_one(&mut *tx)
     .await?;
 
-    let cloned_id = voting.id.clone();
-    let candidates_result = voting_create.candidates.map(|candidates| async {
-        let mut query_builder: QueryBuilder<Postgres> =
-            QueryBuilder::new("INSERT INTO candidate(voting_id, name) ");
+    let candidates = insert_candidates_into_db(
+        voting.id,
+        voting_create.candidates.unwrap_or(vec![]),
+        &mut *tx,
+    )
+    .await?;
 
-        query_builder.push_values(candidates, |mut b, name| {
-            b.push_bind(cloned_id).push_bind(name);
-        });
+    voting.candidates = candidates;
 
-        query_builder.push("RETURNING name");
-
-        query_builder
-            .build()
-            .map(|row: PgRow| row.get::<String, &'static str>("name"))
-            .fetch_all(&mut *tx)
-            .await
-    });
-
-    voting.candidates = match candidates_result {
-        Some(candidates) => candidates.await,
-        None => Ok(vec![]),
-    }?;
+    tx.commit().await?;
 
     Ok(Json(voting))
 }
 
-async fn put_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
-    Html("hello world".to_string())
+async fn insert_candidates_into_db<T>(
+    voting_id: VotingId,
+    candidates: Vec<CandidateId>,
+    executor: &mut T,
+) -> Result<Vec<CandidateId>>
+where
+    for<'e> &'e mut T: Executor<'e, Database = Postgres>,
+{
+    if candidates.is_empty() {
+        return Ok(vec![]);
+    }
+
+    let mut query_builder: QueryBuilder<Postgres> =
+        QueryBuilder::new("INSERT INTO candidate(voting_id, name) ");
+
+    query_builder.push_values(candidates, |mut b, name| {
+        b.push_bind(voting_id).push_bind(name);
+    });
+
+    query_builder.push("RETURNING name");
+
+    query_builder
+        .build()
+        .map(|row: PgRow| row.get::<CandidateId, &'static str>("name"))
+        .fetch_all(executor)
+        .await
+        .map_err(|e| e.into())
 }
-async fn delete_voting(state: State<AppState>, id: Path<u64>) -> Html<String> {
-    Html("hello world".to_string())
+
+#[debug_handler]
+async fn patch_voting(
+    existing_voting: Voting,
+    state: State<AppState>,
+    id: Path<VotingId>,
+    Json(voting_update): Json<VotingUpdate>,
+) -> Result<Json<Voting>> {
+    let res = existing_voting
+        .handle_patch(state.db.clone(), voting_update)
+        .await
+        .map(|v| Json(v))?;
+    Ok(res)
 }
+
+struct VotingStateResult {
+    state: VotingStateWithoutResults,
+}
+
+impl Voting {
+    pub async fn handle_patch(
+        &self,
+        db: Pool<Postgres>,
+        voting_update: VotingUpdate,
+    ) -> Result<Voting> {
+        println!("handle patch for voting {}", self.id);
+        match (
+            self.state.clone(),
+            voting_update
+                .state
+                .unwrap_or_else(|| self.state.clone().into()),
+        ) {
+            (
+                VotingState::Closed {
+                    round_results: _,
+                    winners: _,
+                },
+                _,
+            ) => Err(Error::VotingAlreadyClosed),
+            (_, VotingStateWithoutResults::Closed) => {
+                self.try_close_voting(db, voting_update).await
+            }
+            (_, _) => self.modify_and_reset_votes(db, voting_update).await,
+        }
+    }
+
+    async fn try_close_voting(
+        &self,
+        db: Pool<Postgres>,
+        voting_update: VotingUpdate,
+    ) -> Result<Voting> {
+        if self.state != VotingStateWithoutResults::Open {
+            return Err(Error::InvalidInput);
+        }
+
+        let mut clone = self.clone();
+        let no_other_fields_modified = clone == voting_update;
+
+        if no_other_fields_modified {
+            let result = sqlx::query_as!(
+                VotingStateResult,
+                "
+                UPDATE voting
+                SET state = 'closed'::voting_state
+                FROM voting as v
+                WHERE v.id = $1
+                RETURNING
+                    v.state AS \"state!: VotingStateWithoutResults\"
+                ",
+                self.id
+            )
+            .fetch_one(&db)
+            .await?;
+
+            clone.state = VotingState::from(result.state);
+            return Ok(clone);
+        } else {
+            return Err(Error::InvalidInput);
+        }
+    }
+
+    async fn modify_and_reset_votes(
+        &self,
+        db: Pool<Postgres>,
+        voting_update: VotingUpdate,
+    ) -> Result<Voting> {
+        let mut tx = db.begin().await?;
+
+        sqlx::query!("DELETE FROM candidate WHERE voting_id = $1", self.id)
+            .execute(&mut *tx)
+            .await?;
+
+        let candidates = insert_candidates_into_db(
+            self.id,
+            voting_update.candidates.unwrap_or(self.candidates.clone()),
+            &mut *tx,
+        )
+        .await?;
+
+        let voting = sqlx::query!(
+            "
+            UPDATE voting
+            SET
+                name = COALESCE($2, name),
+                description = COALESCE($3, description),
+                state = COALESCE($4, state),
+                hide_vote_counts = COALESCE($5, hide_vote_counts)
+            WHERE id = $1
+            RETURNING
+                id,
+                name,
+                description,
+                state AS \"state: VotingStateWithoutResults\",
+                created_at,
+                hide_vote_counts;
+            ",
+            self.id,
+            voting_update.name,
+            voting_update.description,
+            voting_update.state as Option<VotingStateWithoutResults>,
+            voting_update.hide_vote_counts,
+        )
+        .map(|row| Voting {
+            id: row.id,
+            name: row.name,
+            description: row.description,
+            state: VotingState::from(row.state),
+            created_at: row.created_at,
+            hide_vote_counts: row.hide_vote_counts,
+            candidates: candidates.clone(),
+        })
+        .fetch_one(&mut *tx)
+        .await?;
+
+        tx.commit().await?;
+
+        Ok(voting)
+    }
+}
+
+struct DeletedRowsCount {
+    count: i64,
+}
+
+#[debug_handler]
+async fn delete_voting(
+    existing_voting: Voting,
+    state: State<AppState>,
+    id: Path<VotingId>,
+) -> Result<()> {
+    match existing_voting.state {
+        VotingState::Draft => Ok(()),
+        VotingState::Open => Ok(()),
+        _ => Err(Error::VotingAlreadyClosed),
+    }?;
+
+    let query_result = sqlx::query_as!(
+        DeletedRowsCount,
+        "
+        WITH deleted_rows AS (
+            DELETE FROM voting
+            WHERE voting.id = $1 AND voting.state = 'draft'::voting_state
+            RETURNING *
+        )
+        SELECT COUNT(*) AS \"count!\"
+        FROM deleted_rows;
+        ",
+        id.0
+    )
+    .fetch_one(&state.db)
+    .await
+    .map_err(|_| Error::VotingNotFound)?;
+
+    match query_result.count {
+        ..=-1 => Err(Error::InternalServerError),
+        0 => Err(Error::VotingNotFound),
+        1.. => Ok(()),
+    }
+}
+
 async fn get_votings(context: Ctx, state: State<AppState>) -> Result<Html<String>> {
     get_all_votings_html(state.db.clone(), context.is_admin()).await
 }
@@ -172,7 +362,7 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
         --- The return type of ARRAY_AGG has to be mangled so it returns an empty list. This is not exactly type safe.
         SELECT
             v.id as \"id!: VotingId\",
-            v.state as \"state!: SqlxVotingState\",
+            v.state as \"state!: VotingStateWithoutResults\",
             v.name as \"name!: String\", 
             v.description as \"description!: String\",
             v.created_at as \"created_at!: DateTime<Utc>\",
@@ -254,9 +444,9 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
             },
             None => {
                 let state = match rec.state {
-                    SqlxVotingState::Draft => VotingState::Draft,
-                    SqlxVotingState::Open => VotingState::Open,
-                    SqlxVotingState::Closed => VotingState::Closed {
+                    VotingStateWithoutResults::Draft => VotingState::Draft,
+                    VotingStateWithoutResults::Open => VotingState::Open,
+                    VotingStateWithoutResults::Closed => VotingState::Closed {
                         round_results: Vec::new(),
                         winners: Vec::new(),
                     },

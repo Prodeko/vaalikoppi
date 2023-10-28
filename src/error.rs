@@ -20,7 +20,8 @@ pub enum Error {
     AuthFailed(AuthFailedError),
     InternalServerError,
     VotingNotFound,
-    VotingAlreadyOpened,
+    VotingAlreadyClosed,
+    InvalidInput,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
 }
