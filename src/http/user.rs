@@ -8,7 +8,8 @@ use crate::{
     http::AppState,
 };
 
-pub const AUTH_TOKEN: &str = "user-token";
+pub const USER_TOKEN: &str = "user-token";
+pub const USER_TOKEN_MAX_AGE_DAYS: i64 = 1;
 
 #[derive(Deserialize)]
 struct LoginPayload {
@@ -42,10 +43,13 @@ async fn user_login(
             if !row.is_activated || row.is_trashed {
                 return Err(Error::LoginFail);
             } else {
+                // register_alias // ! TODO
                 cookies.add(
-                    Cookie::build(AUTH_TOKEN, login_payload.token)
+                    Cookie::build(USER_TOKEN, login_payload.token)
                         .http_only(true)
+                        .path("/")
                         .secure(true)
+                        .max_age(time::Duration::days(USER_TOKEN_MAX_AGE_DAYS))
                         .finish(),
                 );
                 return Ok(Json(LoginResponse {}));

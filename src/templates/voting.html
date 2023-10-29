@@ -2,7 +2,7 @@
   <div class="col s12">
     <div id="voting-list-updater" class="card blue-grey lighten-5">
       <div class="card-content center-align">
-        <p>Olet kirjautunut sisään aliaksella <b>{{ user_alias|escape }}</b>.</p>
+        <p>Olet kirjautunut sisään aliaksella <b>{{ user_alias }}</b>.</p>
       </div>
       <div class="card-action center-align">
         <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList()">
@@ -14,7 +14,8 @@
 </div>
 
 <div id="voting-list-area" class="reduced-row-margin">
-  {% include 'voting-list.html' %}
+{# % include 'voting-list.html' % #}
+This is voting-list.html
 </div>
 
 <script type="text/javascript">

@@ -2,10 +2,11 @@
 
 {% block body %}
 <div class="container">
-  {% if is_valid_token %}
-    <p>Successfully logged in!</p>
-  {% else %}
-   {% include "login.html" %}
-  {% endif %}
+  {% match self %}
+    {% when ClientState::LoggedIn with { is_valid_token, user_alias } %}
+      {% include "voting.html" %}
+    {% when ClientState::NotLoggedIn %}
+      {% include "login.html" %}
+  {% endmatch %}
 </div>
 {% endblock %}
