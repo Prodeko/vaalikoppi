@@ -14,12 +14,11 @@
 </div>
 
 <div id="voting-list-area" class="reduced-row-margin">
-{# % include 'voting-list.html' % #}
-This is voting-list.html
+  {% include "voting-list.html" %}
 </div>
 
 <script type="text/javascript">
-window.addEventListener("load", function () {
-  setupEventListeners();
-});
+  window.addEventListener("load", function () {
+    setupEventListeners();
+  });
 </script>

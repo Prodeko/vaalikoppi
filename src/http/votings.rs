@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-
-use askama::Template;
 use axum::{
     debug_handler,
     extract::{Path, State},
@@ -9,8 +6,12 @@ use axum::{
     routing::{delete, get, patch, post},
     Json, Router,
 };
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use sqlx::{postgres::PgRow, Executor, Pool, Postgres, QueryBuilder, Row};
+use std::collections::HashMap;
+
+use askama::Template;
+use chrono::DateTime;
 
 use crate::{
     ctx::Ctx,
@@ -125,6 +126,16 @@ async fn patch_voting(
         .await
         .map(|v| Json(v))?;
     Ok(res)
+}
+
+#[debug_handler]
+async fn get_votings(ctx: Ctx, state: State<AppState>) -> Result<Html<String>> {
+    let template = get_votings_list_template(state.db.clone(), ctx.is_admin()).await?;
+
+    template
+        .render()
+        .map(|html| Html(html))
+        .map_err(|_| Error::InternalServerError)
 }
 
 struct VotingStateResult {
@@ -292,28 +303,26 @@ async fn delete_voting(
     }
 }
 
-async fn get_votings(context: Ctx, state: State<AppState>) -> Result<Html<String>> {
-    get_all_votings_html(state.db.clone(), context.is_admin()).await
-}
-
 #[derive(Debug)]
-struct VotingResult<'a> {
-    voting: &'a Voting,
-    round_results: &'a Vec<VotingRoundResult>,
-    winners: &'a Vec<CandidateId>,
+pub struct VotingResult {
+    pub voting: Voting,
+    pub round_results: Vec<VotingRoundResult>,
+    pub winners: Vec<CandidateId>,
 }
 
 #[derive(Template)]
 #[template(path = "voting-list.html", ext = "html")]
-struct VotingsTemplate<'a> {
-    open_votings: Vec<&'a Voting>,
-    closed_votings: Vec<&'a Voting>,
-    ended_votings: Vec<VotingResult<'a>>,
-    // csrf_token: &'a str,
-    is_admin: bool,
+pub struct VotingListTemplate {
+    pub open_votings: Vec<Voting>,
+    pub closed_votings: Vec<Voting>,
+    pub ended_votings: Vec<VotingResult>,
+    pub is_admin: bool,
 }
 
-async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html<String>> {
+pub async fn get_votings_list_template(
+    db: Pool<Postgres>,
+    is_admin: bool,
+) -> Result<VotingListTemplate> {
     let rows = sqlx::query!(
         "
         with passing_candidate_result_data AS (
@@ -468,24 +477,24 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
         }
     })?;
 
-    let mut closed_votings: Vec<&Voting> = vec![];
-    let mut open_votings: Vec<&Voting> = vec![];
+    let mut closed_votings: Vec<Voting> = vec![];
+    let mut open_votings: Vec<Voting> = vec![];
     let mut results_votings: Vec<VotingResult> = vec![];
 
     votings.values().for_each(|f| match &f.state {
-        VotingState::Draft => closed_votings.push(f),
-        VotingState::Open => open_votings.push(f),
+        VotingState::Draft => closed_votings.push(f.to_owned()),
+        VotingState::Open => open_votings.push(f.to_owned()),
         VotingState::Closed {
             round_results,
             winners,
         } => results_votings.push(VotingResult {
-            round_results,
-            winners,
-            voting: f,
+            round_results: round_results.to_owned(),
+            winners: winners.to_owned(),
+            voting: f.to_owned(),
         }),
     });
 
-    let template = VotingsTemplate {
+    let template = VotingListTemplate {
         open_votings,
         closed_votings,
         ended_votings: results_votings,
@@ -493,8 +502,5 @@ async fn get_all_votings_html(db: Pool<Postgres>, is_admin: bool) -> Result<Html
         is_admin,
     };
 
-    template
-        .render()
-        .map(|s| Html(s))
-        .map_err(|_| Error::InternalServerError)
+    Ok(template)
 }

@@ -1,4 +1,4 @@
-var SITE_ROOT_PATH = "/vaalikoppi/";
+var SITE_ROOT_PATH = "/";
 var SOUND_STATE = 0;
 var currentVotingId = -1;
 var votesGiven = 0;
@@ -253,7 +253,7 @@ async function refreshVotingList(admin = false) {
   votingListRefreshButton.innerHTML = "Päivitetään...";
   votingListRefreshButton.disabled = true;
 
-  await callApi(`${SITE_ROOT_PATH}${adminPath}votings/list/`, "GET")
+  await callApi(`${SITE_ROOT_PATH}votings`, "GET")
     .then((res) => res.text())
     .then((html) => (votingArea.innerHTML = html))
     .catch(() => {
