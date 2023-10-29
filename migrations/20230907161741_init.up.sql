@@ -14,7 +14,7 @@ CREATE TABLE token (
     id text PRIMARY KEY NOT NULL,
     is_activated boolean NOT NULL,
     is_trashed boolean NOT NULL,
-    alias text
+    alias text UNIQUE
 );
 
 CREATE TABLE candidate (

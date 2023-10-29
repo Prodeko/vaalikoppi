@@ -39,7 +39,7 @@ async fn get_root(state: State<AppState>, cookies: Cookies) -> Html<String> {
                 id: r.id,
                 is_activated: r.is_activated,
                 is_trashed: r.is_trashed,
-                alias: None,
+                alias: r.alias,
             })
         })
     }
@@ -54,7 +54,7 @@ async fn get_root(state: State<AppState>, cookies: Cookies) -> Html<String> {
             if (token.is_activated && !token.is_trashed) {
                 state = ClientState::LoggedIn {
                     is_valid_token: true,
-                    user_alias: "temp".to_string(),
+                    user_alias: token.alias.unwrap_or("".to_string()),
                 }
             } else {
                 state = ClientState::NotLoggedIn {}
