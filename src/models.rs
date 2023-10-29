@@ -159,7 +159,7 @@ pub struct Vote {
     pub rank: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub id: TokenId,
     pub is_activated: bool,

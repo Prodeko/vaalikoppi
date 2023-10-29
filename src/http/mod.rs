@@ -4,7 +4,7 @@ use axum::{middleware::from_fn_with_state, Router};
 use sqlx::{Pool, Postgres};
 use tower_cookies::CookieManagerLayer;
 
-use crate::{config::Config, middleware::require_admin_token::resolve_ctx};
+use crate::{config::Config, middleware::resolve_ctx::resolve_ctx};
 
 mod index;
 pub mod login;

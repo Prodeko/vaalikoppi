@@ -29,33 +29,6 @@ pub async fn require_admin<B>(context: Ctx, req: Request<B>, next: Next<B>) -> R
     Ok(next.run(req).await)
 }
 
-pub async fn resolve_ctx<B>(
-    cookies: Cookies,
-    state: State<AppState>,
-    mut req: Request<B>,
-    next: Next<B>,
-) -> Result<Response> {
-    let admin_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
-
-    let decoded_token: Result<TokenData<JsonWebTokenClaims>> = admin_token.map_or_else(
-        || Err(AuthFailed(MissingToken)),
-        |t| {
-            decode::<JsonWebTokenClaims>(
-                &t,
-                &DecodingKey::from_secret(state.config.hmac_key.as_bytes()),
-                &Validation::default(),
-            )
-            .map_err(|_| AuthFailed(InvalidToken))
-        },
-    );
-
-    let ctx: Ctx = Ctx::new(decoded_token.is_ok());
-
-    req.extensions_mut().insert(ctx);
-
-    Ok(next.run(req).await)
-}
-
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Ctx {
     type Rejection = Error;
