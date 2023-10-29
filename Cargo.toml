@@ -9,14 +9,16 @@ edition = "2021"
 askama = { version = "0.12.1", features=["with-axum"]}
 askama_axum = "0.3.0"
 axum = { version = "0.6.20", features=["tokio", "macros"]}
-chrono = { version = "0.4.29", features = []}
+chrono = { version = "0.4.29", features = ["serde"]}
+derive_more = "0.99.17"
 dotenv = "0.15.0"
 envconfig = "0.10.0"
 jsonwebtoken = "8.3.0"
 postgres = "0.19.7"
 rand = "0.8.5"
 serde = { version = "1.0.188", features=["derive"]}
-sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros"]}
+serde_with = "3.4.0"
+sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros", "chrono"]}
 time = "0.3.30"
 tokio = { version = "1.32.0", features = ["macros", "io-util", "rt-multi-thread"]}
 tower = { version = "0.4.13", features = ["util"]}

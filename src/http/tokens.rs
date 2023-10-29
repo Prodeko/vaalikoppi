@@ -1,4 +1,5 @@
 use axum::{
+    debug_handler,
     extract::{Json, State},
     middleware::from_fn,
     routing::post,
@@ -8,8 +9,9 @@ use serde::Deserialize;
 use sqlx::{Postgres, QueryBuilder};
 
 use crate::{
-    helpers::generate_token, http::AppState, middleware::require_admin_token::require_admin,
-    models::Token,
+    http::AppState,
+    middleware::require_admin_token::require_admin,
+    models::{generate_token, Token},
 };
 
 #[derive(Deserialize)]
@@ -23,6 +25,7 @@ pub fn router() -> Router<AppState> {
         .route_layer(from_fn(require_admin))
 }
 
+#[debug_handler]
 async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateTokenInput>) {
     if input.count == 0 {
         return;

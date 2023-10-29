@@ -11,6 +11,7 @@ pub mod login;
 mod static_files;
 pub mod tokens;
 pub mod user;
+mod votings;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -24,7 +25,7 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         db,
     };
 
-    let app: Router = router()
+    let app: Router = router(state.clone())
         .layer(from_fn_with_state(state.clone(), resolve_ctx))
         .layer(CookieManagerLayer::new())
         .with_state(state);
@@ -37,10 +38,11 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         .unwrap();
 }
 
-fn router() -> Router<AppState> {
+fn router(state: AppState) -> Router<AppState> {
     index::router()
         .merge(tokens::router())
         .merge(login::router())
         .merge(user::router())
         .merge(static_files::router())
+        .nest("/votings", votings::router(state))
 }
