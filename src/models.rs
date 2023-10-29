@@ -7,6 +7,7 @@ use validator::Validate;
 pub type CandidateId = String;
 pub type VotingId = i32;
 pub type TokenId = String;
+pub type Alias = Option<String>;
 
 static CHARSET: &[u8] = b"0123456789abcdefghijklmnopqrstuvxyz";
 static TOKEN_LENGTH: usize = 6;
@@ -163,6 +164,7 @@ pub struct Token {
     pub id: TokenId,
     pub is_activated: bool,
     pub is_trashed: bool,
+    pub alias: Alias,
 }
 
 #[derive(Debug)]

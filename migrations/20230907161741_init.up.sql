@@ -13,7 +13,8 @@ CREATE TABLE voting (
 CREATE TABLE token (
     id text PRIMARY KEY NOT NULL,
     is_activated boolean NOT NULL,
-    is_trashed boolean NOT NULL
+    is_trashed boolean NOT NULL,
+    alias text
 );
 
 CREATE TABLE candidate (

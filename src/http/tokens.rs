@@ -37,6 +37,7 @@ async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateToken
             id: token_id,
             is_activated: false,
             is_trashed: false,
+            alias: None,
         });
 
     let mut query_builder: QueryBuilder<Postgres> =
