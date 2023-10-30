@@ -11,6 +11,7 @@ pub mod login;
 mod static_files;
 pub mod tokens;
 pub mod user;
+pub mod votes;
 mod votings;
 
 #[derive(Clone)]
@@ -45,4 +46,5 @@ fn router(state: AppState) -> Router<AppState> {
         .merge(user::router())
         .merge(static_files::router())
         .nest("/votings", votings::router(state))
+        .merge(votes::router())
 }
