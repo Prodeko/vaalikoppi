@@ -43,7 +43,7 @@ fn router(state: AppState) -> Router<AppState> {
     index::router()
         .merge(tokens::router())
         .merge(login::router())
-        .merge(user::router())
+        .nest("/user", user::router())
         .merge(static_files::router())
         .nest("/votings", votings::router(state))
         .merge(votes::router())

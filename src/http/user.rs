@@ -23,7 +23,7 @@ struct LoginPayload {
 struct LoginResponse {}
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/vaalikoppi/user/login/", post(user_login))
+    Router::new().route("/login/", post(user_login))
 }
 
 async fn user_login(
