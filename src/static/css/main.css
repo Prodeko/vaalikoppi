@@ -6,14 +6,11 @@ body {
   height: 100%;
 }
 
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
   border: none;
@@ -87,7 +84,6 @@ nav {
 #admin-nav .nav-wrapper {
   background: #ee6e73;
 }
-
 #admin-nav .nav-content {
   height: 64px;
 }
@@ -116,15 +112,12 @@ nav {
 #login-container .loading-token-notification {
   color: green;
 }
-
 #login-container .wrong-token-warning {
   color: red;
 }
-
 #login-container .login-instructions h6 {
   font-weight: bold;
 }
-
 #login-container .login-instructions p {
   margin-bottom: 1em;
 }
@@ -334,21 +327,16 @@ nav {
   border: 1px solid #ddd;
   font-size: 18px;
 }
-
-#search-table th,
-#search-table td {
+#search-table th, #search-table td {
   text-align: left;
   padding: 12px;
 }
-
 #search-table button.btn {
   width: 10em;
 }
-
 #search-table tr {
   border-bottom: 1px solid #ddd;
 }
-
 #search-table tr:header, #search-table tr:hover {
   background-color: #f1f1f1;
 }
@@ -356,16 +344,13 @@ nav {
 .votes-left-row {
   margin-bottom: 0;
 }
-
 .votes-left-row .votes-left-col .votes-left-expander {
   font-size: inherit;
 }
-
 .votes-left-row .votes-left-col .votes-left-expander:hover {
   font-weight: bold;
   text-decoration: underline;
 }
-
 .votes-left-row .votes-left-col .votes-left-table thead {
   font-weight: bold;
 }
@@ -373,7 +358,6 @@ nav {
 .closed-voting .votes-left-col {
   padding: 0.3em 1.5em 0.5em 1.5em;
 }
-
 .closed-voting .votes-left-col .votes-left-expander {
   font-size: 0.8em;
 }
