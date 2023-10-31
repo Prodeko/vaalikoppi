@@ -22,6 +22,7 @@ pub enum Error {
     VotingNotFound,
     VotingAlreadyClosed,
     InvalidInput,
+    AlreadyVoted,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
 }
