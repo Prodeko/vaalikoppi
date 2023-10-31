@@ -35,10 +35,32 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/", get(get_votings))
 }
 
+#[debug_handler]
 async fn post_voting(
     state: State<AppState>,
     Json(voting_create): Json<VotingCreate>,
 ) -> Result<Json<Voting>> {
+    let voting_state = voting_create
+        .state
+        .unwrap_or(VotingStateWithoutResults::Draft);
+
+    match voting_state {
+        VotingStateWithoutResults::Draft => Ok(()),
+        VotingStateWithoutResults::Open => {
+            if voting_create
+                .candidates
+                .as_ref()
+                .map(|v| v.is_empty())
+                .unwrap_or(true)
+            {
+                Err(Error::InvalidInput)
+            } else {
+                Ok(())
+            }
+        }
+        VotingStateWithoutResults::Closed => Err(Error::InvalidInput),
+    }?;
+
     let mut tx = state.db.begin().await?;
 
     let mut voting = sqlx::query!(
@@ -55,7 +77,7 @@ async fn post_voting(
         ",
         voting_create.name,
         voting_create.description,
-        VotingStateWithoutResults::Draft as VotingStateWithoutResults,
+        voting_state as VotingStateWithoutResults,
         Utc::now(),
         voting_create.hide_vote_counts,
     )
