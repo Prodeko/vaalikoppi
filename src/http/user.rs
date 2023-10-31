@@ -1,4 +1,4 @@
-use crate::models::Token;
+use crate::models::{Token, TokenState};
 use axum::{extract::State, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::Postgres;
@@ -31,16 +31,23 @@ async fn user_login(
     cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
 ) -> Result<Json<LoginResponse>> {
-    let row = sqlx::query!(
+    let row = sqlx::query_as!(
+        Token,
         "
-        SELECT * FROM token WHERE id = $1
+        SELECT
+            id,
+            token,
+            state AS \"state: TokenState\",
+            alias
+        FROM token
+        WHERE token = $1;
         ",
-        login_payload.token.clone()
+        login_payload.token
     )
     .fetch_one(&state.db)
     .await?;
 
-    if !row.is_activated || row.is_trashed {
+    if row.state != TokenState::Activated {
         return Err(Error::LoginFail);
     }
 
@@ -50,7 +57,7 @@ async fn user_login(
             .await?;
 
     cookies.add(
-        Cookie::build(USER_TOKEN, token.id)
+        Cookie::build(USER_TOKEN, token.token)
             .http_only(true)
             .path("/")
             .secure(true)
@@ -62,7 +69,7 @@ async fn user_login(
 
 async fn register_and_validate_alias(
     executor: &Pool<Postgres>,
-    id: &str,
+    token: &str,
     alias: &str,
 ) -> Result<Token> {
     if alias.len() < 4 || alias.len() > 16 {
@@ -72,9 +79,18 @@ async fn register_and_validate_alias(
     // Database should check for alias uniqueness
     let token = sqlx::query_as!(
         Token,
-        "update token set alias = $1 where id = $2 returning *;",
+        "
+        UPDATE token
+        SET alias = $1
+        WHERE token = $2
+        RETURNING
+            id,
+            token,
+            state AS \"state: TokenState\",
+            alias
+        ",
         alias,
-        id
+        token
     )
     .fetch_one(executor)
     .await?;

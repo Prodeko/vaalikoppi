@@ -377,7 +377,7 @@ function generateTokens(count) {
   );
   generateTokensButton.setAttribute("disabled", true);
 
-  callApi(`${SITE_ROOT_PATH}admin/tokens/generate/`, "POST", { count })
+  callApi(`${SITE_ROOT_PATH}tokens`, "POST", { count })
     .then(() => {
       showUserNotification(
         USER_NOTIFICATION.CONFIRMATION,
@@ -418,9 +418,9 @@ function activateOrInvalidateToken(isActivate, code, number) {
   button.setAttribute("disabled", true);
 
   callApi(
-    `${SITE_ROOT_PATH}admin/tokens/${isActivate ? "activate" : "invalidate"}/`,
-    "POST",
-    { token }
+    `${SITE_ROOT_PATH}tokens/${code}`,
+    "PATCH",
+    { state: isActivate ? "Activated" : "Voided" }
   )
     .then(() => location.reload())
     .catch(() =>

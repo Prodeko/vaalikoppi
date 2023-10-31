@@ -6,13 +6,13 @@ use validator::Validate;
 
 pub type CandidateId = String;
 pub type VotingId = i32;
-pub type TokenId = String;
+pub type TokenId = i32;
 pub type Alias = Option<String>;
 
 static CHARSET: &[u8] = b"0123456789abcdefghijklmnopqrstuvxyz";
 static TOKEN_LENGTH: usize = 6;
 
-pub fn generate_token() -> TokenId {
+pub fn generate_token() -> String {
     let mut rng = rand::thread_rng();
     let get_one_char = || CHARSET[rng.gen_range(0..CHARSET.len())] as char;
     iter::repeat_with(get_one_char)
@@ -30,6 +30,14 @@ pub enum VotingStateWithoutResults {
     Draft,
     Open,
     Closed,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, Eq, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "token_state", rename_all = "lowercase")]
+pub enum TokenState {
+    Unactivated,
+    Activated,
+    Voided,
 }
 
 impl From<VotingState> for VotingStateWithoutResults {
@@ -159,12 +167,17 @@ pub struct Vote {
     pub rank: i32,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Token {
     pub id: TokenId,
-    pub is_activated: bool,
-    pub is_trashed: bool,
+    pub token: String,
+    pub state: TokenState,
     pub alias: Alias,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TokenUpdate {
+    pub state: TokenState,
 }
 
 #[derive(Debug)]

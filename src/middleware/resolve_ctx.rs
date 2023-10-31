@@ -10,7 +10,7 @@ use crate::{
         user::USER_TOKEN,
         AppState,
     },
-    models::Token,
+    models::{Token, TokenState},
 };
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
@@ -37,10 +37,21 @@ pub async fn resolve_ctx<B>(
         },
     );
 
-    let resolved_user_token =
-        sqlx::query_as!(Token, "SELECT * FROM token WHERE id = $1", user_token)
-            .fetch_optional(&state.db)
-            .await?;
+    let resolved_user_token = sqlx::query_as!(
+        Token,
+        "
+        SELECT
+            id,
+            token,
+            state AS \"state: TokenState\",
+            alias
+        FROM token
+        WHERE token = $1
+        ",
+        user_token
+    )
+    .fetch_optional(&state.db)
+    .await?;
 
     let ctx: Ctx = Ctx::new(resolved_admin_token.is_ok(), resolved_user_token);
 

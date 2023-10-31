@@ -1,6 +1,8 @@
 -- Add migration script here
 CREATE TYPE voting_state AS ENUM ('draft', 'open', 'closed');
 
+CREATE TYPE token_state AS ENUM ('unactivated', 'activated', 'voided');
+
 CREATE TABLE voting (
     id SERIAL PRIMARY KEY NOT NULL,
     name text NOT NULL,
@@ -11,9 +13,9 @@ CREATE TABLE voting (
 );
 
 CREATE TABLE token (
-    id text PRIMARY KEY NOT NULL,
-    is_activated boolean NOT NULL,
-    is_trashed boolean NOT NULL,
+    id SERIAL PRIMARY KEY NOT NULL,
+    token text UNIQUE NOT NULL,
+    state token_state NOT NULL,
     alias text UNIQUE
 );
 
@@ -32,7 +34,7 @@ CREATE TABLE vote (
 );
 
 CREATE TABLE has_voted (
-    token_id text REFERENCES token NOT NULL,
+    token_id int REFERENCES token NOT NULL,
     voting_id int REFERENCES voting ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (token_id, voting_id)
 );

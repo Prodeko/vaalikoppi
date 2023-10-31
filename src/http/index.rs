@@ -1,7 +1,10 @@
 use askama::Template;
 use axum::{response::Html, routing::get, Router};
 
-use crate::{ctx::Ctx, models::Token};
+use crate::{
+    ctx::Ctx,
+    models::{Token, TokenState},
+};
 use axum::extract::State;
 
 use crate::error::{Error, Result};
@@ -33,17 +36,8 @@ async fn get_root(context: Ctx, state: State<AppState>) -> Result<Html<String>> 
 
     let state: ClientState = async {
         let client_state: Result<ClientState> = match token {
-            None => Ok(ClientState::NotLoggedIn {}),
             Some(Token {
-                is_activated: false,
-                ..
-            }) => Ok(ClientState::NotLoggedIn {}),
-            Some(Token {
-                is_trashed: true, ..
-            }) => Ok(ClientState::NotLoggedIn {}),
-            Some(Token {
-                is_activated: true,
-                is_trashed: false,
+                state: TokenState::Activated,
                 alias,
                 ..
             }) => {
@@ -57,6 +51,7 @@ async fn get_root(context: Ctx, state: State<AppState>) -> Result<Html<String>> 
                     is_admin: context.is_admin(),
                 })
             }
+            _ => Ok(ClientState::NotLoggedIn),
         };
 
         client_state

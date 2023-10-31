@@ -23,6 +23,7 @@ pub enum Error {
     VotingAlreadyClosed,
     InvalidInput,
     AlreadyVoted,
+    TokenNotFound,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
 }

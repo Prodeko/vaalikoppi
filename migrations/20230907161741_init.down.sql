@@ -17,4 +17,6 @@ DROP TABLE token;
 
 DROP TABLE voting;
 
+DROP TYPE token_state;
+
 DROP TYPE voting_state;

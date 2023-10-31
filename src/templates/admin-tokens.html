@@ -1,24 +1,23 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
 {% block body %}
   <div class="container">
-    {% if not tokens %}
+    {% if tokens.is_empty() %}
       <div class="card blue-grey lighten-5">
         <div class="card-content blue-grey-text text-lighten-1 center">
           <span class="card-title blue-grey-text text-lighten-1">Luo ensin koodit.</span>
         </div>
       </div>
     {% endif %}
-    {% csrf_token %}
+    {# {% csrf_token %} #}
     <div class="card blue-grey lighten-5">
       <div class="card-action center">
         <button id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="generateTokens(100)">Generoi 100 uutta koodia</button>
-        <a href="{% url 'vaalikoppi:tokens' %}" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue">Tulosta koodit</a>
+        <a href="/tokens-table" id="generate-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue">Tulosta koodit</a>
         <button id="invalidate-active-tokens-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
       </div>
     </div>
-    {% if tokens %}
+    {% if !tokens.is_empty() %}
       <div class="card blue-grey lighten-5">
         <div class="card-content text-lighten-1">
           <table class="highlight bordered">
@@ -31,19 +30,19 @@
             <tbody>
               <tr>
                 <td>Kaikki koodit</td>
-                <td>{{ tokens|length }}</td>
+                <td>{{ tokens.len() }}</td>
               </tr>
               <tr>
                 <td>Aktivoimattomat koodit</td>
-                <td>{{ new_tokens }}</td>
+                <td>{{ unactivated_token_count }}</td>
               </tr>
               <tr>
                 <td>Aktiiviset koodit</td>
-                <td>{{ active_tokens }}</td>
+                <td>{{ activated_token_count }}</td>
               </tr>
               <tr>
                 <td>Mitätöidyt koodit</td>
-                <td>{{ invalid_tokens }}</td>
+                <td>{{ voided_token_count }}</td>
               </tr>
             </tbody>
           </table>
@@ -71,28 +70,43 @@
               </tr>
             </thead>
             <tbody>
-              {% for usertoken in tokens %}
-                <tr>
-                  <td>{{ usertoken.token }}<br>{{ usertoken.alias }}</td>
-                  <td>{{ usertoken.pk }}</td>
-                  <td>{{ usertoken.activated }}</td>
-                  <td>{{ usertoken.invalidated }}</td>
-                  <td>
-                    {% if not usertoken.activated %}
-                      <button id="activate-token-button-{{ forloop.counter }}" class="btn waves-effect waves-light darken-1 white-text green candidate bold-font" onclick="activateOrInvalidateToken(true, '{{ usertoken.token }}',{{ forloop.counter }})" data-clicked="0">
-                        Aktivoi
-                      </button>
-                    {% else %}
-                      <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Aktivoitu</button>
-                    {% endif %}
-                  </td>
-                  <td>
-                    {% if not usertoken.invalidated %}
-                      <button id="invalidate-token-button-{{ forloop.counter }}" class="btn waves-effect waves-light darken-1 white-text red candidate bold-font" onclick="activateOrInvalidateToken(false, '{{ usertoken.token }}',{{ forloop.counter }})" data-clicked="0">Mitätöi</button>
-                    {% else %}
-                      <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Mitätöity</button>
-                    {% endif %}
-                  </td>
+              {% for token in tokens %}
+              <tr>
+                {% match token.alias %}
+                  {% when Some with (alias) %}
+                    <td>{{ token.token }}<br>{{ alias }}</td>
+                  {% when None %}
+                    <td>{{ token.token }}</td>
+                {% endmatch %}
+                <td>{{ token.id }}</td>
+                {% match token.state %}
+                  {% when TokenState::Unactivated %}
+                      <td>Aktivoimaton</td>
+                      <td>
+                        <button id="activate-token-button-{{ loop.index }}" class="btn waves-effect waves-light darken-1 white-text green candidate bold-font" onclick="activateOrInvalidateToken(true, '{{ token.id }}',{{ loop.index }})" data-clicked="0">Aktivoi</button>
+                      </td>
+                      <td>
+                        <button id="invalidate-token-button-{{ loop.index }}" class="btn waves-effect waves-light darken-1 white-text red candidate bold-font" onclick="activateOrInvalidateToken(false, '{{ token.id }}',{{ loop.index }})" data-clicked="0">Mitätöi</button>
+                      </td>
+                      
+                    {% when TokenState::Activated %}
+                      <td>Aktivoitu</td>
+                      <td>
+                        <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Aktivoitu</button>
+                      </td>
+                      <td>
+                        <button id="invalidate-token-button-{{ loop.index }}" class="btn waves-effect waves-light darken-1 white-text red candidate bold-font" onclick="activateOrInvalidateToken(false, '{{ token.id }}',{{ loop.index }})" data-clicked="0">Mitätöi</button>
+                      </td>
+                  
+                    {% when TokenState::Voided %}
+                      <td>Mitätöity</td>
+                      <td>
+                        <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Mitätöity</button>
+                      </td>
+                      <td>
+                        <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font" disabled=True>Mitätöity</button>
+                      </td>
+                  {% endmatch%}
                 </tr>
               {% endfor %}
             </tbody>
