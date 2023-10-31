@@ -172,7 +172,7 @@ impl Voting {
     ) -> Result<Voting> {
         println!("handle patch for voting {}", self.id);
         match (
-            self.state.clone(),
+            &self.state,
             voting_update
                 .state
                 .unwrap_or_else(|| self.state.clone().into()),
@@ -187,7 +187,7 @@ impl Voting {
             (_, VotingStateWithoutResults::Closed) => {
                 self.try_close_voting(db, voting_update).await
             }
-            (_, _) => self.modify_and_reset_votes(db, voting_update).await,
+            (_, _) => self.try_modify_and_reset_votes(db, voting_update).await,
         }
     }
 
@@ -226,11 +226,29 @@ impl Voting {
         }
     }
 
-    async fn modify_and_reset_votes(
+    async fn try_modify_and_reset_votes(
         &self,
         db: Pool<Postgres>,
         voting_update: VotingUpdate,
     ) -> Result<Voting> {
+        let voting_state = voting_update.state.unwrap_or(self.state.clone().into());
+
+        match voting_state {
+            VotingStateWithoutResults::Open => {
+                if voting_update
+                    .candidates
+                    .as_ref()
+                    .unwrap_or(&self.candidates)
+                    .is_empty()
+                {
+                    Err(Error::InvalidInput)
+                } else {
+                    Ok(())
+                }
+            }
+            _ => Ok(()),
+        }?;
+
         let mut tx = db.begin().await?;
 
         sqlx::query!("DELETE FROM candidate WHERE voting_id = $1", self.id)
