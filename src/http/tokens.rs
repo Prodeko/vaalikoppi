@@ -11,7 +11,7 @@ use serde::Deserialize;
 use sqlx::{Postgres, QueryBuilder};
 
 use crate::{
-    error::{Error, Result},
+    api_types::{ApiError, ApiResult},
     http::AppState,
     middleware::{require_admin_token::require_admin, resolve_token::resolve_token},
     models::{generate_token, Token, TokenState, TokenUpdate},
@@ -41,7 +41,7 @@ struct TokensTemplate {
 }
 
 #[debug_handler]
-async fn get_tokens(state: State<AppState>) -> Result<Html<String>> {
+async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
     let tokens = sqlx::query_as!(
         Token,
         "
@@ -73,7 +73,7 @@ async fn get_tokens(state: State<AppState>) -> Result<Html<String>> {
     }
     .render()
     .map(|html| Html(html))
-    .map_err(|_| Error::InternalServerError)
+    .map_err(|_| ApiError::InternalServerError)
 }
 
 #[debug_handler]
@@ -81,7 +81,7 @@ async fn patch_token(
     token: Token,
     state: State<AppState>,
     Json(token_update): Json<TokenUpdate>,
-) -> Result<Json<Token>> {
+) -> ApiResult<Json<Token>> {
     let state_changed_token = token
         .handle_state_change(token_update.state)
         .map(|t| Json(t))?;
@@ -108,7 +108,7 @@ async fn patch_token(
 }
 
 impl Token {
-    fn handle_state_change(mut self, new_state: TokenState) -> Result<Self> {
+    fn handle_state_change(mut self, new_state: TokenState) -> ApiResult<Self> {
         match (self.state, new_state) {
             (_, TokenState::Voided) => {
                 self.state = TokenState::Voided;
@@ -118,7 +118,7 @@ impl Token {
                 self.state = TokenState::Activated;
                 Ok(self)
             }
-            _ => Err(Error::InvalidInput),
+            _ => Err(ApiError::InvalidInput),
         }
     }
 }

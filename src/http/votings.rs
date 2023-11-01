@@ -14,8 +14,8 @@ use askama::Template;
 use chrono::DateTime;
 
 use crate::{
+    api_types::{ApiError, ApiResult},
     ctx::Ctx,
-    error::{Error, Result},
     middleware::{require_admin_token::require_admin, resolve_voting::resolve_voting},
     models::{
         CandidateId, CandidateResultData, PassingCandidateResult, Voting, VotingCreate, VotingId,
@@ -39,7 +39,7 @@ pub fn router(state: AppState) -> Router<AppState> {
 async fn post_voting(
     state: State<AppState>,
     Json(voting_create): Json<VotingCreate>,
-) -> Result<Json<Voting>> {
+) -> ApiResult<Json<Voting>> {
     let voting_state = voting_create
         .state
         .unwrap_or(VotingStateWithoutResults::Draft);
@@ -53,12 +53,12 @@ async fn post_voting(
                 .map(|v| v.is_empty())
                 .unwrap_or(true)
             {
-                Err(Error::InvalidInput)
+                Err(ApiError::InvalidInput)
             } else {
                 Ok(())
             }
         }
-        VotingStateWithoutResults::Closed => Err(Error::InvalidInput),
+        VotingStateWithoutResults::Closed => Err(ApiError::InvalidInput),
     }?;
 
     let mut tx = state.db.begin().await?;
@@ -111,7 +111,7 @@ async fn insert_candidates_into_db<T>(
     voting_id: VotingId,
     candidates: Vec<CandidateId>,
     executor: &mut T,
-) -> Result<Vec<CandidateId>>
+) -> ApiResult<Vec<CandidateId>>
 where
     for<'e> &'e mut T: Executor<'e, Database = Postgres>,
 {
@@ -142,7 +142,7 @@ async fn patch_voting(
     state: State<AppState>,
     id: Path<VotingId>,
     Json(voting_update): Json<VotingUpdate>,
-) -> Result<Json<Voting>> {
+) -> ApiResult<Json<Voting>> {
     let res = existing_voting
         .handle_patch(state.db.clone(), voting_update)
         .await
@@ -151,13 +151,13 @@ async fn patch_voting(
 }
 
 #[debug_handler]
-async fn get_votings(ctx: Ctx, state: State<AppState>) -> Result<Html<String>> {
+async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let template = get_votings_list_template(state.db.clone(), ctx.is_admin()).await?;
 
     template
         .render()
         .map(|html| Html(html))
-        .map_err(|_| Error::InternalServerError)
+        .map_err(|_| ApiError::InternalServerError)
 }
 
 struct VotingStateResult {
@@ -169,7 +169,7 @@ impl Voting {
         &self,
         db: Pool<Postgres>,
         voting_update: VotingUpdate,
-    ) -> Result<Voting> {
+    ) -> ApiResult<Voting> {
         println!("handle patch for voting {}", self.id);
         match (
             &self.state,
@@ -183,7 +183,7 @@ impl Voting {
                     winners: _,
                 },
                 _,
-            ) => Err(Error::VotingAlreadyClosed),
+            ) => Err(ApiError::VotingAlreadyClosed),
             (_, VotingStateWithoutResults::Closed) => {
                 self.try_close_voting(db, voting_update).await
             }
@@ -195,9 +195,9 @@ impl Voting {
         &self,
         db: Pool<Postgres>,
         voting_update: VotingUpdate,
-    ) -> Result<Voting> {
+    ) -> ApiResult<Voting> {
         if self.state != VotingStateWithoutResults::Open {
-            return Err(Error::InvalidInput);
+            return Err(ApiError::InvalidInput);
         }
 
         let mut clone = self.clone();
@@ -222,7 +222,7 @@ impl Voting {
             clone.state = VotingState::from(result.state);
             return Ok(clone);
         } else {
-            return Err(Error::InvalidInput);
+            return Err(ApiError::InvalidInput);
         }
     }
 
@@ -230,7 +230,7 @@ impl Voting {
         &self,
         db: Pool<Postgres>,
         voting_update: VotingUpdate,
-    ) -> Result<Voting> {
+    ) -> ApiResult<Voting> {
         let voting_state = voting_update.state.unwrap_or(self.state.clone().into());
 
         match voting_state {
@@ -241,7 +241,7 @@ impl Voting {
                     .unwrap_or(&self.candidates)
                     .is_empty()
                 {
-                    Err(Error::InvalidInput)
+                    Err(ApiError::InvalidInput)
                 } else {
                     Ok(())
                 }
@@ -312,11 +312,11 @@ async fn delete_voting(
     existing_voting: Voting,
     state: State<AppState>,
     id: Path<VotingId>,
-) -> Result<()> {
+) -> ApiResult<()> {
     match existing_voting.state {
         VotingState::Draft => Ok(()),
         VotingState::Open => Ok(()),
-        _ => Err(Error::VotingAlreadyClosed),
+        _ => Err(ApiError::VotingAlreadyClosed),
     }?;
 
     let query_result = sqlx::query_as!(
@@ -334,11 +334,11 @@ async fn delete_voting(
     )
     .fetch_one(&state.db)
     .await
-    .map_err(|_| Error::VotingNotFound)?;
+    .map_err(|_| ApiError::VotingNotFound)?;
 
     match query_result.count {
-        ..=-1 => Err(Error::InternalServerError),
-        0 => Err(Error::VotingNotFound),
+        ..=-1 => Err(ApiError::InternalServerError),
+        0 => Err(ApiError::VotingNotFound),
         1.. => Ok(()),
     }
 }
@@ -362,7 +362,7 @@ pub struct VotingListTemplate {
 pub async fn get_votings_list_template(
     db: Pool<Postgres>,
     is_admin: bool,
-) -> Result<VotingListTemplate> {
+) -> ApiResult<VotingListTemplate> {
     let rows = sqlx::query!(
         "
         with passing_candidate_result_data AS (
@@ -470,16 +470,16 @@ pub async fn get_votings_list_template(
         match voting {
             Some(v) => match (&mut v.state, round_result) {
                 (VotingState::Draft, None) => Ok(()),
-                (VotingState::Draft, Some(_)) => Err(Error::CorruptDatabaseError),
+                (VotingState::Draft, Some(_)) => Err(ApiError::CorruptDatabaseError),
                 (VotingState::Open, None) => Ok(()),
-                (VotingState::Open, Some(_)) => Err(Error::CorruptDatabaseError),
+                (VotingState::Open, Some(_)) => Err(ApiError::CorruptDatabaseError),
                 (
                     VotingState::Closed {
                         round_results: _,
                         winners: _,
                     },
                     None,
-                ) => Err(Error::CorruptDatabaseError),
+                ) => Err(ApiError::CorruptDatabaseError),
                 (
                     VotingState::Closed {
                         round_results,

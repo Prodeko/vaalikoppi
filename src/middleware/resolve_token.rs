@@ -7,7 +7,7 @@ use axum::{
 };
 
 use crate::{
-    error::{Error, Result},
+    api_types::{ApiError, ApiResult},
     http::AppState,
     models::{Token, TokenState, VotingId},
 };
@@ -17,7 +17,7 @@ pub async fn resolve_token<B>(
     state: State<AppState>,
     mut req: Request<B>,
     next: Next<B>,
-) -> Result<Response> {
+) -> ApiResult<Response> {
     let token = sqlx::query_as!(
         Token,
         "
@@ -43,12 +43,12 @@ pub async fn resolve_token<B>(
 
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Token {
-    type Rejection = Error;
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
+    type Rejection = ApiError;
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> ApiResult<Self> {
         parts
             .extensions
             .get::<Token>()
             .map(|token| token.clone())
-            .ok_or(Error::TokenNotFound)
+            .ok_or(ApiError::TokenNotFound)
     }
 }

@@ -1,6 +1,6 @@
+pub mod api_types;
 mod config;
 mod ctx;
-pub mod error;
 mod helpers;
 mod http;
 mod middleware;

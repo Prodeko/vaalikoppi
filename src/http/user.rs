@@ -6,7 +6,7 @@ use sqlx::{self, Pool};
 use tower_cookies::{Cookie, Cookies};
 
 use crate::{
-    error::{Error, Result},
+    api_types::{ApiError, ApiResult},
     http::AppState,
 };
 
@@ -30,7 +30,7 @@ async fn user_login(
     state: State<AppState>,
     cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
-) -> Result<Json<LoginResponse>> {
+) -> ApiResult<Json<LoginResponse>> {
     let row = sqlx::query_as!(
         Token,
         "
@@ -48,7 +48,7 @@ async fn user_login(
     .await?;
 
     if row.state != TokenState::Activated {
-        return Err(Error::LoginFail);
+        return Err(ApiError::LoginFail);
     }
 
     // register alias
@@ -71,9 +71,9 @@ async fn register_and_validate_alias(
     executor: &Pool<Postgres>,
     token: &str,
     alias: &str,
-) -> Result<Token> {
+) -> ApiResult<Token> {
     if alias.len() < 4 || alias.len() > 16 {
-        return Err(Error::InvalidInput);
+        return Err(ApiError::InvalidInput);
     }
 
     // Database should check for alias uniqueness

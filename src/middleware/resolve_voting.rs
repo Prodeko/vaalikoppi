@@ -7,9 +7,9 @@ use axum::{
 };
 
 use crate::{
-    error::{
-        Error::{self, VotingAlreadyClosed, VotingNotFound},
-        Result,
+    api_types::{
+        ApiError::{self, VotingAlreadyClosed, VotingNotFound},
+        ApiResult,
     },
     http::AppState,
     models::{CandidateId, Voting, VotingId, VotingStateWithoutResults},
@@ -20,7 +20,7 @@ pub async fn resolve_voting<B>(
     state: State<AppState>,
     mut req: Request<B>,
     next: Next<B>,
-) -> Result<Response> {
+) -> ApiResult<Response> {
     let voting = sqlx::query_as!(
         Voting,
         "
@@ -51,8 +51,8 @@ pub async fn resolve_voting<B>(
 
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Voting {
-    type Rejection = Error;
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
+    type Rejection = ApiError;
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> ApiResult<Self> {
         parts
             .extensions
             .get::<Voting>()
