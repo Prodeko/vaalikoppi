@@ -7,7 +7,7 @@ use axum::{
     routing::{get, patch, post},
     Router,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, QueryBuilder};
 
 use crate::{
@@ -26,6 +26,7 @@ pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/:id", patch(patch_token))
         .route_layer(from_fn_with_state(state, resolve_token))
+        .route("/void-active", post(void_active_tokens))
         .route("/", get(get_tokens))
         .route("/", post(generate_tokens))
         .route_layer(from_fn(require_admin))
@@ -38,6 +39,32 @@ struct TokensTemplate {
     unactivated_token_count: i32,
     activated_token_count: i32,
     voided_token_count: i32,
+}
+
+#[derive(Debug, Serialize)]
+struct TokenInvalidateResult {
+    count: i64,
+}
+
+#[debug_handler]
+async fn void_active_tokens(state: State<AppState>) -> ApiResult<Json<TokenInvalidateResult>> {
+    sqlx::query_as!(
+        TokenInvalidateResult,
+        "
+        WITH updated_tokens AS (
+            UPDATE token
+            SET state = 'voided'::token_state
+            WHERE state = 'activated'::token_state
+            RETURNING id
+        )
+        SELECT count(id) as \"count!\"
+        FROM updated_tokens
+        "
+    )
+    .fetch_one(&state.db)
+    .await
+    .map(|t| Json(t))
+    .map_err(|e| e.into())
 }
 
 #[debug_handler]

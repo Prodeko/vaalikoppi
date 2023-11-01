@@ -567,7 +567,7 @@ function searchFunction() {
 }
 
 function invalidateActiveTokens() {
-  callApi(`${SITE_ROOT_PATH}admin/tokens/invalidate/all/`, "POST")
+  callApi(`${SITE_ROOT_PATH}tokens/void-active`, "POST")
     .then(() => location.reload())
     .catch(() =>
       showUserNotification(
