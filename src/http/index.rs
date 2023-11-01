@@ -3,7 +3,7 @@ use axum::{response::Html, routing::get, Router};
 
 use crate::{
     ctx::Ctx,
-    models::{Token, TokenState},
+    models::{LoginState, Token, TokenState},
 };
 use axum::extract::State;
 
@@ -19,47 +19,37 @@ pub fn router() -> Router<AppState> {
 }
 
 #[derive(Template)]
-#[template(path = "index.html")] // using the template in this path, relative
-                                 // to the `templates` dir in the crate root
-enum ClientState {
-    LoggedIn {
-        is_valid_token: bool,
-        user_alias: String,
-        votings: VotingListTemplate,
-        is_admin: bool,
-    },
-    NotLoggedIn,
+#[template(path = "login.html")]
+struct LoginTemplate {}
+
+#[derive(Template)]
+#[template(path = "voting.html")]
+struct VotingTemplate {
+    alias: String,
+    votings_list_template: VotingListTemplate,
 }
 
 async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
-    let token = context.token();
-
-    let state: ClientState = async {
-        let client_state: ApiResult<ClientState> = match token {
-            Some(Token {
-                state: TokenState::Activated,
-                alias,
-                ..
-            }) => {
+    let template = async {
+        match context.login_state() {
+            LoginState::NotLoggedIn => LoginTemplate {}
+                .render()
+                .map_err(|_| ApiError::InternalServerError),
+            LoginState::Voter { alias, .. } => {
                 let votings_list_template =
-                    get_votings_list_template(state.db.clone(), context.is_admin()).await?;
+                    get_votings_list_template(state.db.clone(), false).await?;
 
-                Ok(ClientState::LoggedIn {
-                    is_valid_token: true,
-                    user_alias: alias.unwrap_or("".to_string()),
-                    votings: votings_list_template,
-                    is_admin: context.is_admin(),
-                })
+                VotingTemplate {
+                    alias,
+                    votings_list_template,
+                }
+                .render()
+                .map_err(|e| e.into())
             }
-            _ => Ok(ClientState::NotLoggedIn),
-        };
-
-        client_state
+            LoginState::Admin => Ok("This is admin-votings.html".to_string()),
+        }
     }
     .await?;
 
-    state
-        .render()
-        .map(|r| Html(r))
-        .map_err(|_| ApiError::InternalServerError)
+    Ok(Html(template))
 }

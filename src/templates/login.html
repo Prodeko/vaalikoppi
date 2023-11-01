@@ -1,13 +1,17 @@
-<div id="login-container">
-  <div class="card blue-grey lighten-5">
-    <div class="card-content blue-grey-text text-lighten-1 center">
-      <span class="card-title blue-grey-text text-darken-1 bold-font">
-        Kirjaudu syöttämällä kirjautumiskoodi ja alias
-      </span>
+{% extends "base.html" %}
 
-      <div class="row">
-        <div class="input-field col s12">
-          <input type="text" id="type-token-field" class="token-input-field" size="50" >
+{% block body %}
+<div class="container">
+  <div id="login-container">
+    <div class="card blue-grey lighten-5">
+      <div class="card-content blue-grey-text text-lighten-1 center">
+        <span class="card-title blue-grey-text text-darken-1 bold-font">
+          Kirjaudu syöttämällä kirjautumiskoodi ja alias
+        </span>
+        
+        <div class="row">
+          <div class="input-field col s12">
+            <input type="text" id="type-token-field" class="token-input-field" size="50" >
           <label for="type-token-field">Kirjautumiskoodi</label>
         </div>
       </div>
@@ -47,3 +51,5 @@
     </div>
   </div>
 </div>
+</div>
+{% endblock %}

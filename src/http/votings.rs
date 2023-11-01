@@ -16,10 +16,10 @@ use chrono::DateTime;
 use crate::{
     api_types::{ApiError, ApiResult},
     ctx::Ctx,
-    middleware::{require_admin_token::require_admin, resolve_voting::resolve_voting},
+    middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
-        CandidateId, CandidateResultData, PassingCandidateResult, Voting, VotingCreate, VotingId,
-        VotingRoundResult, VotingState, VotingStateWithoutResults, VotingUpdate,
+        CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting, VotingCreate,
+        VotingId, VotingRoundResult, VotingState, VotingStateWithoutResults, VotingUpdate,
     },
 };
 
@@ -31,7 +31,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/:id", delete(delete_voting))
         .route_layer(from_fn_with_state(state, resolve_voting))
         .route("/", post(post_voting))
-        .route_layer(from_fn(require_admin))
+        .route_layer(from_fn(require_is_admin))
         .route("/", get(get_votings))
 }
 
@@ -152,7 +152,8 @@ async fn patch_voting(
 
 #[debug_handler]
 async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
-    let template = get_votings_list_template(state.db.clone(), ctx.is_admin()).await?;
+    let template =
+        get_votings_list_template(state.db.clone(), ctx.login_state() == LoginState::Admin).await?;
 
     template
         .render()

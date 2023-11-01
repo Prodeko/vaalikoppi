@@ -1,6 +1,6 @@
 use crate::{
     api_types::{
-        ApiError::AuthFailed,
+        ApiError::{self, AuthFailed},
         ApiResult,
         AuthFailedError::{InvalidToken, MissingToken},
     },
@@ -9,19 +9,16 @@ use crate::{
 };
 use axum::{http::Request, middleware::Next, response::Response};
 
-pub async fn require_user_token<B>(
+pub async fn require_is_voter<B>(
     context: Ctx,
     req: Request<B>,
     next: Next<B>,
 ) -> ApiResult<Response> {
     println!("{:?}", context);
-    let token = context.token();
+    let state = context.login_state();
 
-    return match token {
-        Some(Token {
-            state: TokenState::Activated,
-            ..
-        }) => Ok(next.run(req).await),
-        _ => Err(AuthFailed(MissingToken)),
-    };
+    match state {
+        crate::models::LoginState::Voter { .. } => Ok(next.run(req).await),
+        _ => Err(ApiError::TokenNotFound),
+    }
 }

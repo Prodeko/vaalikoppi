@@ -1,13 +1,15 @@
 use std::ops::DerefMut;
 
+use crate::api_types::ApiError;
 use crate::api_types::AuthFailedError::MissingToken;
+use crate::models::LoginState;
 use crate::{
     api_types::{
         ApiError::AlreadyVoted, ApiError::AuthFailed, ApiError::InternalServerError, ApiResult,
     },
     ctx::Ctx,
     http::AppState,
-    middleware::require_user_token::require_user_token,
+    middleware::require_is_voter::require_is_voter,
 };
 use axum::{debug_handler, extract::State, middleware::from_fn, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
@@ -17,7 +19,7 @@ use sqlx::QueryBuilder;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/votes/", post(post_vote))
-        .route_layer(from_fn(require_user_token))
+        .route_layer(from_fn(require_is_voter))
 }
 #[derive(Serialize)]
 
@@ -39,11 +41,10 @@ async fn post_vote(
     context: Ctx,
     Json(post_vote_payload): Json<PostVotePayload>,
 ) -> ApiResult<Json<PostVoteResponse>> {
-    // The require_user_token middleware should ensure that token is not None, but lets not use unwrap
-    let token_id = match context.token() {
-        Some(token) => token.id,
-        None => return Err(AuthFailed(MissingToken)),
-    };
+    let token = match context.login_state() {
+        LoginState::Voter { token, .. } => Ok(token),
+        _ => Err(ApiError::TokenNotFound),
+    }?;
 
     // Start a transaction to add tuples to both vote and has_voted
     let mut tx = state.db.begin().await?;
@@ -70,8 +71,8 @@ async fn post_vote(
 
     // Duplicate key error prevents us from voting twice, and the tx fails
     let _insert_has_voted = sqlx::query!(
-        "INSERT INTO has_voted (token_id, voting_id) VALUES ($1, $2) ",
-        token_id,
+        "INSERT INTO has_voted (token_token, voting_id) VALUES ($1, $2) ",
+        token,
         post_vote_payload.voting_id
     )
     .execute(tx.deref_mut())

@@ -13,7 +13,7 @@ use sqlx::{Postgres, QueryBuilder};
 use crate::{
     api_types::{ApiError, ApiResult},
     http::AppState,
-    middleware::{require_admin_token::require_admin, resolve_token::resolve_token},
+    middleware::{require_is_admin::require_is_admin, resolve_token::resolve_token},
     models::{generate_token, Token, TokenState, TokenUpdate},
 };
 
@@ -29,7 +29,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/void-active", post(void_active_tokens))
         .route("/", get(get_tokens))
         .route("/", post(generate_tokens))
-        .route_layer(from_fn(require_admin))
+        .route_layer(from_fn(require_is_admin))
 }
 
 #[derive(Template)]

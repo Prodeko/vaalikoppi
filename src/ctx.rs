@@ -1,21 +1,33 @@
-use crate::models::Token;
+use axum::{async_trait, extract::FromRequestParts, http::request::Parts};
+
+use crate::{
+    api_types::{ApiError, ApiResult},
+    models::LoginState,
+};
 
 #[derive(Clone, Debug)]
 pub struct Ctx {
-    is_admin: bool,
-    token: Option<Token>,
+    login_state: LoginState,
 }
 
 impl Ctx {
-    pub fn new(is_admin: bool, token: Option<Token>) -> Self {
-        Self { is_admin, token }
+    pub fn new(login_state: LoginState) -> Self {
+        Self { login_state }
     }
 
-    pub fn is_admin(&self) -> bool {
-        self.is_admin
+    pub fn login_state(&self) -> LoginState {
+        self.login_state.clone()
     }
+}
 
-    pub fn token(&self) -> Option<Token> {
-        self.token.clone()
+#[async_trait]
+impl<S: Send + Sync> FromRequestParts<S> for Ctx {
+    type Rejection = ApiError;
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> ApiResult<Self> {
+        parts
+            .extensions
+            .get::<Ctx>()
+            .map(|voting| voting.clone())
+            .ok_or(ApiError::InternalServerError)
     }
 }

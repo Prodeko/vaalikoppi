@@ -24,6 +24,16 @@ trait Voteable {
     fn calculate_results(&self) -> Vec<CandidateId>;
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum LoginState {
+    NotLoggedIn,
+    // We do not store the whole Token struct because it can represent states that are invalid.
+    // TODO it might be better to create a new struct, e.g., "ValidToken",
+    // That only contains the data that we want to represent a valid voter login state.
+    Voter { token: String, alias: String },
+    Admin,
+}
+
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, Eq, PartialEq, sqlx::Type)]
 #[sqlx(type_name = "voting_state", rename_all = "lowercase")]
 pub enum VotingStateWithoutResults {

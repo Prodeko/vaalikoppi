@@ -26,6 +26,7 @@ pub enum ApiError {
     TokenNotFound,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
+    TemplatingError(#[serde_as(as = "DisplayFromStr")] askama::Error),
 }
 
 impl IntoResponse for ApiError {
@@ -38,6 +39,12 @@ impl IntoResponse for ApiError {
 impl From<sqlx::Error> for ApiError {
     fn from(val: sqlx::Error) -> Self {
         Self::DatabaseError(val)
+    }
+}
+
+impl From<askama::Error> for ApiError {
+    fn from(val: askama::Error) -> Self {
+        Self::TemplatingError(val)
     }
 }
 

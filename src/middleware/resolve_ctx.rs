@@ -7,14 +7,16 @@ use crate::{
     ctx::Ctx,
     http::{
         login::{JsonWebTokenClaims, AUTH_TOKEN},
-        user::USER_TOKEN,
+        user::VOTER_TOKEN,
         AppState,
     },
-    models::{Token, TokenState},
+    models::{LoginState, Token, TokenState},
 };
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 use tower_cookies::Cookies;
+
+use super::resolve_token;
 
 pub async fn resolve_ctx<B>(
     cookies: Cookies,
@@ -22,40 +24,67 @@ pub async fn resolve_ctx<B>(
     mut req: Request<B>,
     next: Next<B>,
 ) -> ApiResult<Response> {
-    let admin_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
-    let user_token = cookies.get(USER_TOKEN).map(|c| c.value().to_string());
+    let voter_token = cookies.get(VOTER_TOKEN).map(|c| c.value().to_string());
 
-    let resolved_admin_token: ApiResult<TokenData<JsonWebTokenClaims>> = admin_token.map_or_else(
-        || Err(AuthFailed(MissingToken)),
-        |t| {
+    // Check if valid voter token is found.
+    // Default to LoginState::Voter instead of LoginState::Admin if both are found
+    // because lost voter tokens often lead to voiding of all active tokens
+    let resolved_voter_token = match voter_token {
+        Some(token) => {
+            sqlx::query_as!(
+                Token,
+                "
+                SELECT
+                id,
+                token,
+                state AS \"state: TokenState\",
+                alias
+                FROM token
+                WHERE token = $1
+                ",
+                token
+            )
+            .fetch_optional(&state.db)
+            .await
+        }
+        None => Ok(None),
+    }?;
+
+    if let Some(token) = resolved_voter_token {
+        match (token.state, token.alias) {
+            (TokenState::Activated, Some(alias)) => {
+                let ctx = Ctx::new(LoginState::Voter {
+                    token: token.token,
+                    alias,
+                });
+                req.extensions_mut().insert(ctx);
+                return Ok(next.run(req).await);
+            }
+            _ => (),
+        }
+    }
+
+    let admin_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
+
+    // Check if valid admin token is found
+    let resolved_admin_token: Option<TokenData<JsonWebTokenClaims>> = admin_token
+        .map(|t| {
             decode::<JsonWebTokenClaims>(
                 &t,
                 &DecodingKey::from_secret(state.config.hmac_key.as_bytes()),
                 &Validation::default(),
             )
-            .map_err(|_| AuthFailed(InvalidToken))
-        },
-    );
+            .ok()
+        })
+        .flatten();
 
-    let resolved_user_token = sqlx::query_as!(
-        Token,
-        "
-        SELECT
-            id,
-            token,
-            state AS \"state: TokenState\",
-            alias
-        FROM token
-        WHERE token = $1
-        ",
-        user_token
-    )
-    .fetch_optional(&state.db)
-    .await?;
+    if let Some(_token_data) = resolved_admin_token {
+        let ctx = Ctx::new(LoginState::Admin);
+        req.extensions_mut().insert(ctx);
+        return Ok(next.run(req).await);
+    }
 
-    let ctx: Ctx = Ctx::new(resolved_admin_token.is_ok(), resolved_user_token);
-
+    let ctx: Ctx = Ctx::new(LoginState::NotLoggedIn);
     req.extensions_mut().insert(ctx);
-
     Ok(next.run(req).await)
 }

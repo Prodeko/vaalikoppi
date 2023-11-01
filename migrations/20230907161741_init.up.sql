@@ -15,6 +15,7 @@ CREATE TABLE voting (
 CREATE TABLE token (
     id SERIAL PRIMARY KEY NOT NULL,
     token text UNIQUE NOT NULL,
+    --- TODO change this to "secret"
     state token_state NOT NULL,
     alias text UNIQUE
 );
@@ -34,9 +35,10 @@ CREATE TABLE vote (
 );
 
 CREATE TABLE has_voted (
-    token_id int REFERENCES token NOT NULL,
+    token_token TEXT NOT NULL,
     voting_id int REFERENCES voting ON DELETE CASCADE NOT NULL,
-    PRIMARY KEY (token_id, voting_id)
+    FOREIGN KEY (token_token) REFERENCES token(token),
+    PRIMARY KEY (token_token, voting_id)
 );
 
 CREATE TABLE voting_round_result (
