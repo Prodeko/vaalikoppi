@@ -1,10 +1,10 @@
 use crate::{
-    ctx::Ctx,
-    error::{
+    api_types::{
+        ApiError::AuthFailed,
+        ApiResult,
         AuthFailedError::{InvalidToken, MissingToken},
-        Error::AuthFailed,
-        Result,
     },
+    ctx::Ctx,
     http::{
         login::{JsonWebTokenClaims, AUTH_TOKEN},
         user::USER_TOKEN,
@@ -21,11 +21,11 @@ pub async fn resolve_ctx<B>(
     state: State<AppState>,
     mut req: Request<B>,
     next: Next<B>,
-) -> Result<Response> {
+) -> ApiResult<Response> {
     let admin_token = cookies.get(AUTH_TOKEN).map(|c| c.value().to_string());
     let user_token = cookies.get(USER_TOKEN).map(|c| c.value().to_string());
 
-    let resolved_admin_token: Result<TokenData<JsonWebTokenClaims>> = admin_token.map_or_else(
+    let resolved_admin_token: ApiResult<TokenData<JsonWebTokenClaims>> = admin_token.map_or_else(
         || Err(AuthFailed(MissingToken)),
         |t| {
             decode::<JsonWebTokenClaims>(

@@ -1,10 +1,10 @@
 use crate::{
-    ctx::Ctx,
-    error::{
+    api_types::{
+        ApiError::{self, AuthFailed},
+        ApiResult,
         AuthFailedError::{InvalidToken, MissingToken},
-        Error::{self, AuthFailed},
-        Result,
     },
+    ctx::Ctx,
     http::{
         login::{JsonWebTokenClaims, AUTH_TOKEN},
         AppState,
@@ -20,7 +20,7 @@ use axum::{
 use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 use tower_cookies::Cookies;
 
-pub async fn require_admin<B>(context: Ctx, req: Request<B>, next: Next<B>) -> Result<Response> {
+pub async fn require_admin<B>(context: Ctx, req: Request<B>, next: Next<B>) -> ApiResult<Response> {
     println!("{:?}", context);
 
     if !context.is_admin() {
@@ -31,8 +31,8 @@ pub async fn require_admin<B>(context: Ctx, req: Request<B>, next: Next<B>) -> R
 
 #[async_trait]
 impl<S: Send + Sync> FromRequestParts<S> for Ctx {
-    type Rejection = Error;
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self> {
+    type Rejection = ApiError;
+    async fn from_request_parts(parts: &mut Parts, _state: &S) -> ApiResult<Self> {
         parts
             .extensions
             .get::<Ctx>()

@@ -6,7 +6,7 @@ use time::OffsetDateTime;
 use tower_cookies::{Cookie, Cookies};
 
 use crate::{
-    error::{Error, Result},
+    api_types::{ApiError, ApiResult},
     http::AppState,
 };
 
@@ -36,9 +36,9 @@ async fn json_web_token_login(
     state: State<AppState>,
     cookies: Cookies,
     Json(login_payload): Json<LoginPayload>,
-) -> Result<Json<LoginResponse>> {
+) -> ApiResult<Json<LoginResponse>> {
     if login_payload.token != state.config.admin_password {
-        return Err(Error::LoginFail);
+        return Err(ApiError::LoginFail);
     }
 
     let current_timestamp = Utc::now();
@@ -66,5 +66,5 @@ async fn json_web_token_login(
             );
             Json(LoginResponse {})
         })
-        .map_err(|_| Error::LoginFail)
+        .map_err(|_| ApiError::LoginFail)
 }

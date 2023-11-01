@@ -1,10 +1,10 @@
 use crate::{
-    ctx::Ctx,
-    error::{
+    api_types::{
+        ApiError::AuthFailed,
+        ApiResult,
         AuthFailedError::{InvalidToken, MissingToken},
-        Error::AuthFailed,
-        Result,
     },
+    ctx::Ctx,
     models::{Token, TokenState},
 };
 use axum::{http::Request, middleware::Next, response::Response};
@@ -13,7 +13,7 @@ pub async fn require_user_token<B>(
     context: Ctx,
     req: Request<B>,
     next: Next<B>,
-) -> Result<Response> {
+) -> ApiResult<Response> {
     println!("{:?}", context);
     let token = context.token();
 

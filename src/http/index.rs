@@ -7,7 +7,7 @@ use crate::{
 };
 use axum::extract::State;
 
-use crate::error::{Error, Result};
+use crate::api_types::{ApiError, ApiResult};
 
 use super::{
     votings::{get_votings_list_template, VotingListTemplate},
@@ -31,11 +31,11 @@ enum ClientState {
     NotLoggedIn,
 }
 
-async fn get_root(context: Ctx, state: State<AppState>) -> Result<Html<String>> {
+async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let token = context.token();
 
     let state: ClientState = async {
-        let client_state: Result<ClientState> = match token {
+        let client_state: ApiResult<ClientState> = match token {
             Some(Token {
                 state: TokenState::Activated,
                 alias,
@@ -61,5 +61,5 @@ async fn get_root(context: Ctx, state: State<AppState>) -> Result<Html<String>> 
     state
         .render()
         .map(|r| Html(r))
-        .map_err(|_| Error::InternalServerError)
+        .map_err(|_| ApiError::InternalServerError)
 }

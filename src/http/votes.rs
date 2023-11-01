@@ -1,9 +1,11 @@
 use std::ops::DerefMut;
 
-use crate::error::AuthFailedError::MissingToken;
+use crate::api_types::AuthFailedError::MissingToken;
 use crate::{
+    api_types::{
+        ApiError::AlreadyVoted, ApiError::AuthFailed, ApiError::InternalServerError, ApiResult,
+    },
     ctx::Ctx,
-    error::{Error::AlreadyVoted, Error::AuthFailed, Error::InternalServerError, Result},
     http::AppState,
     middleware::require_user_token::require_user_token,
 };
@@ -36,7 +38,7 @@ async fn post_vote(
     state: State<AppState>,
     context: Ctx,
     Json(post_vote_payload): Json<PostVotePayload>,
-) -> Result<Json<PostVoteResponse>> {
+) -> ApiResult<Json<PostVoteResponse>> {
     // The require_user_token middleware should ensure that token is not None, but lets not use unwrap
     let token_id = match context.token() {
         Some(token) => token.id,

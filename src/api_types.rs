@@ -5,7 +5,7 @@ use axum::{
 use serde::Serialize;
 use serde_with::{serde_as, DisplayFromStr};
 
-pub type Result<T> = core::result::Result<T, Error>;
+pub type ApiResult<T> = core::result::Result<T, ApiError>;
 
 #[derive(Serialize, Debug)]
 pub enum AuthFailedError {
@@ -15,7 +15,7 @@ pub enum AuthFailedError {
 
 #[serde_as]
 #[derive(Serialize, Debug)]
-pub enum Error {
+pub enum ApiError {
     LoginFail,
     AuthFailed(AuthFailedError),
     InternalServerError,
@@ -28,20 +28,20 @@ pub enum Error {
     CorruptDatabaseError,
 }
 
-impl IntoResponse for Error {
+impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         println!("{:?}", self);
         (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response()
     }
 }
 
-impl From<sqlx::Error> for Error {
+impl From<sqlx::Error> for ApiError {
     fn from(val: sqlx::Error) -> Self {
         Self::DatabaseError(val)
     }
 }
 
-impl core::fmt::Display for Error {
+impl core::fmt::Display for ApiError {
     fn fmt(&self, fmt: &mut std::fmt::Formatter) -> core::result::Result<(), core::fmt::Error> {
         write!(fmt, "{self:?}")
     }
