@@ -1,22 +1,22 @@
-DROP TABLE passing_candidate_result;
+DROP TABLE IF EXISTS passing_candidate_result;
 
 ALTER TABLE
     voting_round_result DROP CONSTRAINT fk_ensure_dropped_candidate_has_data;
 
-DROP TABLE candidate_result_data;
+DROP TABLE IF EXISTS candidate_result_data;
 
-DROP TABLE voting_round_result;
+DROP TABLE IF EXISTS voting_round_result;
 
-DROP TABLE has_voted;
+DROP TABLE IF EXISTS has_voted;
 
-DROP TABLE vote;
+DROP TABLE IF EXISTS vote;
 
-DROP TABLE candidate;
+DROP TABLE IF EXISTS candidate;
 
-DROP TABLE token;
+DROP TABLE IF EXISTS token;
 
-DROP TABLE voting;
+DROP TABLE IF EXISTS voting;
 
-DROP TYPE token_state;
+DROP TYPE IF EXISTS token_state;
 
-DROP TYPE voting_state;
+DROP TYPE IF EXISTS voting_state;
