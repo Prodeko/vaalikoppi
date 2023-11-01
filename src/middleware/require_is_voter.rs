@@ -1,11 +1,6 @@
 use crate::{
-    api_types::{
-        ApiError::{self, AuthFailed},
-        ApiResult,
-        AuthFailedError::{InvalidToken, MissingToken},
-    },
+    api_types::{ApiError, ApiResult},
     ctx::Ctx,
-    models::{Token, TokenState},
 };
 use axum::{http::Request, middleware::Next, response::Response};
 

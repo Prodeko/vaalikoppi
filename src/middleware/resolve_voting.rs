@@ -1,5 +1,5 @@
 use axum::{
-    async_trait, debug_handler,
+    async_trait,
     extract::{FromRequestParts, Path, State},
     http::{request::Parts, Request},
     middleware::Next,
@@ -8,7 +8,7 @@ use axum::{
 
 use crate::{
     api_types::{
-        ApiError::{self, VotingAlreadyClosed, VotingNotFound},
+        ApiError::{self, VotingNotFound},
         ApiResult,
     },
     http::AppState,

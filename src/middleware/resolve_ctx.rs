@@ -1,8 +1,6 @@
 use crate::{
     api_types::{
-        ApiError::AuthFailed,
         ApiResult,
-        AuthFailedError::{InvalidToken, MissingToken},
     },
     ctx::Ctx,
     http::{
@@ -16,7 +14,7 @@ use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 use tower_cookies::Cookies;
 
-use super::resolve_token;
+
 
 pub async fn resolve_ctx<B>(
     cookies: Cookies,

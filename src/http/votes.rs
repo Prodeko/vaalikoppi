@@ -1,11 +1,11 @@
 use std::ops::DerefMut;
 
 use crate::api_types::ApiError;
-use crate::api_types::AuthFailedError::MissingToken;
+
 use crate::models::LoginState;
 use crate::{
     api_types::{
-        ApiError::AlreadyVoted, ApiError::AuthFailed, ApiError::InternalServerError, ApiResult,
+        ApiError::AlreadyVoted, ApiError::InternalServerError, ApiResult,
     },
     ctx::Ctx,
     http::AppState,

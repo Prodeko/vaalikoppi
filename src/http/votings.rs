@@ -140,7 +140,7 @@ where
 async fn patch_voting(
     existing_voting: Voting,
     state: State<AppState>,
-    id: Path<VotingId>,
+    _id: Path<VotingId>,
     Json(voting_update): Json<VotingUpdate>,
 ) -> ApiResult<Json<Voting>> {
     let res = existing_voting
