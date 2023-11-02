@@ -111,6 +111,7 @@ pub struct Voting {
     pub state: VotingState,
     pub created_at: DateTime<Utc>,
     pub hide_vote_counts: bool,
+    pub number_of_winners: i32,
     pub candidates: Vec<CandidateId>,
 }
 
@@ -124,6 +125,7 @@ pub struct VotingForVoterTemplate {
     pub created_at: DateTime<Utc>,
     pub hide_vote_counts: bool,
     pub candidates: Vec<CandidateId>,
+    pub number_of_winners: i32,
     pub you_have_voted: bool,
 }
 
@@ -137,10 +139,12 @@ impl From<VotingForVoterTemplate> for Voting {
             created_at: value.created_at,
             hide_vote_counts: value.hide_vote_counts,
             candidates: value.candidates,
+            number_of_winners: value.number_of_winners,
         }
     }
 }
 
+// TODO this screams for a macro
 impl PartialEq<VotingUpdate> for Voting {
     fn eq(&self, other: &VotingUpdate) -> bool {
         let other_clone = other.clone();
@@ -153,6 +157,10 @@ impl PartialEq<VotingUpdate> for Voting {
             && other_clone
                 .hide_vote_counts
                 .map(|h| self.hide_vote_counts == h)
+                .unwrap_or(true)
+            && other_clone
+                .number_of_winners
+                .map(|h| self.number_of_winners == h)
                 .unwrap_or(true)
             && other_clone
                 .candidates
@@ -170,6 +178,7 @@ pub struct VotingCreate {
     pub description: String,
     pub state: Option<VotingStateWithoutResults>,
     pub hide_vote_counts: bool,
+    pub number_of_winners: i32,
     pub candidates: Option<Vec<CandidateId>>,
 }
 
@@ -182,6 +191,7 @@ pub struct VotingUpdate {
     pub description: Option<String>,
     pub state: Option<VotingStateWithoutResults>,
     pub hide_vote_counts: Option<bool>,
+    pub number_of_winners: Option<i32>,
     pub candidates: Option<Vec<CandidateId>>,
 }
 

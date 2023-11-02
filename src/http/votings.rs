@@ -72,21 +72,23 @@ async fn post_voting(
 
     let mut voting = sqlx::query!(
         "
-        INSERT INTO voting (name, description, state, created_at, hide_vote_counts)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO voting (name, description, state, created_at, hide_vote_counts, number_of_winners)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING
             id,
             name,
             description,
             state AS \"state: VotingStateWithoutResults\",
             created_at,
-            hide_vote_counts;
+            hide_vote_counts,
+            number_of_winners;
         ",
         voting_create.name,
         voting_create.description,
         voting_state as VotingStateWithoutResults,
         Utc::now(),
         voting_create.hide_vote_counts,
+        voting_create.number_of_winners,
     )
     .map(|row| Voting {
         id: row.id,
@@ -95,6 +97,7 @@ async fn post_voting(
         state: VotingState::from(row.state),
         created_at: row.created_at,
         hide_vote_counts: row.hide_vote_counts,
+        number_of_winners: row.number_of_winners,
         candidates: vec![],
     })
     .fetch_one(&mut *tx)
@@ -283,7 +286,8 @@ impl Voting {
                 name = COALESCE($2, name),
                 description = COALESCE($3, description),
                 state = COALESCE($4, state),
-                hide_vote_counts = COALESCE($5, hide_vote_counts)
+                hide_vote_counts = COALESCE($5, hide_vote_counts),
+                number_of_winners = COALESCE($6, number_of_winners)
             WHERE id = $1
             RETURNING
                 id,
@@ -291,13 +295,15 @@ impl Voting {
                 description,
                 state AS \"state: VotingStateWithoutResults\",
                 created_at,
-                hide_vote_counts;
+                hide_vote_counts,
+                number_of_winners;
             ",
             self.id,
             voting_update.name,
             voting_update.description,
             voting_update.state as Option<VotingStateWithoutResults>,
             voting_update.hide_vote_counts,
+            voting_update.number_of_winners,
         )
         .map(|row| Voting {
             id: row.id,
@@ -306,6 +312,7 @@ impl Voting {
             state: VotingState::from(row.state),
             created_at: row.created_at,
             hide_vote_counts: row.hide_vote_counts,
+            number_of_winners: row.number_of_winners,
             candidates: candidates.clone(),
         })
         .fetch_one(&mut *tx)
@@ -430,6 +437,7 @@ pub async fn get_votings_list_template(
             v.description as \"description!: String\",
             v.created_at as \"created_at!: DateTime<Utc>\",
             v.hide_vote_counts as \"hide_vote_counts!: bool\",
+            v.number_of_winners,
             c.candidates as \"candidates!: Vec<CandidateId>\",
             r.round as \"round?: i32\",
             r.dropped_candidate_name as \"dropped_candidate_name?: String\",
@@ -514,6 +522,7 @@ pub async fn get_votings_list_template(
                     created_at: rec.created_at,
                     hide_vote_counts: rec.hide_vote_counts,
                     you_have_voted: rec.you_have_voted.unwrap_or(false),
+                    number_of_winners: rec.number_of_winners,
                 };
 
                 votings.insert(rec.id, voting);

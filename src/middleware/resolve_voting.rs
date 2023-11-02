@@ -31,6 +31,7 @@ pub async fn resolve_voting<B>(
             v.state AS \"state: VotingStateWithoutResults\",
             v.created_at,
             v.hide_vote_counts,
+            v.number_of_winners,
             COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') AS \"candidates!: Vec<CandidateId>\"
         FROM voting as v LEFT JOIN candidate as c
             ON v.id = c.voting_id

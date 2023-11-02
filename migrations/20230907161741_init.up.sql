@@ -9,7 +9,8 @@ CREATE TABLE voting (
     description text NOT NULL,
     state voting_state NOT NULL,
     created_at timestamptz NOT NULL,
-    hide_vote_counts boolean NOT NULL
+    hide_vote_counts boolean NOT NULL,
+    number_of_winners int NOT NULL
 );
 
 CREATE TABLE token (
