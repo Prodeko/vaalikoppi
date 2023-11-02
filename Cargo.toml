@@ -18,7 +18,7 @@ postgres = "0.19.7"
 rand = "0.8.5"
 serde = { version = "1.0.188", features=["derive"]}
 serde_with = "3.4.0"
-sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros", "chrono"]}
+sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros", "chrono", "uuid"]}
 time = "0.3.30"
 tokio = { version = "1.32.0", features = ["macros", "io-util", "rt-multi-thread"]}
 tower = { version = "0.4.13", features = ["util"]}

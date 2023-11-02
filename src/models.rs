@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;
+use uuid::Uuid;
 use validator::Validate;
 
 pub type CandidateId = String;
@@ -173,6 +174,7 @@ pub struct HasVoted {
 #[derive(Debug)]
 pub struct Vote {
     pub voting_id: VotingId,
+    pub id: Uuid,
     pub candidate: CandidateId,
     pub rank: i32,
 }
