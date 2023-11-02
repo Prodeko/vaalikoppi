@@ -25,8 +25,8 @@ use crate::{
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
         Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
-        VotingCreate, VotingForVoterTemplate, VotingId, VotingRoundResult, VotingState,
-        VotingStateWithoutResults, VotingUpdate,
+        VotingCreate, VotingForVoterTemplate, VotingId, VotingResult, VotingRoundResult,
+        VotingState, VotingStateWithoutResults, VotingUpdate,
     },
 };
 
@@ -193,13 +193,7 @@ impl Voting {
                 .state
                 .unwrap_or_else(|| self.state.clone().into()),
         ) {
-            (
-                VotingState::Closed {
-                    round_results: _,
-                    winners: _,
-                },
-                _,
-            ) => Err(ApiError::VotingAlreadyClosed),
+            (VotingState::Closed { .. }, _) => Err(ApiError::VotingAlreadyClosed),
             (_, VotingStateWithoutResults::Closed) => {
                 self.try_close_voting(db, voting_update).await
             }
@@ -363,20 +357,13 @@ async fn delete_voting(
     }
 }
 
-#[derive(Debug)]
-pub struct VotingResult {
-    pub voting: Voting,
-    pub round_results: Vec<VotingRoundResult>,
-    pub winners: Vec<CandidateId>,
-}
-
 #[derive(Template)]
 #[template(path = "components/voting-list.html")]
 
 pub struct VotingListTemplate {
     pub open_votings: Vec<VotingForVoterTemplate>,
     pub draft_votings: Vec<Voting>,
-    pub closed_votings: Vec<VotingResult>,
+    pub closed_votings: Vec<Voting>,
     pub login_state: LoginState,
     pub newly_created_vote_uuids: Option<Vec<String>>,
 }
@@ -502,21 +489,9 @@ pub async fn get_votings_list_template(
                 (VotingState::Draft, Some(_)) => Err(ApiError::CorruptDatabaseError),
                 (VotingState::Open, None) => Ok(()),
                 (VotingState::Open, Some(_)) => Err(ApiError::CorruptDatabaseError),
-                (
-                    VotingState::Closed {
-                        round_results: _,
-                        winners: _,
-                    },
-                    None,
-                ) => Err(ApiError::CorruptDatabaseError),
-                (
-                    VotingState::Closed {
-                        round_results,
-                        winners: _,
-                    },
-                    Some(result),
-                ) => {
-                    round_results.push(result);
+                (VotingState::Closed(_), None) => Err(ApiError::CorruptDatabaseError),
+                (VotingState::Closed(existing_result), Some(result)) => {
+                    existing_result.round_results.push(result);
                     Ok(())
                 }
             },
@@ -524,10 +499,10 @@ pub async fn get_votings_list_template(
                 let state = match rec.state {
                     VotingStateWithoutResults::Draft => VotingState::Draft,
                     VotingStateWithoutResults::Open => VotingState::Open,
-                    VotingStateWithoutResults::Closed => VotingState::Closed {
+                    VotingStateWithoutResults::Closed => VotingState::Closed(VotingResult {
                         round_results: Vec::new(),
                         winners: Vec::new(),
-                    },
+                    }),
                 };
 
                 let voting = VotingForVoterTemplate {
@@ -549,19 +524,12 @@ pub async fn get_votings_list_template(
 
     let mut draft_votings: Vec<Voting> = vec![];
     let mut open_votings: Vec<VotingForVoterTemplate> = vec![];
-    let mut results_votings: Vec<VotingResult> = vec![];
+    let mut results_votings: Vec<Voting> = vec![];
 
     votings.values().for_each(|f| match &f.state {
         VotingState::Draft => draft_votings.push(f.to_owned().into()),
-        VotingState::Open => open_votings.push(f.clone()),
-        VotingState::Closed {
-            round_results,
-            winners,
-        } => results_votings.push(VotingResult {
-            round_results: round_results.to_owned(),
-            winners: winners.to_owned(),
-            voting: f.to_owned().into(),
-        }),
+        VotingState::Open => open_votings.push(f.to_owned()),
+        VotingState::Closed(VotingResult { .. }) => results_votings.push(f.to_owned().into()),
     });
 
     let template = VotingListTemplate {
@@ -611,9 +579,9 @@ pub struct AdminDisplayToken {
 #[derive(Template)]
 #[template(path = "components/admin-voting-list.html")]
 pub struct AdminVotingListTemplate {
-    pub open_votings: Vec<AdminOpenVoting>,
     pub draft_votings: Vec<AdminDraftVoting>,
-    pub closed_votings: Vec<VotingResult>, // ??
+    pub open_votings: Vec<AdminOpenVoting>,
+    pub closed_votings: Vec<Voting>, // ??
     pub login_state: LoginState,
 }
 
@@ -684,9 +652,10 @@ pub async fn get_admin_votings_list_template(
 
     let mut open_votings: Vec<AdminOpenVoting> = vec![];
     let mut draft_votings: Vec<AdminDraftVoting> = vec![];
-    let mut closed_votings: Vec<VotingResult> = vec![];
+    let mut closed_votings: Vec<Voting> = vec![];
 
     rows.iter().for_each(|row| match row.voting_state {
+        // TODO admin voting results
         VotingStateWithoutResults::Closed => (),
         VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
             id: row.id,

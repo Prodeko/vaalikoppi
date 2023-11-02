@@ -56,10 +56,7 @@ impl From<VotingState> for VotingStateWithoutResults {
         match value {
             VotingState::Draft => VotingStateWithoutResults::Draft,
             VotingState::Open => VotingStateWithoutResults::Open,
-            VotingState::Closed {
-                round_results: _,
-                winners: _,
-            } => VotingStateWithoutResults::Closed,
+            VotingState::Closed { .. } => VotingStateWithoutResults::Closed,
         }
     }
 }
@@ -70,10 +67,13 @@ pub enum VotingState {
     Draft,
     Open,
     #[serde(rename_all = "camelCase")]
-    Closed {
-        round_results: Vec<VotingRoundResult>,
-        winners: Vec<CandidateId>,
-    },
+    Closed(VotingResult),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct VotingResult {
+    pub round_results: Vec<VotingRoundResult>,
+    pub winners: Vec<CandidateId>,
 }
 
 impl From<VotingStateWithoutResults> for VotingState {
@@ -81,10 +81,10 @@ impl From<VotingStateWithoutResults> for VotingState {
         match value {
             VotingStateWithoutResults::Draft => Self::Draft,
             VotingStateWithoutResults::Open => Self::Open,
-            VotingStateWithoutResults::Closed => Self::Closed {
+            VotingStateWithoutResults::Closed => Self::Closed(VotingResult {
                 round_results: vec![],
                 winners: vec![],
-            },
+            }),
         }
     }
 }
@@ -94,13 +94,7 @@ impl PartialEq<VotingStateWithoutResults> for VotingState {
         match (self, other) {
             (VotingState::Draft, VotingStateWithoutResults::Draft) => true,
             (VotingState::Open, VotingStateWithoutResults::Open) => true,
-            (
-                VotingState::Closed {
-                    round_results: _,
-                    winners: _,
-                },
-                VotingStateWithoutResults::Closed,
-            ) => true,
+            (VotingState::Closed { .. }, VotingStateWithoutResults::Closed) => true,
             _ => false,
         }
     }
