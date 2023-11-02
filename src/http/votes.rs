@@ -4,9 +4,7 @@ use crate::api_types::ApiError;
 
 use crate::models::LoginState;
 use crate::{
-    api_types::{
-        ApiError::AlreadyVoted, ApiError::InternalServerError, ApiResult,
-    },
+    api_types::{ApiError::AlreadyVoted, ApiError::InternalServerError, ApiResult},
     ctx::Ctx,
     http::AppState,
     middleware::require_is_voter::require_is_voter,

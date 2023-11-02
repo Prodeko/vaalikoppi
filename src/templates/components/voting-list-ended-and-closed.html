@@ -10,7 +10,8 @@
   {% for voting in closed_votings %}
     <div class="row">
       <div class="col s12">
-        {% if is_admin %}
+        {% match self.login_state %}
+        {% when LoginState::Admin %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
               <span class="card-title text-lighten-1">Avaamaton: {{ voting.name }}</span>
@@ -63,7 +64,7 @@
               {% endfor %}
             </div>
           </div>
-        {% endif %}
+        {% endmatch %}
       </div>
     </div>
   {% endfor %}

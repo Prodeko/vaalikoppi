@@ -1,5 +1,4 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "components/base.html" %}
 
 {% block body %}
   <div class="container reduced-row-margin">
@@ -7,13 +6,13 @@
       <div class="col s12">
         <div id="voting-sound-panel" class="card blue-grey lighten-5">
           <audio id="sound-track-1" class="sound-track">
-            <source src="{% static 'music/rummut.mp3' %}" type="audio/mpeg">
+            <source src="static/music/rummut.mp3'" type="audio/mpeg">
           </audio>
           <audio id="sound-track-2" class="sound-track">
-            <source src="{% static 'music/tuplaus.mp3' %}" type="audio/mpeg">
+            <source src="static/music/tuplaus.mp3'" type="audio/mpeg">
           </audio>
           <audio id="sound-track-3" class="sound-track">
-            <source src="{% static 'music/badumtss.mp3' %}" type="audio/mpeg">
+            <source src="static/music/badumtss.mp3'" type="audio/mpeg">
           </audio>
 
           <div class="card-action center">
@@ -28,7 +27,7 @@
       <div class="col s12">
         <div id="voting-list-updater" class="card blue-grey lighten-5">
           <div class="card-action center">
-            <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList({% if user.is_superuser %}true{% endif %})">
+            <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList(true)">
               Päivitä luettelo
             </button>
           </div>
@@ -37,7 +36,13 @@
     </div>
 
     <div id="voting-list-area" class="reduced-row-margin">
-      {% include 'admin-voting-list.html' %}
+      {% match votings_list_template %}
+      {% when VotingListTemplate with {open_votings, closed_votings, ended_votings, login_state} %}
+        This is voting-list.html<br/>
+        TODO! change this to admin-voting-list.html
+        {# % include "components/admin-voting-list.html" % #}
+        {% include "components/voting-list.html" %}
+    {% endmatch %}
     </div>
 
   </div>

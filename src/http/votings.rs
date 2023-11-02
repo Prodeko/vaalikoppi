@@ -152,8 +152,7 @@ async fn patch_voting(
 
 #[debug_handler]
 async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
-    let template =
-        get_votings_list_template(state.db.clone(), ctx.login_state() == LoginState::Admin).await?;
+    let template = get_votings_list_template(state.db.clone(), ctx.login_state()).await?;
 
     template
         .render()
@@ -352,17 +351,18 @@ pub struct VotingResult {
 }
 
 #[derive(Template)]
-#[template(path = "voting-list.html", ext = "html")]
+#[template(path = "components/voting-list.html")]
+
 pub struct VotingListTemplate {
     pub open_votings: Vec<Voting>,
     pub closed_votings: Vec<Voting>,
     pub ended_votings: Vec<VotingResult>,
-    pub is_admin: bool,
+    pub login_state: LoginState,
 }
 
 pub async fn get_votings_list_template(
     db: Pool<Postgres>,
-    is_admin: bool,
+    login_state: LoginState,
 ) -> ApiResult<VotingListTemplate> {
     let rows = sqlx::query!(
         "
@@ -540,7 +540,7 @@ pub async fn get_votings_list_template(
         closed_votings,
         ended_votings: results_votings,
         // csrf_token: todo!(),
-        is_admin,
+        login_state: login_state,
     };
 
     Ok(template)

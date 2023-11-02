@@ -14,7 +14,7 @@ use crate::{
     api_types::{ApiError, ApiResult},
     http::AppState,
     middleware::{require_is_admin::require_is_admin, resolve_token::resolve_token},
-    models::{generate_token, Token, TokenState, TokenUpdate},
+    models::{generate_token, LoginState, Token, TokenState, TokenUpdate},
 };
 
 #[derive(Deserialize)]
@@ -33,12 +33,13 @@ pub fn router(state: AppState) -> Router<AppState> {
 }
 
 #[derive(Template)]
-#[template(path = "admin-tokens.html")]
+#[template(path = "pages/admin-tokens.html")]
 struct TokensTemplate {
     tokens: Vec<Token>,
     unactivated_token_count: i32,
     activated_token_count: i32,
     voided_token_count: i32,
+    login_state: LoginState,
 }
 
 #[derive(Debug, Serialize)]
@@ -97,6 +98,7 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         unactivated_token_count,
         activated_token_count,
         voided_token_count,
+        login_state: LoginState::Admin,
     }
     .render()
     .map(|html| Html(html))

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "components/base.html" %}
 
 {% block body %}
 <div class="container">
@@ -6,7 +6,11 @@
     <div class="col s12">
       <div id="voting-list-updater" class="card blue-grey lighten-5">
         <div class="card-content center-align">
-          <p>Olet kirjautunut sisään aliaksella <b>{{ alias }}</b>.</p>
+          {% match login_state %}
+            {% when LoginState::Voter with { alias, token } %}
+            <p>Olet kirjautunut sisään aliaksella <b>{{ alias }}</b>.</p>
+            {% else %}
+          {% endmatch %}
         </div>
         <div class="card-action center-align">
           <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList()">
@@ -19,8 +23,8 @@
   
   <div id="voting-list-area" class="reduced-row-margin">
     {% match votings_list_template %}
-      {% when VotingListTemplate with {open_votings, closed_votings, ended_votings, is_admin} %}
-        {% include "voting-list.html" %}
+      {% when VotingListTemplate with {open_votings, closed_votings, ended_votings, login_state} %}
+        {% include "components/voting-list.html" %}
     {% endmatch %}
   </div>
 </div>

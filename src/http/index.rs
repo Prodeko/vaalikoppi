@@ -1,10 +1,7 @@
 use askama::Template;
 use axum::{response::Html, routing::get, Router};
 
-use crate::{
-    ctx::Ctx,
-    models::{LoginState},
-};
+use crate::{ctx::Ctx, models::LoginState};
 use axum::extract::State;
 
 use crate::api_types::{ApiError, ApiResult};
@@ -19,34 +16,55 @@ pub fn router() -> Router<AppState> {
 }
 
 #[derive(Template)]
-#[template(path = "login.html")]
-struct LoginTemplate {}
+#[template(path = "pages/login.html")]
+struct LoginTemplate {
+    login_state: LoginState,
+}
 
 #[derive(Template)]
-#[template(path = "voting.html")]
+#[template(path = "pages/voter-home.html")]
 struct VotingTemplate {
-    alias: String,
+    pub login_state: LoginState,
+    votings_list_template: VotingListTemplate,
+}
+
+#[derive(Template)]
+#[template(path = "pages/admin-home.html")]
+struct AdminVotingTemplate {
+    login_state: LoginState,
     votings_list_template: VotingListTemplate,
 }
 
 async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let template = async {
         match context.login_state() {
-            LoginState::NotLoggedIn => LoginTemplate {}
-                .render()
-                .map_err(|_| ApiError::InternalServerError),
-            LoginState::Voter { alias, .. } => {
+            LoginState::NotLoggedIn => LoginTemplate {
+                login_state: context.login_state(),
+            }
+            .render()
+            .map_err(|_| ApiError::InternalServerError),
+            LoginState::Voter { .. } => {
                 let votings_list_template =
-                    get_votings_list_template(state.db.clone(), false).await?;
+                    get_votings_list_template(state.db.clone(), context.login_state()).await?;
 
                 VotingTemplate {
-                    alias,
+                    login_state: context.login_state(),
                     votings_list_template,
                 }
                 .render()
                 .map_err(|e| e.into())
             }
-            LoginState::Admin => Ok("This is admin-votings.html".to_string()),
+            LoginState::Admin => {
+                let votings_list_template =
+                    get_votings_list_template(state.db.clone(), context.login_state()).await?;
+
+                AdminVotingTemplate {
+                    login_state: context.login_state(),
+                    votings_list_template,
+                }
+                .render()
+                .map_err(|e| e.into())
+            }
         }
     }
     .await?;
