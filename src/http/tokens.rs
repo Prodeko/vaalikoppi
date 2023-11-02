@@ -167,6 +167,8 @@ async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateToken
         b.push_bind(token).push_bind(TokenState::Unactivated);
     });
 
+    // TODO If tokens collide, the database will throw a duplicate key error which will return error code 500
+    // to the admin's browser. This shouldn't break the application but the admin UX is bad.
     let result = query_builder.build().execute(&state.0.db).await;
 
     match result {
