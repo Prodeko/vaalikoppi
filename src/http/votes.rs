@@ -41,19 +41,29 @@ async fn post_vote(
 ) -> ApiResult<Json<PostVoteResponse>> {
     let token = match context.login_state() {
         LoginState::Voter { token, .. } => Ok(token),
-        _ => Err(ApiError::TokenNotFound),
+        LoginState::NotLoggedIn => {
+            println!("Not logged in");
+            Err(ApiError::TokenNotFound)
+        }
+        LoginState::Admin => {
+            println!("Not logged in");
+            Err(ApiError::TokenNotFound)
+        }
     }?;
 
+    // This will practically never collide
+    let uuid = uuid::Uuid::new_v4();
     // Start a transaction to add tuples to both vote and has_voted
     let mut tx = state.db.begin().await?;
 
     // If the voter does not vote for anyone ( candidates = [] ), then don't insert anything into vote, and the tx wont fail to syntax error
     let _insert_vote = if post_vote_payload.candidates.len() > 0 {
-        QueryBuilder::new("INSERT INTO vote(candidate_name, voting_id, rank) ")
+        QueryBuilder::new("INSERT INTO vote(id, candidate_name, voting_id, rank) ")
             .push_values(
                 post_vote_payload.candidates.iter().enumerate(),
                 |mut query_builder, (index, candidate_name)| {
                     query_builder
+                        .push_bind(uuid)
                         .push_bind(candidate_name)
                         .push_bind(post_vote_payload.voting_id.clone())
                         .push_bind(index as i32 + 1); // ranks start at 1 (rank int DEFAULT 1 defined in the db schema), not 0

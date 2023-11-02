@@ -27,10 +27,11 @@ CREATE TABLE candidate (
 );
 
 CREATE TABLE vote (
-    id SERIAL NOT NULL PRIMARY KEY,
+    id uuid NOT NULL,
     candidate_name text NOT NULL,
     voting_id int NOT NULL,
     rank int DEFAULT 1,
+    PRIMARY KEY (voting_id, id, rank),
     FOREIGN KEY (candidate_name, voting_id) REFERENCES candidate(name, voting_id) ON DELETE CASCADE
 );
 

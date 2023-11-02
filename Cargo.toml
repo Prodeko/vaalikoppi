@@ -18,10 +18,11 @@ postgres = "0.19.7"
 rand = "0.8.5"
 serde = { version = "1.0.188", features=["derive"]}
 serde_with = "3.4.0"
-sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros", "chrono"]}
+sqlx = { version = "0.7.1", features=["postgres", "runtime-tokio", "macros", "chrono", "uuid"]}
 time = "0.3.30"
 tokio = { version = "1.32.0", features = ["macros", "io-util", "rt-multi-thread"]}
 tower = { version = "0.4.13", features = ["util"]}
 tower-cookies = "0.9.0"
 tower-http = { version = "0.4.4", features = ["fs"]}
+uuid = { version = "1.5.0", features = ["v4", "fast-rng"] }
 validator = { version = "0.16.1", features = ["derive"]}
