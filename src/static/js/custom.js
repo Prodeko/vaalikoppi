@@ -434,26 +434,24 @@ function activateOrInvalidateToken(isActivate, code, number) {
 }
 
 function createVoting() {
-  const isRankedChoice = document.getElementById("is-ranked-choice-election")
-    .checked;
-  const isPasswordProtected = document.getElementById(
-    "voting-add-is-password-protected"
-  ).checked;
-  const votingName = document.getElementById("voting-name").value;
-  const votingDescription = document.getElementById("voting-description").value;
-  const votingPassword = document.getElementById("voting-add-voting-password")
-    .value;
-  const maxVotes = document.getElementById("max-votes").value;
+  //const isRankedChoice = document.getElementById("is-ranked-choice-election")
+  //  .checked;
+  //const isPasswordProtected = document.getElementById(
+  //  "voting-add-is-password-protected"
+  //).checked;
+  const name = document.getElementById("voting-name").value;
+  const description = document.getElementById("voting-description").value;
+  //const votingPassword = document.getElementById("voting-add-voting-password")
+  //  .value;
+  //const maxVotes = document.getElementById("max-votes").value;
+  const hideVoteCounts = document.getElementById("hide-vote-counts").checked;
 
   const data = {
-    is_ranked_choice: isRankedChoice,
-    is_password_protected: isPasswordProtected,
-    voting_name: votingName,
-    voting_description: votingDescription,
-    voting_password: votingPassword,
-    max_votes: maxVotes,
+    name,
+    description,
+    hideVoteCounts,
   };
-  callApi(`${SITE_ROOT_PATH}admin/votings/create/`, "POST", data)
+  callApi(`${SITE_ROOT_PATH}votings`, "POST", data)
     .then(() => refreshVotingList(true))
     .catch(() =>
       showUserNotification(
