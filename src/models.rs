@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use float_cmp::{approx_eq, F32Margin};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;
@@ -70,7 +71,7 @@ pub enum VotingState {
     Closed(VotingResult),
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct VotingResult {
     pub round_results: Vec<VotingRoundResult>,
     pub winners: Vec<CandidateId>,
@@ -237,14 +238,23 @@ pub struct CandidateResultData {
     pub vote_count: f64,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+impl PartialEq for CandidateResultData {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && approx_eq!(f64, self.vote_count, other.vote_count, epsilon = 0.000001)
+    }
+}
+
+impl Eq for CandidateResultData {}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct PassingCandidateResult {
     pub data: CandidateResultData,
     pub is_selected: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct VotingRoundResult {
     pub round: i32,
