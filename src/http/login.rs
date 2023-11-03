@@ -1,4 +1,11 @@
-use axum::{debug_handler, extract::State, routing::post, Json, Router};
+use askama::Template;
+use axum::{
+    debug_handler,
+    extract::State,
+    response::Html,
+    routing::{get, post},
+    Json, Router,
+};
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
@@ -7,7 +14,9 @@ use tower_cookies::{Cookie, Cookies};
 
 use crate::{
     api_types::{ApiError, ApiResult},
+    ctx::Ctx,
     http::AppState,
+    models::LoginState,
 };
 
 pub const AUTH_TOKEN: &str = "admin-token";
@@ -28,7 +37,9 @@ pub struct JsonWebTokenClaims {
 struct LoginResponse {}
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/login", post(json_web_token_login))
+    Router::new()
+        .route("/login", post(json_web_token_login))
+        .route("/admin", get(admin_login))
 }
 
 #[debug_handler]
@@ -67,4 +78,20 @@ async fn json_web_token_login(
             Json(LoginResponse {})
         })
         .map_err(|_| ApiError::LoginFail)
+}
+
+#[derive(Template)]
+#[template(path = "pages/admin-login.html")]
+struct AdminLoginTemplate {
+    login_state: LoginState,
+}
+
+async fn admin_login(context: Ctx) -> ApiResult<Html<String>> {
+    let template = AdminLoginTemplate {
+        login_state: context.login_state(),
+    }
+    .render()
+    .map_err(|_| ApiError::InternalServerError)?;
+
+    Ok(Html(template))
 }

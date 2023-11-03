@@ -335,6 +335,33 @@ function logout() {
     );
 }
 
+function adminLogin() {
+  const token = document.getElementById("admin-login-field").value;
+  const notificationArea = document.getElementById("login-notification-area");
+
+  notificationArea.classList.add("loading-token-notification");
+  notificationArea.classList.remove("wrong-token-warning");
+  notificationArea.innerHTML = "Ladataan... &#129312";
+
+  callApi(`${SITE_ROOT_PATH}login`, "POST", {
+    token
+  })
+    .then((res) => {
+      console.log(res)
+      if (!res.ok) {
+        throw Error("Kirjautuminen epäonnistui");
+      }
+      location.replace("/")
+    })
+    .catch((error) =>
+      window.setTimeout(() => {
+        notificationArea.classList.remove("loading-token-notification");
+        notificationArea.classList.add("wrong-token-warning");
+        notificationArea.innerHTML = error.message;
+      }, 100)
+    );
+}
+
 function submitToken() {
   var token = document.getElementById("type-token-field").value;
   var alias = document.getElementById("type-alias-field").value;
