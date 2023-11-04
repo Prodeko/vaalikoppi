@@ -46,55 +46,57 @@ pub fn calculate_stv_result(
             return Err(ApiError::VotingAlgorithmError);
         }
 
-        let mut selected_candidates = vote_counts
+        let accept_all_candidates = vote_counts.len() + winner_count <= number_of_winners;
+
+        let mut selected_candidates_with_surplus_votes = vote_counts
             .iter()
-            .filter(|(_, votes)| *votes >= &quota)
-            .map(|(id, quota)| (id.clone(), *quota))
+            .filter(|(_, votes)| (*votes >= &quota) || accept_all_candidates)
+            .map(|(id, votes)| (id.clone(), *votes))
             .collect::<Vec<_>>();
+        // Sort in descending order
+        selected_candidates_with_surplus_votes.sort_by(|(_, old), (_, new)| new.total_cmp(&old));
 
-        selected_candidates.sort_by(|(_, old), (_, new)| new.total_cmp(&old));
+        winner_count += selected_candidates_with_surplus_votes.len();
 
-        winner_count += selected_candidates.len();
-
-        selected_candidates.iter().for_each(|(id, _)| {
-            vote_counts.remove(id);
-        });
+        selected_candidates_with_surplus_votes
+            .iter()
+            .for_each(|(id, _)| {
+                vote_counts.remove(id);
+            });
 
         // Transfer surplus votes to secondary preferences if they exist
-        for (candidate_id, vote_count) in selected_candidates.iter() {
-            let surplus_votes = vote_count - quota;
-
-            let clone = vote_counts.clone();
-
-            let secondary_options =
-                find_secondary_preferences(&clone, &votes, candidate_id).collect::<Vec<_>>();
-
-            let portion_of_vote = surplus_votes / secondary_options.len() as f64;
-            let non_null_secondary_options = secondary_options.into_iter().flatten();
-
-            non_null_secondary_options.into_iter().for_each(|c_id| {
-                let count = vote_counts.entry(c_id.to_string()).or_insert(0.0);
-                *count += portion_of_vote;
-            });
-        }
-
-        // All candidates get seats.
-        // Ballots with few secondary preferences can lead to this situation.
-        if vote_counts.len() + winner_count <= number_of_winners {
-            println!("MORE SEATS THAN CANDIDATES");
-            let mut rest_of_candidates = vote_counts
+        let selected_candidates_without_transferred_surplus_votes =
+            selected_candidates_with_surplus_votes
                 .iter()
-                .map(|(id, votes)| (id.clone(), *votes))
+                .map(|(c, v)| {
+                    let surplus_votes = v - quota;
+
+                    let clone = vote_counts.clone();
+
+                    let secondary_options =
+                        find_secondary_preferences(&clone, &votes, c).collect::<Vec<_>>();
+
+                    let portion_of_vote = surplus_votes / secondary_options.len() as f64;
+                    let non_null_secondary_options = secondary_options.into_iter().flatten();
+
+                    let mut total_surplus_tranferred = 0.0;
+
+                    non_null_secondary_options.into_iter().for_each(|c_id| {
+                        let count = vote_counts.entry(c_id.to_string()).or_insert(0.0);
+                        *count += portion_of_vote;
+                        total_surplus_tranferred += portion_of_vote;
+                    });
+
+                    (c.clone(), v - total_surplus_tranferred)
+                })
                 .collect::<Vec<_>>();
-            rest_of_candidates.sort_by(|(_, old), (_, new)| new.total_cmp(&old));
-            selected_candidates.append(&mut rest_of_candidates);
-            vote_counts.clear();
-            voting_is_finished = true;
-        }
 
         if winner_count == number_of_winners || vote_counts.is_empty() {
             println!("FINISH VOTING");
-            let candidate_results = collect_candidate_results(&selected_candidates, &vote_counts);
+            let candidate_results = collect_candidate_results(
+                &selected_candidates_without_transferred_surplus_votes,
+                &vote_counts,
+            );
             let round_result = VotingRoundResult {
                 round,
                 candidate_results,
@@ -106,7 +108,7 @@ pub fn calculate_stv_result(
             Ok(())
         }
         // Drop candidate
-        else if selected_candidates.is_empty() {
+        else if selected_candidates_with_surplus_votes.is_empty() {
             println!("DROP CANDIDATE");
             let min_number_of_votes = vote_counts
                 .iter()
@@ -136,7 +138,10 @@ pub fn calculate_stv_result(
             let portion_of_votes = candidate_to_be_dropped.1 / secondary_preferences.len() as f64;
             let non_null_secondary_preferences = secondary_preferences.into_iter().flatten();
 
-            let candidate_results = collect_candidate_results(&selected_candidates, &vote_counts);
+            let candidate_results = collect_candidate_results(
+                &selected_candidates_without_transferred_surplus_votes,
+                &vote_counts,
+            );
 
             let dropped_candidate = Some(CandidateResultData {
                 name: candidate_to_be_dropped.0.to_owned(),
