@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use float_cmp::{approx_eq, F32Margin};
+use float_cmp::{approx_eq};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;

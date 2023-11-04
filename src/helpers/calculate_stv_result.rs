@@ -3,17 +3,15 @@ use std::collections::HashMap;
 use crate::{
     api_types::{ApiError, ApiResult},
     models::{
-        CandidateId, CandidateResultData, PassingCandidateResult, Vote, VotingResult,
-        VotingRoundResult,
+        CandidateId, CandidateResultData, PassingCandidateResult, VotingResult, VotingRoundResult,
     },
 };
 use float_cmp::approx_eq;
 use rand::seq::IteratorRandom;
-use sqlx::Execute;
 
 pub fn calculate_stv_result(
     candidates: Vec<CandidateId>,
-    mut votes: Vec<Vec<CandidateId>>,
+    votes: Vec<Vec<CandidateId>>,
     number_of_winners: usize,
 ) -> ApiResult<VotingResult> {
     // TODO sanitize inputs
@@ -221,15 +219,13 @@ fn collect_candidate_results(
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
     use pretty_assertions::assert_eq;
 
     use crate::{
-        api_types::ApiError,
         helpers::calculate_stv_result,
         models::{
-            CandidateId, CandidateResultData, PassingCandidateResult, Voting, VotingResult,
-            VotingRoundResult, VotingState,
+            CandidateId, CandidateResultData, PassingCandidateResult, VotingResult,
+            VotingRoundResult,
         },
     };
 
@@ -594,7 +590,7 @@ mod tests {
         let votes: Vec<Vec<CandidateId>> =
             [a_b_c_votes, b_a_c_votes, b_c_a_votes, c_b_a_votes].concat();
 
-        let quota = (votes.len() as f64 / (1.0 + 1.0)) + 1.0;
+        let _quota = (votes.len() as f64 / (1.0 + 1.0)) + 1.0;
         let result = calculate_stv_result(candidates, votes, 1);
 
         let expected_result = VotingResult {
