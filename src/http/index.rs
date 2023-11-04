@@ -7,7 +7,10 @@ use axum::extract::State;
 use crate::api_types::{ApiError, ApiResult};
 
 use super::{
-    votings::{get_votings_list_template, VotingListTemplate},
+    votings::{
+        get_admin_votings_list_template, get_votings_list_template, AdminVotingListTemplate,
+        VotingListTemplate,
+    },
     AppState,
 };
 
@@ -25,14 +28,14 @@ struct LoginTemplate {
 #[template(path = "pages/voter-home.html")]
 struct VotingTemplate {
     pub login_state: LoginState,
-    votings_list_template: VotingListTemplate,
+    pub votings_list_template: VotingListTemplate,
 }
 
 #[derive(Template)]
 #[template(path = "pages/admin-home.html")]
 struct AdminVotingTemplate {
-    login_state: LoginState,
-    votings_list_template: VotingListTemplate,
+    pub login_state: LoginState,
+    pub votings_list_template: AdminVotingListTemplate,
 }
 
 async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
@@ -56,7 +59,8 @@ async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String
             }
             LoginState::Admin => {
                 let votings_list_template =
-                    get_votings_list_template(state.db.clone(), context.login_state()).await?;
+                    get_admin_votings_list_template(state.db.clone(), context.login_state())
+                        .await?;
 
                 AdminVotingTemplate {
                     login_state: context.login_state(),

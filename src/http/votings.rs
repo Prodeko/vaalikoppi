@@ -1,3 +1,4 @@
+use ::serde::{Deserialize, Serialize};
 use axum::{
     debug_handler,
     extract::{Path, State},
@@ -9,17 +10,22 @@ use axum::{
 use chrono::Utc;
 use sqlx::{postgres::PgRow, Executor, Pool, Postgres, QueryBuilder, Row};
 use std::collections::HashMap;
+use validator::Validate;
 
 use askama::Template;
 use chrono::DateTime;
 
 use crate::{
-    api_types::{ApiError, ApiResult},
+    api_types::{
+        ApiError::{self, InternalServerError},
+        ApiResult,
+    },
     ctx::Ctx,
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
-        CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting, VotingCreate,
-        VotingId, VotingRoundResult, VotingState, VotingStateWithoutResults, VotingUpdate,
+        Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
+        VotingCreate, VotingId, VotingRoundResult, VotingState, VotingStateWithoutResults,
+        VotingUpdate,
     },
 };
 
@@ -152,12 +158,19 @@ async fn patch_voting(
 
 #[debug_handler]
 async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
-    let template = get_votings_list_template(state.db.clone(), ctx.login_state()).await?;
-
-    template
-        .render()
-        .map(|html| Html(html))
-        .map_err(|_| ApiError::InternalServerError)
+    match ctx.login_state() {
+        LoginState::NotLoggedIn => todo!(),
+        LoginState::Voter { .. } => get_votings_list_template(state.db.clone(), ctx.login_state())
+            .await?
+            .render()
+            .map(|html| Html(html))
+            .map_err(|_| ApiError::InternalServerError),
+        LoginState::Admin => get_admin_votings_list_template(state.db.clone(), ctx.login_state())
+            .await?
+            .render()
+            .map(|html| Html(html))
+            .map_err(|_| ApiError::InternalServerError),
+    }
 }
 
 struct VotingStateResult {
@@ -355,8 +368,8 @@ pub struct VotingResult {
 
 pub struct VotingListTemplate {
     pub open_votings: Vec<Voting>,
-    pub closed_votings: Vec<Voting>,
-    pub ended_votings: Vec<VotingResult>,
+    pub draft_votings: Vec<Voting>,
+    pub closed_votings: Vec<VotingResult>,
     pub login_state: LoginState,
 }
 
@@ -537,11 +550,154 @@ pub async fn get_votings_list_template(
 
     let template = VotingListTemplate {
         open_votings,
-        closed_votings,
-        ended_votings: results_votings,
+        draft_votings: closed_votings,
+        closed_votings: results_votings,
         // csrf_token: todo!(),
         login_state: login_state,
     };
 
     Ok(template)
+}
+
+// ---------------------------------------
+
+#[derive(Validate, Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminOpenVoting {
+    pub id: VotingId,        // voting
+    pub name: String,        // voting
+    pub description: String, // voting
+    pub state: VotingState,  // voting
+
+    pub total_votes: i32,                         // has_voted
+    pub eligible_token_count: i32,                // live count of activated tokens
+    pub candidates: Vec<CandidateId>,             // candidate
+    pub tokens_not_voted: Vec<AdminDisplayToken>, // token (active) join has_voted
+}
+
+#[derive(Validate, Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminDraftVoting {
+    pub id: VotingId,
+    pub name: String,
+    pub description: String,
+    pub state: VotingState,
+    pub candidates: Vec<CandidateId>,
+}
+
+#[derive(Validate, Debug, Clone, Deserialize, Serialize)]
+pub struct AdminDisplayToken {
+    pub token: String, // token
+    pub alias: String, // token
+}
+
+#[derive(Template)]
+#[template(path = "components/admin-voting-list.html")]
+pub struct AdminVotingListTemplate {
+    pub open_votings: Vec<AdminOpenVoting>,
+    pub draft_votings: Vec<AdminDraftVoting>,
+    pub closed_votings: Vec<VotingResult>, // ??
+    pub login_state: LoginState,
+}
+
+pub async fn get_admin_votings_list_template(
+    db: Pool<Postgres>,
+    login_state: LoginState,
+) -> ApiResult<AdminVotingListTemplate> {
+    let rows = sqlx::query!(
+        "
+        with u_t as ( -- unused tokens for each voting
+            select 
+                v.id, 
+                coalesce(nullif(array_agg(row(t.token, t.alias)), '{NULL}'), '{}') as unused_tokens
+            from voting v 
+            cross join token t
+            left join has_voted hv on hv.token_token = t.token and hv.voting_id = v.id
+            where hv.token_token is null
+            group by v.id
+        ), 
+        t_v as ( -- count of votes for each voting
+            select
+                v.id,
+                count(*) as total_votes
+            from voting v
+            left join has_voted hv on v.id = hv.voting_id
+            group by v.id
+        ),
+        v_c as ( -- votings and their corresponding candidates
+            select
+                v.id,
+                v.name,
+                v.description,
+                v.state,
+                coalesce(nullif(array_agg(c.name), '{null}'), '{}') as candidates
+            from voting v
+            left join candidate c on v.id = c.voting_id
+            group by v.id
+        )
+        select 
+            v_c.id,
+            v_c.name,
+            v_c.description,
+            v_c.state as \"voting_state!: VotingStateWithoutResults\",
+            v_c.candidates as \"candidates!: Vec<String>\",
+            u_t.unused_tokens as \"unused_tokens!: Vec<(String, Alias)>\",
+            t_v.total_votes
+        from v_c natural join u_t natural join t_v;
+        "
+    )
+    .fetch_all(&db)
+    .await?;
+
+    let count_of_live_tokens = sqlx::query!(
+        "
+        select
+            count(*)
+        from token 
+        WHERE state = 'activated'::token_state;
+        ",
+    )
+    .fetch_one(&db)
+    .await?
+    .count
+    .ok_or(InternalServerError)? as i32;
+
+    let mut open_votings: Vec<AdminOpenVoting> = vec![];
+    let mut draft_votings: Vec<AdminDraftVoting> = vec![];
+    let mut closed_votings: Vec<VotingResult> = vec![];
+
+    rows.iter().for_each(|row| match row.voting_state {
+        VotingStateWithoutResults::Closed => todo!(),
+        VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
+            id: row.id,
+            name: row.name.clone(),
+            description: row.description.clone(),
+            state: row.voting_state.into(),
+            candidates: row.candidates.clone(),
+        }),
+        VotingStateWithoutResults::Open => open_votings.push(AdminOpenVoting {
+            id: row.id,
+            description: row.description.clone(),
+            name: row.name.clone(),
+            state: row.voting_state.into(),
+            total_votes: row.total_votes.map_or(-1 as i32, |t| t as i32),
+            eligible_token_count: count_of_live_tokens,
+            candidates: row.candidates.clone(),
+            tokens_not_voted: row
+                .unused_tokens
+                .iter()
+                .map(|t| AdminDisplayToken {
+                    token: t.0.clone(),
+                    alias: t.1.clone().unwrap_or("".to_string()),
+                })
+                .collect(),
+        }),
+    });
+
+    Ok(AdminVotingListTemplate {
+        open_votings,
+        draft_votings,
+        closed_votings,
+        login_state,
+    })
 }

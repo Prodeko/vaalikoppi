@@ -37,12 +37,11 @@
 
     <div id="voting-list-area" class="reduced-row-margin">
       {% match votings_list_template %}
-      {% when VotingListTemplate with {open_votings, closed_votings, ended_votings, login_state} %}
+      {% when AdminVotingListTemplate with {open_votings, closed_votings, draft_votings, login_state} %}
         {% include "components/admin-overview-panel.html" %}
         {% include "components/admin-create-new-voting.html" %}
-        TODO! include admin-voting-list.html
-        {# % include "components/admin-voting-list.html" % #}
-    {% endmatch %}
+        {% include "components/admin-voting-list.html" %}
+      {% endmatch %}
     </div>
 
   </div>

@@ -12,7 +12,7 @@
             <tbody>
               <tr>
                 <td>Kaikki äänestykset</td>
-                <td>{{ open_votings.len() + closed_votings.len() + ended_votings.len() }}</td>
+                <td>{{ open_votings.len() + closed_votings.len() + closed_votings.len() }}</td>
               </tr>
               <tr>
                 <td>Avoimet äänestykset</td>
@@ -20,11 +20,11 @@
               </tr>
               <tr>
                 <td>Suljetut äänestykset</td>
-                <td>{{ closed_votings.len() }}</td>
+                <td>{{ draft_votings.len() }}</td>
               </tr>
               <tr>
                 <td>Päättyneet äänestykset</td>
-                <td>{{ ended_votings.len() }}</td>
+                <td>{{ closed_votings.len() }}</td>
               </tr>
             </tbody>
           </table>

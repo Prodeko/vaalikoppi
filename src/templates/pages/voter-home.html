@@ -23,7 +23,7 @@
   
   <div id="voting-list-area" class="reduced-row-margin">
     {% match votings_list_template %}
-      {% when VotingListTemplate with {open_votings, closed_votings, ended_votings, login_state} %}
+      {% when VotingListTemplate with {open_votings, draft_votings, closed_votings, login_state} %}
         {% include "components/voting-list.html" %}
     {% endmatch %}
   </div>

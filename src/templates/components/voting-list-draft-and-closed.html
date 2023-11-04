@@ -1,13 +1,13 @@
 {# Suljettu äänestys #}
-{% if !closed_votings.is_empty() %}
+{% if !draft_votings.is_empty() %}
   <div class="row">
     <div class="col s12">
       <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Avaamattomia tai suljettuja äänestyksiä {{ closed_votings.len() }} kpl.</span>
+        <span class="">Avaamattomia tai suljettuja äänestyksiä {{ draft_votings.len() }} kpl.</span>
       </div>
     </div>
   </div>
-  {% for voting in closed_votings %}
+  {% for voting in draft_votings %}
     <div class="row">
       <div class="col s12">
         {% match self.login_state %}
@@ -79,15 +79,15 @@
 {% endif %}
 
 {# Päättynyt äänestys #}
-{% if !ended_votings.is_empty() %}
+{% if !closed_votings.is_empty() %}
   <div class="row">
     <div class="col s12">
       <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Päättyneitä äänestyksiä {{ ended_votings.len() }} kpl.</span>
+        <span class="">Päättyneitä äänestyksiä {{ closed_votings.len() }} kpl.</span>
       </div>
     </div>
   </div>
-  {% for result in ended_votings %}
+  {% for result in closed_votings %}
     <div class="row">
       <div class="col s12">
         <div class="transfer-election closed-voting card prodeko-blue white-text center">
