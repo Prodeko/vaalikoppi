@@ -27,6 +27,7 @@ pub enum ApiError {
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
     TemplatingError(#[serde_as(as = "DisplayFromStr")] askama::Error),
+    VotingAlgorithmError,
 }
 
 impl IntoResponse for ApiError {
