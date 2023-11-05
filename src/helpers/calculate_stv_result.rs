@@ -9,9 +9,24 @@ use crate::{
 use float_cmp::approx_eq;
 use rand::seq::IteratorRandom;
 
+type Vote = Vec<CandidateId>;
+
+struct WeightedVote<'a> {
+    weight: f64,
+    vote: &'a Vote,
+}
+
+impl WeightedVote<'_> {
+    pub fn new(weight: f64, vote: &Vote) -> Self {
+        WeightedVote { weight, vote }
+    }
+}
+
+type VoteMap<'a> = HashMap<CandidateId, Vec<WeightedVote<'a>>>;
+
 pub fn calculate_stv_result(
     candidates: Vec<CandidateId>,
-    votes: Vec<Vec<CandidateId>>,
+    votes: Vec<Vote>,
     number_of_winners: usize,
 ) -> ApiResult<VotingResult> {
     // TODO sanitize inputs
@@ -25,21 +40,15 @@ pub fn calculate_stv_result(
     let valid_vote_count = valid_votes.len();
     let quota = valid_vote_count as f64 / (number_of_winners as f64 + 1.0) + 1.0;
 
-    let mut vote_counts: HashMap<CandidateId, f64> = HashMap::new();
+    let mut vote_map: VoteMap = VoteMap::new();
 
-    // Initialize vote_counts map with 0 votes for all candidates
-    for candidate in candidates.iter() {
-        vote_counts.insert(candidate.to_owned(), 0.0);
-    }
-
-    // Count first preference votes
-    votes.iter().try_for_each(|ballot| {
-        if let Some(id) = ballot.first() {
-            let existing_count = vote_counts.get_mut(id).ok_or(ApiError::InvalidInput)?;
-            *existing_count += 1.0;
+    // Create WeightedVotes from votes and insert them into vote_map
+    votes.iter().for_each(|ballot| {
+        if let Some(&id) = ballot.first() {
+            let mut weighted_votes_of_candidate = vote_map.entry(id).or_default();
+            weighted_votes_of_candidate.push(WeightedVote::new(1.0, ballot));
         }
-        Ok::<(), ApiError>(())
-    })?;
+    });
 
     while !voting_is_finished {
         if round > 10000 {
