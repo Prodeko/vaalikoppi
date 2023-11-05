@@ -9,6 +9,7 @@ use crate::{
     http::AppState,
     middleware::require_is_voter::require_is_voter,
 };
+use axum::response::Html;
 use axum::{debug_handler, extract::State, middleware::from_fn, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::error::ErrorKind;
@@ -19,8 +20,8 @@ pub fn router() -> Router<AppState> {
         .route("/votes/", post(post_vote))
         .route_layer(from_fn(require_is_voter))
 }
+use crate::http::votings::get_votings;
 #[derive(Serialize)]
-
 struct PostVoteResponse {
     candidates: Vec<String>,
     voting_id: i32,
@@ -38,7 +39,7 @@ async fn post_vote(
     state: State<AppState>,
     context: Ctx,
     Json(post_vote_payload): Json<PostVotePayload>,
-) -> ApiResult<Json<PostVoteResponse>> {
+) -> ApiResult<Html<String>> {
     let token = match context.login_state() {
         LoginState::Voter { token, .. } => Ok(token),
         LoginState::NotLoggedIn => {
@@ -94,8 +95,5 @@ async fn post_vote(
     tx.commit().await?;
 
     // TODO add meaningful error messages
-    Ok(Json(PostVoteResponse {
-        candidates: post_vote_payload.candidates,
-        voting_id: post_vote_payload.voting_id,
-    }))
+    get_votings(context, state).await
 }

@@ -22,7 +22,6 @@
           <div class="card-action">
             {% if !voting.candidates.is_empty() %}
               <div id="voting-form-{{ voting.id }}">
-                {# % csrf_token % #}
                 {% for candidate in voting.candidates %}
                   <div class="voting-candidates">
                     <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate }}" value="{{ candidate }}">-</div>

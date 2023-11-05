@@ -16,7 +16,7 @@
     
     <title>{% block title %}Prodeko Vaalikoppi{% endblock %}</title>
   </head>
-  <body>
+  <body onload=setupEventListeners()>
     {% include "components/navbar.html" %}
     <main>
       {% block body %}{% endblock %}

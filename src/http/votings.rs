@@ -157,7 +157,7 @@ async fn patch_voting(
 }
 
 #[debug_handler]
-async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
+pub async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     match ctx.login_state() {
         LoginState::NotLoggedIn => todo!(),
         LoginState::Voter { .. } => get_votings_list_template(state.db.clone(), ctx.login_state())

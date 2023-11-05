@@ -114,21 +114,17 @@ function showVotingConfirmationModal(
       "voting-modal-text"
     );
     const closeModalButton = document.getElementById("voting-modal-close");
-
+      
     const data = {
-      candidates: isRankedChoice
-        ? chosenCandidates.map((c) => `${c.id}:${c.position}`)
-        : chosenCandidates.map((c) => c.id),
-      voting_password: votingPassword,
+      candidates: chosenCandidates.filter(c => c.position !== "-").map(c => c.id),
+      voting_id: votingId,
     };
 
     closeModalButton.setAttribute("disabled", true);
     e.target.setAttribute("disabled", true);
 
     callApi(
-      `${SITE_ROOT_PATH}votings/${votingId}/${
-        isRankedChoice ? "vote-ranked-choice" : "vote-normal"
-      }/`,
+      `${SITE_ROOT_PATH}votes/`,
       "POST",
       data
     )
@@ -239,7 +235,6 @@ function RankedChoiceVoteElection(votingId) {
   showVotingConfirmationModal(true, votingId, chosenCandidates, votingPassword);
 }
 
-// Currently only used in admin mode
 async function refreshVotingList(admin = false) {
   const votingListRefreshButton = document.getElementById(
     "voting-list-refresh-button"
