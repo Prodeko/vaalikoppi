@@ -212,20 +212,25 @@ impl Voting {
         if self.state != VotingStateWithoutResults::Open {
             return Err(ApiError::InvalidInput);
         }
+        if voting_update.state != Some(VotingStateWithoutResults::Closed) {
+            return Err(ApiError::InternalServerError);
+        }
 
         let mut clone = self.clone();
-        let no_other_fields_modified = clone == voting_update;
+        let voting_update_without_state_change = VotingUpdate {
+            state: None,
+            ..voting_update.clone()
+        };
+
+        let no_other_fields_modified = clone == voting_update_without_state_change;
 
         if no_other_fields_modified {
-            let result = sqlx::query_as!(
-                VotingStateResult,
+            let result = sqlx::query!(
                 "
                 UPDATE voting
                 SET state = 'closed'::voting_state
-                FROM voting as v
-                WHERE v.id = $1
-                RETURNING
-                    v.state AS \"state!: VotingStateWithoutResults\"
+                WHERE id = $1
+                returning state AS \"state: VotingStateWithoutResults\";
                 ",
                 self.id
             )
@@ -245,7 +250,6 @@ impl Voting {
         voting_update: VotingUpdate,
     ) -> ApiResult<Voting> {
         let voting_state = voting_update.state.unwrap_or(self.state.clone().into());
-
         match voting_state {
             VotingStateWithoutResults::Open => {
                 if voting_update
@@ -670,7 +674,7 @@ pub async fn get_admin_votings_list_template(
     let mut closed_votings: Vec<VotingResult> = vec![];
 
     rows.iter().for_each(|row| match row.voting_state {
-        VotingStateWithoutResults::Closed => todo!(),
+        VotingStateWithoutResults::Closed => (),
         VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
             id: row.id,
             name: row.name.clone(),
