@@ -25,10 +25,9 @@
               <div class="row">
                 <div class="col s12">
                   {% for candidate in voting.candidates %}
-                    <a class="blue-grey lighten-1 btn-large wide-button" onclick="removeCandidate({{ candidate }}, true)">
-                      {{ candidate }}
-                      <i class="material-icons right">close</i>
-                    </a>
+                    <div class="blue-grey lighten-1 btn-large wide-button" name="candidate-of-voting-{{voting.id}}"
+                    onclick="removeCandidate({{ voting.id }}, '{{ candidate }}')"
+                    >{{ candidate }}</div>
                   {% endfor %}
                 </div>
               </div>
@@ -40,10 +39,10 @@
               </div>
               <div class="row">
                 <div class="col s12">
-                  <button onclick="addCandidate({{ voting.id }}, true)" class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
+                  <button onclick="addCandidate({{ voting.id }})" class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
                     Lisää<i class="material-icons right">add</i>
                   </button>
-                  <button onclick="openVoting({{ voting.id }}, true)" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
+                  <button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
                     Avaa äänestys
                   </button>
                 </div>
@@ -53,7 +52,7 @@
         {% else %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
-              <span class="card-title blue-grey-text text-lighten-1">{% match voting.state %}{% when Open %}Äänestetty: {% endmatch %}{{ voting.name }}</span>
+              <span class="card-title blue-grey-text text-lighten-1">Odottaa avaamista: {{ voting.name }}</span>
               {% if !voting.description.is_empty() %}
                 <p>{{ voting.description }}</p>
               {% endif %}

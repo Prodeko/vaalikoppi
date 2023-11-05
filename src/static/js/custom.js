@@ -488,15 +488,16 @@ function createVoting() {
     );
 }
 
-function addCandidate(votingId, isRankedChoice) {
-  const candidate = document.getElementById(`voting-${votingId}-candidate-name`)
-    .value;
-  if (candidate) {
-    const data = {
-      is_ranked_choice: isRankedChoice,
-      candidate_name: candidate,
-    };
-    callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/add/`, "POST", data)
+function addCandidate(votingId) {
+  const new_candidate = document.getElementById(`voting-${votingId}-candidate-name`).value.trim();
+  const candidates = [ ... document.getElementsByName(`candidate-of-voting-${votingId}`)].map(htmlelem => htmlelem.innerHTML)
+  const data = {
+    candidates: candidates.concat(new_candidate)
+  }
+  if (new_candidate) {
+    callApi(`${SITE_ROOT_PATH}votings/${votingId}`, 
+      "PATCH", 
+      data)
       .then(() => refreshVotingList(true))
       .catch(() =>
         showUserNotification(
@@ -507,13 +508,14 @@ function addCandidate(votingId, isRankedChoice) {
   }
 }
 
-function removeCandidate(candidate_id, is_ranked_choice) {
+function removeCandidate(voting_id, candidate_to_remove) {
+  const candidates = [ ... document.getElementsByName(`candidate-of-voting-${voting_id}`)].map(htmlelem => htmlelem.innerHTML)
   const data = {
-    is_ranked_choice,
-  };
+    candidates: candidates.filter(c => c !== candidate_to_remove)
+  }
   callApi(
-    `${SITE_ROOT_PATH}admin/votings/${candidate_id}/remove/`,
-    "POST",
+    `${SITE_ROOT_PATH}votings/${voting_id}`,
+    "PATCH",
     data
   )
     .then(() => refreshVotingList(true))
@@ -525,11 +527,11 @@ function removeCandidate(candidate_id, is_ranked_choice) {
     );
 }
 
-function closeVoting(votingId, is_ranked_choice) {
+function closeVoting(votingId) {
   const data = {
-    is_ranked_choice,
-  };
-  callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/close/`, "POST", data)
+    state: "Closed"
+  }
+  callApi(`${SITE_ROOT_PATH}votings/${votingId}`, "PATCH", data)
     .then(async (res) => {
       const data = await res.json();
       if (res.status !== 200) {
@@ -554,11 +556,14 @@ function closeVoting(votingId, is_ranked_choice) {
     );
 }
 
-function openVoting(votingId, is_ranked_choice) {
+function openVoting(votingId) {
   const data = {
-    is_ranked_choice,
+    state: "Open"
   };
-  callApi(`${SITE_ROOT_PATH}admin/votings/${votingId}/open/`, "POST", data)
+  callApi(
+    `${SITE_ROOT_PATH}votings/${votingId}`, 
+    "PATCH", 
+    data)
     .then(() => refreshVotingList(true))
     .catch(() =>
       showUserNotification(
