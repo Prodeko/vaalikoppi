@@ -433,8 +433,9 @@ mod tests {
             vec!["a".to_string(), "b".to_string(), "c".to_string()],
             vec!["a".to_string(), "b".to_string(), "c".to_string()],
             vec!["a".to_string()],
+            vec!["b".to_string()],
         ];
-        let quota = (4.0 / (2.0 + 1.0)) + 1.0;
+        let quota = (5.0 / (2.0 + 1.0)) + 1.0;
         let result = calculate_stv_result(candidates, votes, 2);
 
         let expected_result = VotingResult {
@@ -452,7 +453,7 @@ mod tests {
                         PassingCandidateResult {
                             data: CandidateResultData {
                                 name: "b".to_string(),
-                                vote_count: 0.0,
+                                vote_count: 1.0,
                             },
                             is_selected: false,
                         },
@@ -471,7 +472,7 @@ mod tests {
                     candidate_results: vec![PassingCandidateResult {
                         data: CandidateResultData {
                             name: "b".to_string(),
-                            vote_count: (4.0 - quota) * (2.0 / 4.0),
+                            vote_count: 1.0 + (4.0 - quota) * (2.0 / 4.0),
                         },
                         is_selected: false,
                     }],
@@ -485,7 +486,7 @@ mod tests {
                     candidate_results: vec![PassingCandidateResult {
                         data: CandidateResultData {
                             name: "b".to_string(),
-                            vote_count: (4.0 - quota) * ((2.0 / 4.0) + (1.0 / 4.0)),
+                            vote_count: 1.0 + (4.0 - quota) * ((2.0 / 4.0) + (1.0 / 4.0)),
                         },
                         is_selected: true,
                     }],
@@ -522,8 +523,9 @@ mod tests {
         let a_c_votes = std::iter::repeat(vec!["a".to_string(), "c".to_string()])
             .take(1)
             .collect();
+        let c_votes = std::iter::repeat(vec!["c".to_string()]).take(1).collect();
 
-        let votes = [a_b_votes, b_a_votes, b_d_votes, a_c_votes].concat();
+        let votes = [a_b_votes, b_a_votes, b_d_votes, a_c_votes, c_votes].concat();
         let _quota = (votes.len() as f64 / (2.0 + 1.0)) + 1.0;
         let result = calculate_stv_result(candidates, votes, 2);
 
@@ -547,7 +549,7 @@ mod tests {
                 PassingCandidateResult {
                     data: CandidateResultData {
                         name: "c".to_string(),
-                        vote_count: 0.0,
+                        vote_count: 1.0,
                     },
                     is_selected: false,
                 },
