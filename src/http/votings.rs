@@ -626,7 +626,7 @@ pub async fn get_admin_votings_list_template(
         t_v as ( -- count of votes for each voting
             select
                 v.id,
-                count(*) as total_votes
+                count(hv.token_token) as total_votes
             from voting v
             left join has_voted hv on v.id = hv.voting_id
             group by v.id
