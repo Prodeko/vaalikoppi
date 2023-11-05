@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{hash_map::Entry, HashMap, HashSet};
 
 use crate::{
     api_types::{ApiError, ApiResult},
@@ -16,13 +16,15 @@ struct WeightedVote<'a> {
     vote: &'a Vote,
 }
 
-impl WeightedVote<'_> {
-    pub fn new(weight: f64, vote: &Vote) -> Self {
-        WeightedVote { weight, vote }
-    }
-}
-
 type VoteMap<'a> = HashMap<CandidateId, Vec<WeightedVote<'a>>>;
+
+fn get_current_vote_counts_of_candidates<'a>(
+    vote_map: &'a VoteMap,
+) -> impl Iterator<Item = (&'a CandidateId, f64)> {
+    vote_map
+        .iter()
+        .map(|(id, votes)| (id, votes.iter().map(|v| v.weight).sum()))
+}
 
 pub fn calculate_stv_result(
     candidates: Vec<CandidateId>,
@@ -33,7 +35,7 @@ pub fn calculate_stv_result(
     let mut round_results: Vec<VotingRoundResult> = vec![];
     let mut winner_count = 0;
     let mut voting_is_finished = false;
-    let mut round = 1;
+    let mut round: usize = 1;
 
     let valid_votes: Vec<&Vec<CandidateId>> =
         votes.iter().filter(|vote| !vote.is_empty()).collect();
@@ -44,139 +46,44 @@ pub fn calculate_stv_result(
 
     // Create WeightedVotes from votes and insert them into vote_map
     votes.iter().for_each(|ballot| {
-        if let Some(&id) = ballot.first() {
-            let mut weighted_votes_of_candidate = vote_map.entry(id).or_default();
-            weighted_votes_of_candidate.push(WeightedVote::new(1.0, ballot));
+        if let Some(id) = ballot.first() {
+            let weighted_votes_of_candidate = vote_map.entry(id.to_owned()).or_default();
+            weighted_votes_of_candidate.push(WeightedVote {
+                weight: 1.0,
+                vote: ballot,
+            });
         }
     });
 
     while !voting_is_finished {
-        if round > 10000 {
+        if round > (candidates.len() + 1) {
+            // At least one candidate is removed from the pool on every round,
+            // Thus we should never go this far
+            eprintln!("Too many voting rounds!");
             return Err(ApiError::VotingAlgorithmError);
         }
 
-        let accept_all_candidates = vote_counts.len() + winner_count <= number_of_winners;
+        let accept_all_candidates = vote_map.len() + winner_count <= number_of_winners;
 
-        let mut selected_candidates_with_surplus_votes = vote_counts
-            .iter()
-            .filter(|(_, votes)| (*votes >= &quota) || accept_all_candidates)
-            .map(|(id, votes)| (id.clone(), *votes))
-            .collect::<Vec<_>>();
-        // Sort in descending order
-        selected_candidates_with_surplus_votes.sort_by(|(_, old), (_, new)| new.total_cmp(&old));
+        let elected_candidates = get_current_vote_counts_of_candidates(&vote_map)
+            .filter(|(_, votes)| (*votes >= quota) || accept_all_candidates)
+            .map(|(id, _)| id.clone())
+            .collect::<HashSet<_>>();
 
-        winner_count += selected_candidates_with_surplus_votes.len();
-
-        selected_candidates_with_surplus_votes
-            .iter()
-            .for_each(|(id, _)| {
-                vote_counts.remove(id);
-            });
-
-        // Transfer surplus votes to secondary preferences if they exist
-        let selected_candidates_without_transferred_surplus_votes =
-            selected_candidates_with_surplus_votes
-                .iter()
-                .map(|(c, v)| {
-                    let surplus_votes = v - quota;
-
-                    let clone = vote_counts.clone();
-
-                    let secondary_options =
-                        find_secondary_preferences(&clone, &votes, c).collect::<Vec<_>>();
-
-                    let portion_of_vote = surplus_votes / secondary_options.len() as f64;
-                    let non_null_secondary_options = secondary_options.into_iter().flatten();
-
-                    let mut total_surplus_tranferred = 0.0;
-
-                    non_null_secondary_options.into_iter().for_each(|c_id| {
-                        let count = vote_counts.entry(c_id.to_string()).or_insert(0.0);
-                        *count += portion_of_vote;
-                        total_surplus_tranferred += portion_of_vote;
-                    });
-
-                    (c.clone(), v - total_surplus_tranferred)
-                })
-                .collect::<Vec<_>>();
-
-        if winner_count == number_of_winners || vote_counts.is_empty() {
-            println!("FINISH VOTING");
-            let candidate_results = collect_candidate_results(
-                &selected_candidates_without_transferred_surplus_votes,
-                &vote_counts,
-            );
-            let round_result = VotingRoundResult {
-                round,
-                candidate_results,
-                dropped_candidate: None,
-            };
-
-            round_results.push(round_result);
-            voting_is_finished = true;
-            Ok(())
-        }
-        // Drop candidate
-        else if selected_candidates_with_surplus_votes.is_empty() {
-            println!("DROP CANDIDATE");
-            let min_number_of_votes = vote_counts
-                .iter()
-                .map(|(_, votes)| *votes)
-                .min_by(|old, new| old.total_cmp(new))
-                .ok_or(ApiError::VotingAlgorithmError)?;
-
-            let mut clone = vote_counts.clone();
-            let clone2 = vote_counts.clone();
-
-            let candidate_to_be_dropped = clone2
-                .iter()
-                .filter(|(_, &votes)| {
-                    approx_eq!(f64, min_number_of_votes, votes, epsilon = 0.000001)
-                })
-                .choose(&mut rand::thread_rng())
-                .ok_or(ApiError::VotingAlgorithmError)?;
-
-            println!("to be dropped: {:?}", candidate_to_be_dropped);
-            vote_counts.remove(candidate_to_be_dropped.0);
-            clone.remove(candidate_to_be_dropped.0);
-
-            let secondary_preferences =
-                find_secondary_preferences(&clone, &votes, candidate_to_be_dropped.0)
-                    .collect::<Vec<_>>();
-            println!("SECONDARY PREFERENCES: {:?}", secondary_preferences);
-            let portion_of_votes = candidate_to_be_dropped.1 / secondary_preferences.len() as f64;
-            let non_null_secondary_preferences = secondary_preferences.into_iter().flatten();
-
-            let candidate_results = collect_candidate_results(
-                &selected_candidates_without_transferred_surplus_votes,
-                &vote_counts,
-            );
-
-            let dropped_candidate = Some(CandidateResultData {
-                name: candidate_to_be_dropped.0.to_owned(),
-                vote_count: *candidate_to_be_dropped.1,
-            });
-
-            let round_result = VotingRoundResult {
-                round,
-                candidate_results,
-                dropped_candidate,
-            };
-            round_results.push(round_result);
-            round += 1;
-
-            non_null_secondary_preferences
-                .map(|c| {
-                    vote_counts
-                        .get_mut(c)
-                        .map(|count| *count += portion_of_votes)
-                        .ok_or(ApiError::InternalServerError)
-                })
-                .collect::<ApiResult<Vec<_>>>()
-                .map(|_| ())
+        let round_result: VotingRoundResult = if !elected_candidates.is_empty() {
+            transfer_surplus_votes(&mut vote_map, &elected_candidates, quota, round)
         } else {
-            Ok(())
+            drop_one_candidate(&mut vote_map, round)
         }?;
+
+        round_results.push(round_result);
+        winner_count += elected_candidates.len();
+        round += 1;
+
+        if winner_count == number_of_winners || vote_map.is_empty() {
+            println!("FINISH VOTING");
+            voting_is_finished = true;
+        }
     }
 
     let winners = round_results
@@ -191,18 +98,120 @@ pub fn calculate_stv_result(
     })
 }
 
-fn find_secondary_preferences<'a>(
-    vote_counts: &'a HashMap<CandidateId, f64>,
-    votes: &'a Vec<Vec<CandidateId>>,
-    id: &'a CandidateId,
-) -> impl Iterator<Item = Option<&'a String>> {
-    votes
+fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<VotingRoundResult> {
+    let mut vote_counts = get_current_vote_counts_of_candidates(vote_map)
+        .map(|(c, v)| (c.to_owned(), v))
+        .collect::<Vec<_>>();
+
+    vote_counts.sort_by(|(_, old), (_, new)| new.total_cmp(old));
+    let &min_number_of_votes = vote_counts
         .iter()
-        .filter(move |v| v.first().map(|f| f == id).unwrap_or(false))
-        .map(|v| v.iter().find(|c| vote_counts.contains_key(*c)))
+        .map(|(_, votes)| votes)
+        .min_by(|old, new| old.total_cmp(new))
+        .ok_or(ApiError::VotingAlgorithmError)?;
+
+    let candidates_with_votes_equal_to_minimum_value = vote_counts
+        .iter()
+        .filter(|(_, votes)| approx_eq!(f64, min_number_of_votes, *votes, epsilon = 0.000001));
+
+    // If there are multiple candidates with equal votes, choose one at random
+    let candidate_to_be_dropped = candidates_with_votes_equal_to_minimum_value
+        .choose(&mut rand::thread_rng())
+        .ok_or(ApiError::VotingAlgorithmError)?;
+
+    let votes_of_dropped_candidate = vote_map
+        .remove(&candidate_to_be_dropped.0)
+        .ok_or(ApiError::VotingAlgorithmError)?;
+
+    // Transfer votes
+    for vote in votes_of_dropped_candidate {
+        let secondary_preference = find_secondary_preference(vote_map, vote.vote);
+        if let Some(secondary_preference) = secondary_preference {
+            vote_map.get_mut(secondary_preference).unwrap().push(vote);
+        }
+    }
+
+    let candidate_results = vote_counts
+        .iter()
+        .filter(|(c, _)| *c != candidate_to_be_dropped.0)
+        .map(|(c, v)| PassingCandidateResult {
+            data: CandidateResultData {
+                name: c.to_owned(),
+                vote_count: *v,
+            },
+            is_selected: false,
+        })
+        .collect::<Vec<_>>();
+
+    let dropped_candidate = Some(CandidateResultData {
+        name: candidate_to_be_dropped.0.to_owned(),
+        vote_count: candidate_to_be_dropped.1,
+    });
+
+    Ok(VotingRoundResult {
+        round: round.try_into().expect("Could not fit rounds into i32!"),
+        candidate_results,
+        dropped_candidate,
+    })
 }
 
-fn collect_candidate_results(
+fn transfer_surplus_votes(
+    vote_map: &mut VoteMap,
+    elected_candidates: &HashSet<CandidateId>,
+    quota: f64,
+    round: usize,
+) -> ApiResult<VotingRoundResult> {
+    let mut vote_counts = get_current_vote_counts_of_candidates(vote_map)
+        .map(|(c, v)| (c.to_owned(), v))
+        .collect::<Vec<_>>();
+    vote_counts.sort_by(|(_, old), (_, new)| new.total_cmp(old));
+
+    vote_counts
+        .iter()
+        .filter(|(c, _)| elected_candidates.contains(c))
+        .map(|(c, v)| {
+            let surplus = (quota - v).max(0.0); // Limit min value to 0 to prevent negative values from floating point issues
+            let votes_to_be_transferred =
+                vote_map.remove(c).ok_or(ApiError::VotingAlgorithmError)?;
+
+            votes_to_be_transferred.into_iter().for_each(|mut vote| {
+                vote.weight = (vote.weight / v) * surplus;
+
+                let secondary_preference_votes = find_secondary_preference(vote_map, vote.vote);
+                if let Some(secondary_preference) = secondary_preference_votes {
+                    vote_map.get_mut(secondary_preference).unwrap().push(vote);
+                }
+            });
+            Ok(())
+        })
+        .collect::<ApiResult<_>>()?;
+
+    let candidate_results = vote_counts
+        .iter()
+        .map(|(c, v)| PassingCandidateResult {
+            data: CandidateResultData {
+                name: (*c).to_owned(),
+                vote_count: *v,
+            },
+            is_selected: elected_candidates.contains(c),
+        })
+        .collect::<Vec<_>>();
+
+    Ok(VotingRoundResult {
+        round: round.try_into().expect("Could not fit rounds into i32!"),
+        candidate_results,
+        dropped_candidate: None,
+    })
+}
+
+fn find_secondary_preference<'a>(
+    vote_map: &HashMap<String, Vec<WeightedVote<'a>>>,
+    vote: &'a Vote,
+) -> Option<&'a CandidateId> {
+    vote.iter().find(|c| vote_map.contains_key(*c))
+}
+
+/* fn collect_candidate_results(
     selected_candidates: &Vec<(CandidateId, f64)>,
     vote_counts: &HashMap<CandidateId, f64>,
 ) -> Vec<PassingCandidateResult> {
@@ -229,7 +238,7 @@ fn collect_candidate_results(
         .collect::<Vec<_>>();
 
     [winner_results, passing_results].concat()
-}
+} */
 
 #[cfg(test)]
 mod tests {
