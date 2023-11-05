@@ -44,6 +44,11 @@ pub fn calculate_stv_result(
 
     let mut vote_map: VoteMap = VoteMap::new();
 
+    // Insert empty list of votes for each candidate
+    candidates.iter().for_each(|c| {
+        vote_map.insert(c.to_owned(), vec![]);
+    });
+
     // Create WeightedVotes from votes and insert them into vote_map
     votes.iter().for_each(|ballot| {
         if let Some(id) = ballot.first() {
@@ -59,8 +64,7 @@ pub fn calculate_stv_result(
         if round > (candidates.len() + 1) {
             // At least one candidate is removed from the pool on every round,
             // Thus we should never go this far
-            eprintln!("Too many voting rounds!");
-            return Err(ApiError::VotingAlgorithmError);
+            return Err(ApiError::VotingAlgorithmError("Too many voting rounds!"));
         }
 
         let accept_all_candidates = vote_map.len() + winner_count <= number_of_winners;
@@ -99,6 +103,7 @@ pub fn calculate_stv_result(
 }
 
 fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<VotingRoundResult> {
+    println!("DROP ONE CANDIDATE");
     let mut vote_counts = get_current_vote_counts_of_candidates(vote_map)
         .map(|(c, v)| (c.to_owned(), v))
         .collect::<Vec<_>>();
@@ -108,7 +113,9 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
         .iter()
         .map(|(_, votes)| votes)
         .min_by(|old, new| old.total_cmp(new))
-        .ok_or(ApiError::VotingAlgorithmError)?;
+        .ok_or(ApiError::VotingAlgorithmError(
+            "Expected to find at least one entry in vote_counts, found none",
+        ))?;
 
     let candidates_with_votes_equal_to_minimum_value = vote_counts
         .iter()
@@ -117,11 +124,16 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
     // If there are multiple candidates with equal votes, choose one at random
     let candidate_to_be_dropped = candidates_with_votes_equal_to_minimum_value
         .choose(&mut rand::thread_rng())
-        .ok_or(ApiError::VotingAlgorithmError)?;
+        .ok_or(ApiError::VotingAlgorithmError(
+            "Expected to find at least one value in candidates_with_votes_equal_to_minimum_value",
+        ))?;
 
-    let votes_of_dropped_candidate = vote_map
-        .remove(&candidate_to_be_dropped.0)
-        .ok_or(ApiError::VotingAlgorithmError)?;
+    let votes_of_dropped_candidate =
+        vote_map
+            .remove(&candidate_to_be_dropped.0)
+            .ok_or(ApiError::VotingAlgorithmError(
+                "Could not find candidate to be dropped in vote_map",
+            ))?;
 
     // Transfer votes
     for vote in votes_of_dropped_candidate {
@@ -161,6 +173,7 @@ fn transfer_surplus_votes(
     quota: f64,
     round: usize,
 ) -> ApiResult<VotingRoundResult> {
+    println!("TRANSFER SURPLUS VOTES");
     let mut vote_counts = get_current_vote_counts_of_candidates(vote_map)
         .map(|(c, v)| (c.to_owned(), v))
         .collect::<Vec<_>>();
@@ -170,9 +183,10 @@ fn transfer_surplus_votes(
         .iter()
         .filter(|(c, _)| elected_candidates.contains(c))
         .map(|(c, v)| {
-            let surplus = (quota - v).max(0.0); // Limit min value to 0 to prevent negative values from floating point issues
-            let votes_to_be_transferred =
-                vote_map.remove(c).ok_or(ApiError::VotingAlgorithmError)?;
+            let surplus = (v - quota).max(0.0); // Limit min value to 0 to prevent negative values from floating point issues
+            let votes_to_be_transferred = vote_map.remove(c).ok_or(
+                ApiError::VotingAlgorithmError("Could not find elected candidate in voting_map"),
+            )?;
 
             votes_to_be_transferred.into_iter().for_each(|mut vote| {
                 vote.weight = (vote.weight / v) * surplus;
@@ -569,12 +583,12 @@ mod tests {
             .collect();
         let a_votes: Vec<Vec<String>> = std::iter::repeat(vec!["a".to_string()]).take(8).collect();
         let b_votes: Vec<Vec<String>> = std::iter::repeat(vec!["b".to_string()]).take(10).collect();
-        let c_votes: Vec<Vec<String>> = std::iter::repeat(vec!["c".to_string()]).take(10).collect();
+        let c_votes: Vec<Vec<String>> = std::iter::repeat(vec!["c".to_string()]).take(9).collect();
 
         let votes: Vec<Vec<CandidateId>> =
             [a_b_votes, a_c_votes, a_votes, b_votes, c_votes].concat();
 
-        let quota = (votes.len() as f64 / (1.0 + 1.0)) + 1.0; // 24.5
+        let quota = (votes.len() as f64 / (2.0 + 1.0)) + 1.0; // 24
         let result = calculate_stv_result(candidates, votes, 2);
 
         let expected_result = VotingResult {
@@ -599,7 +613,7 @@ mod tests {
                         PassingCandidateResult {
                             data: CandidateResultData {
                                 name: "c".to_string(),
-                                vote_count: 10.0,
+                                vote_count: 9.0,
                             },
                             is_selected: false,
                         },
@@ -617,7 +631,7 @@ mod tests {
                     }],
                     dropped_candidate: Some(CandidateResultData {
                         name: "c".to_string(),
-                        vote_count: 10.0 + (27.0 - quota) * (9.0 / 27.0),
+                        vote_count: 9.0 + (27.0 - quota) * (9.0 / 27.0),
                     }),
                 },
                 VotingRoundResult {
@@ -632,7 +646,7 @@ mod tests {
                     dropped_candidate: None,
                 },
             ],
-            winners: vec!["a".to_string()],
+            winners: vec!["a".to_string(), "b".to_string()],
         };
 
         match result {
@@ -648,8 +662,6 @@ mod tests {
             "b".to_string(),
             "c".to_string(),
             "d".to_string(),
-            "e".to_string(),
-            "f".to_string(),
         ];
 
         let votes: Vec<Vec<CandidateId>> = vec![
