@@ -609,7 +609,10 @@ pub async fn get_admin_votings_list_template(
         with u_t as ( -- unused tokens for each voting
             select 
                 v.id, 
-                coalesce(nullif(array_agg(row(t.token, t.alias)), '{NULL}'), '{}') as unused_tokens
+                coalesce(nullif(
+                    -- filter all unactivated and voided tokens here
+                    array_agg(row(t.token, t.alias)) filter (where t.state = 'activated'::token_state), 
+                '{NULL}'), '{}') as unused_tokens
             from voting v 
             cross join token t
             left join has_voted hv on hv.token_token = t.token and hv.voting_id = v.id
