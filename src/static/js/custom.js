@@ -465,13 +465,14 @@ function createVoting() {
   const description = document.getElementById("voting-description").value;
   //const votingPassword = document.getElementById("voting-add-voting-password")
   //  .value;
-  //const maxVotes = document.getElementById("max-votes").value;
+  const numberOfWinners = document.getElementById("number-of-winners").value;
   const hideVoteCounts = document.getElementById("hide-vote-counts").checked;
 
   const data = {
     name,
     description,
     hideVoteCounts,
+    numberOfWinners: parseInt(numberOfWinners),
   };
   callApi(`${SITE_ROOT_PATH}votings`, "POST", data)
     .then(() => refreshVotingList(true))
