@@ -498,14 +498,18 @@ pub struct VotingListTemplate {
     pub newly_created_vote_uuids: Option<Vec<String>>,
 }
 
-pub async fn get_votings_list_template(
+struct VotingData {
+    open_votings: Vec<VotingForVoterTemplate>,
+    closed_votings: Vec<Voting>,
+    draft_votings: Vec<Voting>,
+}
+async fn get_voting_data(
     db: Pool<Postgres>,
-    login_state: LoginState,
-    newly_created_vote_uuids: Option<Vec<String>>,
-) -> ApiResult<VotingListTemplate> {
+    login_state: &LoginState,
+) -> Result<VotingData, ApiError> {
     let token = match &login_state {
         LoginState::Voter { token, .. } => token.clone(),
-        _ => Err(AuthFailed(InvalidToken))?,
+        _ => "".to_string(), // TODO bad practices, this is used to ignore token when using this function for admin voting template
     };
     let rows = sqlx::query!(
         "
@@ -682,10 +686,24 @@ pub async fn get_votings_list_template(
         VotingState::Closed(VotingResult { .. }) => results_votings.push(f.to_owned().into()),
     });
 
-    let template = VotingListTemplate {
+    Ok(VotingData {
         open_votings,
         draft_votings,
         closed_votings: results_votings,
+    })
+}
+
+pub async fn get_votings_list_template(
+    db: Pool<Postgres>,
+    login_state: LoginState,
+    newly_created_vote_uuids: Option<Vec<String>>,
+) -> ApiResult<VotingListTemplate> {
+    let data = get_voting_data(db, &login_state).await?;
+
+    let template = VotingListTemplate {
+        open_votings: data.open_votings,
+        draft_votings: data.draft_votings,
+        closed_votings: data.closed_votings,
         // csrf_token: todo!(),
         login_state: login_state,
         newly_created_vote_uuids,
@@ -801,9 +819,11 @@ pub async fn get_admin_votings_list_template(
     .count
     .ok_or(InternalServerError)? as i32;
 
+    let data = get_voting_data(db, &login_state).await?;
+
     let mut open_votings: Vec<AdminOpenVoting> = vec![];
     let mut draft_votings: Vec<AdminDraftVoting> = vec![];
-    let mut closed_votings: Vec<Voting> = vec![];
+    let closed_votings: Vec<Voting> = data.closed_votings;
 
     rows.iter().for_each(|row| match row.voting_state {
         // TODO admin voting results
