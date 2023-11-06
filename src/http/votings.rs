@@ -329,7 +329,6 @@ impl Voting {
             b.push_bind(&result.name)
                 .push_bind(round)
                 .push_bind(self.id)
-                .push_bind(result.vote_count)
                 .push_bind(true);
         })
         .build()
@@ -343,7 +342,6 @@ impl Voting {
             b.push_bind(&result.name)
                 .push_bind(round)
                 .push_bind(self.id)
-                .push_bind(result.vote_count)
                 .push_bind(false);
         })
         .build()
