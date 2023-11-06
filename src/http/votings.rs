@@ -322,31 +322,35 @@ impl Voting {
             .execute(&mut *tx)
             .await?;
 
-        QueryBuilder::new(
-            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
-        )
-        .push_values(winning_candidates, |mut b, (result, round)| {
-            b.push_bind(&result.name)
-                .push_bind(round)
-                .push_bind(self.id)
-                .push_bind(true);
-        })
-        .build()
-        .execute(&mut *tx)
-        .await?;
+        if winning_candidates.len() > 0 {
+            QueryBuilder::new(
+                "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+            )
+            .push_values(winning_candidates, |mut b, (result, round)| {
+                b.push_bind(&result.name)
+                    .push_bind(round)
+                    .push_bind(self.id)
+                    .push_bind(true);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+        }
 
-        QueryBuilder::new(
-            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
-        )
-        .push_values(passing_candidates, |mut b, (result, round)| {
-            b.push_bind(&result.name)
-                .push_bind(round)
-                .push_bind(self.id)
-                .push_bind(false);
-        })
-        .build()
-        .execute(&mut *tx)
-        .await?;
+        if passing_candidates.len() > 0 {
+            QueryBuilder::new(
+                "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+            )
+            .push_values(passing_candidates, |mut b, (result, round)| {
+                b.push_bind(&result.name)
+                    .push_bind(round)
+                    .push_bind(self.id)
+                    .push_bind(false);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+        }
 
         let updated_voting = sqlx::query_as!(
             VotingStateResult,
