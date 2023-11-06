@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use float_cmp::{approx_eq};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;
@@ -56,10 +57,7 @@ impl From<VotingState> for VotingStateWithoutResults {
         match value {
             VotingState::Draft => VotingStateWithoutResults::Draft,
             VotingState::Open => VotingStateWithoutResults::Open,
-            VotingState::Closed {
-                round_results: _,
-                winners: _,
-            } => VotingStateWithoutResults::Closed,
+            VotingState::Closed { .. } => VotingStateWithoutResults::Closed,
         }
     }
 }
@@ -70,10 +68,13 @@ pub enum VotingState {
     Draft,
     Open,
     #[serde(rename_all = "camelCase")]
-    Closed {
-        round_results: Vec<VotingRoundResult>,
-        winners: Vec<CandidateId>,
-    },
+    Closed(VotingResult),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct VotingResult {
+    pub round_results: Vec<VotingRoundResult>,
+    pub winners: Vec<CandidateId>,
 }
 
 impl From<VotingStateWithoutResults> for VotingState {
@@ -81,10 +82,10 @@ impl From<VotingStateWithoutResults> for VotingState {
         match value {
             VotingStateWithoutResults::Draft => Self::Draft,
             VotingStateWithoutResults::Open => Self::Open,
-            VotingStateWithoutResults::Closed => Self::Closed {
+            VotingStateWithoutResults::Closed => Self::Closed(VotingResult {
                 round_results: vec![],
                 winners: vec![],
-            },
+            }),
         }
     }
 }
@@ -94,13 +95,7 @@ impl PartialEq<VotingStateWithoutResults> for VotingState {
         match (self, other) {
             (VotingState::Draft, VotingStateWithoutResults::Draft) => true,
             (VotingState::Open, VotingStateWithoutResults::Open) => true,
-            (
-                VotingState::Closed {
-                    round_results: _,
-                    winners: _,
-                },
-                VotingStateWithoutResults::Closed,
-            ) => true,
+            (VotingState::Closed { .. }, VotingStateWithoutResults::Closed) => true,
             _ => false,
         }
     }
@@ -117,6 +112,7 @@ pub struct Voting {
     pub state: VotingState,
     pub created_at: DateTime<Utc>,
     pub hide_vote_counts: bool,
+    pub number_of_winners: i32,
     pub candidates: Vec<CandidateId>,
 }
 
@@ -130,6 +126,7 @@ pub struct VotingForVoterTemplate {
     pub created_at: DateTime<Utc>,
     pub hide_vote_counts: bool,
     pub candidates: Vec<CandidateId>,
+    pub number_of_winners: i32,
     pub you_have_voted: bool,
 }
 
@@ -143,10 +140,12 @@ impl From<VotingForVoterTemplate> for Voting {
             created_at: value.created_at,
             hide_vote_counts: value.hide_vote_counts,
             candidates: value.candidates,
+            number_of_winners: value.number_of_winners,
         }
     }
 }
 
+// TODO this screams for a macro
 impl PartialEq<VotingUpdate> for Voting {
     fn eq(&self, other: &VotingUpdate) -> bool {
         let other_clone = other.clone();
@@ -159,6 +158,10 @@ impl PartialEq<VotingUpdate> for Voting {
             && other_clone
                 .hide_vote_counts
                 .map(|h| self.hide_vote_counts == h)
+                .unwrap_or(true)
+            && other_clone
+                .number_of_winners
+                .map(|h| self.number_of_winners == h)
                 .unwrap_or(true)
             && other_clone
                 .candidates
@@ -176,6 +179,7 @@ pub struct VotingCreate {
     pub description: String,
     pub state: Option<VotingStateWithoutResults>,
     pub hide_vote_counts: bool,
+    pub number_of_winners: i32,
     pub candidates: Option<Vec<CandidateId>>,
 }
 
@@ -188,6 +192,7 @@ pub struct VotingUpdate {
     pub description: Option<String>,
     pub state: Option<VotingStateWithoutResults>,
     pub hide_vote_counts: Option<bool>,
+    pub number_of_winners: Option<i32>,
     pub candidates: Option<Vec<CandidateId>>,
 }
 
@@ -233,14 +238,23 @@ pub struct CandidateResultData {
     pub vote_count: f64,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+impl PartialEq for CandidateResultData {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+            && approx_eq!(f64, self.vote_count, other.vote_count, epsilon = 0.000001)
+    }
+}
+
+impl Eq for CandidateResultData {}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct PassingCandidateResult {
     pub data: CandidateResultData,
     pub is_selected: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct VotingRoundResult {
     pub round: i32,

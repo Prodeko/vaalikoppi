@@ -22,11 +22,12 @@ use crate::{
         AuthFailedError::InvalidToken,
     },
     ctx::Ctx,
+    helpers::calculate_stv_result,
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
         Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
-        VotingCreate, VotingForVoterTemplate, VotingId, VotingRoundResult, VotingState,
-        VotingStateWithoutResults, VotingUpdate,
+        VotingCreate, VotingForVoterTemplate, VotingId, VotingResult, VotingRoundResult,
+        VotingState, VotingStateWithoutResults, VotingUpdate,
     },
 };
 
@@ -72,21 +73,23 @@ async fn post_voting(
 
     let mut voting = sqlx::query!(
         "
-        INSERT INTO voting (name, description, state, created_at, hide_vote_counts)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO voting (name, description, state, created_at, hide_vote_counts, number_of_winners)
+        VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING
             id,
             name,
             description,
             state AS \"state: VotingStateWithoutResults\",
             created_at,
-            hide_vote_counts;
+            hide_vote_counts,
+            number_of_winners;
         ",
         voting_create.name,
         voting_create.description,
         voting_state as VotingStateWithoutResults,
         Utc::now(),
         voting_create.hide_vote_counts,
+        voting_create.number_of_winners,
     )
     .map(|row| Voting {
         id: row.id,
@@ -95,6 +98,7 @@ async fn post_voting(
         state: VotingState::from(row.state),
         created_at: row.created_at,
         hide_vote_counts: row.hide_vote_counts,
+        number_of_winners: row.number_of_winners,
         candidates: vec![],
     })
     .fetch_one(&mut *tx)
@@ -193,13 +197,7 @@ impl Voting {
                 .state
                 .unwrap_or_else(|| self.state.clone().into()),
         ) {
-            (
-                VotingState::Closed {
-                    round_results: _,
-                    winners: _,
-                },
-                _,
-            ) => Err(ApiError::VotingAlreadyClosed),
+            (VotingState::Closed { .. }, _) => Err(ApiError::VotingAlreadyClosed),
             (_, VotingStateWithoutResults::Closed) => {
                 self.try_close_voting(db, voting_update).await
             }
@@ -227,24 +225,148 @@ impl Voting {
 
         let no_other_fields_modified = clone == voting_update_without_state_change;
 
-        if no_other_fields_modified {
-            let result = sqlx::query!(
-                "
+        if !no_other_fields_modified {
+            return Err(ApiError::InvalidInput);
+        }
+
+        let mut tx = db.begin().await?;
+
+        let count_of_active_tokens_that_have_not_voted = sqlx::query!(
+            "
+            WITH activated_tokens_without_vote AS (
+                SELECT token
+                FROM token
+                WHERE
+                    state = 'activated'::token_state
+                    AND token NOT IN (
+                        SELECT token_token AS token
+                        FROM has_voted
+                        WHERE voting_id = $1
+                    )
+            )
+            SELECT count(*) as \"count!\"
+            FROM activated_tokens_without_vote
+            ",
+            self.id
+        )
+        .map(|row| row.count)
+        .fetch_one(&mut *tx)
+        .await?;
+
+        if count_of_active_tokens_that_have_not_voted != 0 {
+            return Err(ApiError::NotAllActiveTokensHaveVoted);
+        }
+
+        let votes = sqlx::query!(
+            "
+            SELECT COALESCE(NULLIF(ARRAY_AGG(candidate_name ORDER BY rank), '{NULL}'), '{}') AS \"vote!: Vec<CandidateId>\"
+            FROM vote
+            WHERE voting_id = $1
+            GROUP BY id
+            ",
+            self.id,
+        ).map(|row| {
+            row.vote
+        }).fetch_all(&mut *tx).await?;
+
+        let number_of_winners: usize = self
+            .number_of_winners
+            .try_into()
+            .map_err(|_| ApiError::InternalServerError)?;
+
+        let round_results =
+            calculate_stv_result(self.candidates.clone(), votes, number_of_winners)?.round_results;
+
+        let mut winning_candidates = vec![];
+        let mut passing_candidates = vec![];
+        let mut dropped_candidates = vec![];
+
+        let round_results_references = round_results.iter().collect::<Vec<_>>();
+        round_results.iter().for_each(|r| {
+            r.candidate_results.iter().for_each(|c| {
+                if c.is_selected {
+                    winning_candidates.push((&c.data, r.round));
+                } else {
+                    passing_candidates.push((&c.data, r.round));
+                }
+            });
+
+            r.dropped_candidate.iter().for_each(|c| {
+                dropped_candidates.push((c, r.round));
+            });
+        });
+
+        QueryBuilder::new("INSERT INTO voting_round_result (voting_id, round)")
+            .push_values(round_results_references.clone(), |mut b, res| {
+                b.push_bind(self.id).push_bind(res.round);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+
+        let all_candidate_data = [
+            winning_candidates.clone(),
+            passing_candidates.clone(),
+            dropped_candidates,
+        ]
+        .concat();
+
+        QueryBuilder::new("INSERT INTO candidate_result_data (name, round, voting_id, vote_count)")
+            .push_values(all_candidate_data, |mut b, (result, round)| {
+                b.push_bind(&result.name)
+                    .push_bind(round)
+                    .push_bind(self.id)
+                    .push_bind(result.vote_count);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+
+        QueryBuilder::new(
+            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+        )
+        .push_values(winning_candidates, |mut b, (result, round)| {
+            b.push_bind(&result.name)
+                .push_bind(round)
+                .push_bind(self.id)
+                .push_bind(result.vote_count)
+                .push_bind(true);
+        })
+        .build()
+        .execute(&mut *tx)
+        .await?;
+
+        QueryBuilder::new(
+            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+        )
+        .push_values(passing_candidates, |mut b, (result, round)| {
+            b.push_bind(&result.name)
+                .push_bind(round)
+                .push_bind(self.id)
+                .push_bind(result.vote_count)
+                .push_bind(false);
+        })
+        .build()
+        .execute(&mut *tx)
+        .await?;
+
+        let updated_voting = sqlx::query_as!(
+            VotingStateResult,
+            "
                 UPDATE voting
                 SET state = 'closed'::voting_state
                 WHERE id = $1
                 returning state AS \"state: VotingStateWithoutResults\";
                 ",
-                self.id
-            )
-            .fetch_one(&db)
-            .await?;
+            self.id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
 
-            clone.state = VotingState::from(result.state);
-            return Ok(clone);
-        } else {
-            return Err(ApiError::InvalidInput);
-        }
+        tx.commit().await?;
+
+        clone.state = VotingState::from(updated_voting.state);
+        return Ok(clone);
     }
 
     async fn try_modify_and_reset_votes(
@@ -289,7 +411,8 @@ impl Voting {
                 name = COALESCE($2, name),
                 description = COALESCE($3, description),
                 state = COALESCE($4, state),
-                hide_vote_counts = COALESCE($5, hide_vote_counts)
+                hide_vote_counts = COALESCE($5, hide_vote_counts),
+                number_of_winners = COALESCE($6, number_of_winners)
             WHERE id = $1
             RETURNING
                 id,
@@ -297,13 +420,15 @@ impl Voting {
                 description,
                 state AS \"state: VotingStateWithoutResults\",
                 created_at,
-                hide_vote_counts;
+                hide_vote_counts,
+                number_of_winners;
             ",
             self.id,
             voting_update.name,
             voting_update.description,
             voting_update.state as Option<VotingStateWithoutResults>,
             voting_update.hide_vote_counts,
+            voting_update.number_of_winners,
         )
         .map(|row| Voting {
             id: row.id,
@@ -312,6 +437,7 @@ impl Voting {
             state: VotingState::from(row.state),
             created_at: row.created_at,
             hide_vote_counts: row.hide_vote_counts,
+            number_of_winners: row.number_of_winners,
             candidates: candidates.clone(),
         })
         .fetch_one(&mut *tx)
@@ -363,20 +489,13 @@ async fn delete_voting(
     }
 }
 
-#[derive(Debug)]
-pub struct VotingResult {
-    pub voting: Voting,
-    pub round_results: Vec<VotingRoundResult>,
-    pub winners: Vec<CandidateId>,
-}
-
 #[derive(Template)]
 #[template(path = "components/voting-list.html")]
 
 pub struct VotingListTemplate {
     pub open_votings: Vec<VotingForVoterTemplate>,
     pub draft_votings: Vec<Voting>,
-    pub closed_votings: Vec<VotingResult>,
+    pub closed_votings: Vec<Voting>,
     pub login_state: LoginState,
     pub newly_created_vote_uuids: Option<Vec<String>>,
 }
@@ -443,6 +562,7 @@ pub async fn get_votings_list_template(
             v.description as \"description!: String\",
             v.created_at as \"created_at!: DateTime<Utc>\",
             v.hide_vote_counts as \"hide_vote_counts!: bool\",
+            v.number_of_winners,
             c.candidates as \"candidates!: Vec<CandidateId>\",
             r.round as \"round?: i32\",
             r.dropped_candidate_name as \"dropped_candidate_name?: String\",
@@ -502,21 +622,9 @@ pub async fn get_votings_list_template(
                 (VotingState::Draft, Some(_)) => Err(ApiError::CorruptDatabaseError),
                 (VotingState::Open, None) => Ok(()),
                 (VotingState::Open, Some(_)) => Err(ApiError::CorruptDatabaseError),
-                (
-                    VotingState::Closed {
-                        round_results: _,
-                        winners: _,
-                    },
-                    None,
-                ) => Err(ApiError::CorruptDatabaseError),
-                (
-                    VotingState::Closed {
-                        round_results,
-                        winners: _,
-                    },
-                    Some(result),
-                ) => {
-                    round_results.push(result);
+                (VotingState::Closed(_), None) => Err(ApiError::CorruptDatabaseError),
+                (VotingState::Closed(existing_result), Some(result)) => {
+                    existing_result.round_results.push(result);
                     Ok(())
                 }
             },
@@ -524,10 +632,10 @@ pub async fn get_votings_list_template(
                 let state = match rec.state {
                     VotingStateWithoutResults::Draft => VotingState::Draft,
                     VotingStateWithoutResults::Open => VotingState::Open,
-                    VotingStateWithoutResults::Closed => VotingState::Closed {
+                    VotingStateWithoutResults::Closed => VotingState::Closed(VotingResult {
                         round_results: Vec::new(),
                         winners: Vec::new(),
-                    },
+                    }),
                 };
 
                 let voting = VotingForVoterTemplate {
@@ -539,6 +647,7 @@ pub async fn get_votings_list_template(
                     created_at: rec.created_at,
                     hide_vote_counts: rec.hide_vote_counts,
                     you_have_voted: rec.you_have_voted.unwrap_or(false),
+                    number_of_winners: rec.number_of_winners,
                 };
 
                 votings.insert(rec.id, voting);
@@ -549,19 +658,12 @@ pub async fn get_votings_list_template(
 
     let mut draft_votings: Vec<Voting> = vec![];
     let mut open_votings: Vec<VotingForVoterTemplate> = vec![];
-    let mut results_votings: Vec<VotingResult> = vec![];
+    let mut results_votings: Vec<Voting> = vec![];
 
     votings.values().for_each(|f| match &f.state {
         VotingState::Draft => draft_votings.push(f.to_owned().into()),
-        VotingState::Open => open_votings.push(f.clone()),
-        VotingState::Closed {
-            round_results,
-            winners,
-        } => results_votings.push(VotingResult {
-            round_results: round_results.to_owned(),
-            winners: winners.to_owned(),
-            voting: f.to_owned().into(),
-        }),
+        VotingState::Open => open_votings.push(f.to_owned()),
+        VotingState::Closed(VotingResult { .. }) => results_votings.push(f.to_owned().into()),
     });
 
     let template = VotingListTemplate {
@@ -611,9 +713,9 @@ pub struct AdminDisplayToken {
 #[derive(Template)]
 #[template(path = "components/admin-voting-list.html")]
 pub struct AdminVotingListTemplate {
-    pub open_votings: Vec<AdminOpenVoting>,
     pub draft_votings: Vec<AdminDraftVoting>,
-    pub closed_votings: Vec<VotingResult>, // ??
+    pub open_votings: Vec<AdminOpenVoting>,
+    pub closed_votings: Vec<Voting>, // ??
     pub login_state: LoginState,
 }
 
@@ -684,9 +786,10 @@ pub async fn get_admin_votings_list_template(
 
     let mut open_votings: Vec<AdminOpenVoting> = vec![];
     let mut draft_votings: Vec<AdminDraftVoting> = vec![];
-    let mut closed_votings: Vec<VotingResult> = vec![];
+    let mut closed_votings: Vec<Voting> = vec![];
 
     rows.iter().for_each(|row| match row.voting_state {
+        // TODO admin voting results
         VotingStateWithoutResults::Closed => (),
         VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
             id: row.id,

@@ -21,12 +21,14 @@ pub enum ApiError {
     InternalServerError,
     VotingNotFound,
     VotingAlreadyClosed,
+    NotAllActiveTokensHaveVoted,
     InvalidInput,
     AlreadyVoted,
     TokenNotFound,
     DatabaseError(#[serde_as(as = "DisplayFromStr")] sqlx::Error),
     CorruptDatabaseError,
     TemplatingError(#[serde_as(as = "DisplayFromStr")] askama::Error),
+    VotingAlgorithmError(&'static str),
 }
 
 impl IntoResponse for ApiError {

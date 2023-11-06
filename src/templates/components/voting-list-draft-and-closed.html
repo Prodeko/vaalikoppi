@@ -86,12 +86,14 @@
       </div>
     </div>
   </div>
-  {% for result in closed_votings %}
+{% for voting in closed_votings %}
+  {% match voting.state %}
+    {% when VotingState::Closed with (result) %}
     <div class="row">
       <div class="col s12">
         <div class="transfer-election closed-voting card prodeko-blue white-text center">
           <div class="card-title-container" onclick="expandResults(this)">
-            <h3 class="card-title bold-font">{{ result.voting.name }}</h3>
+            <h3 class="card-title bold-font">{{ voting.name }}</h3>
             {% if result.round_results.len() > 1 %}
               <i class="expand-results material-icons">chevron_right</i>
             {% endif %}
@@ -116,27 +118,30 @@
                     </tr>
                   {% endfor %}
                   {% match round.dropped_candidate %}
-                    {% when Some with (candidate_data) %}
-                      <tr class="candidate dropped">
-                        <td class="candidate-name">
-                          {{ candidate_data.name }}
-                          (pudonnut)
-                        </td>
-                        <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
-                      </tr>
-                    {% when None %}
-                  {% endmatch %}
-                </table>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="empty-votes">
-            Valitaan: {{ result.winners|join(", ") }}
+                      {% when Some with (candidate_data) %}
+                        <tr class="candidate dropped">
+                          <td class="candidate-name">
+                            {{ candidate_data.name }}
+                            (pudonnut)
+                          </td>
+                          <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+                        </tr>
+                      {% when None %}
+                    {% endmatch %}
+                  </table>
+                </div>
+              {% endfor %}
+            </div>
+            <div class="empty-votes">
+              Valitaan: {{ result.winners|join(", ") }}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  {% endfor %}
+    {% else %}
+  {% endmatch %}
+{% endfor %}
+
 {% else %}
   <div class="row">
     <div class="col s12">

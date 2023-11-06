@@ -1,7 +1,10 @@
 use askama::Template;
 use axum::{response::Html, routing::get, Router};
 
-use crate::{ctx::Ctx, models::LoginState};
+use crate::{
+    ctx::Ctx,
+    models::{LoginState, VotingState},
+};
 use axum::extract::State;
 
 use crate::api_types::{ApiError, ApiResult};
