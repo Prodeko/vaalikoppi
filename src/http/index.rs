@@ -48,7 +48,8 @@ async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String
             .map_err(|_| ApiError::InternalServerError),
             LoginState::Voter { .. } => {
                 let votings_list_template =
-                    get_votings_list_template(state.db.clone(), context.login_state()).await?;
+                    get_votings_list_template(state.db.clone(), context.login_state(), None)
+                        .await?;
 
                 VotingTemplate {
                     login_state: context.login_state(),

@@ -161,11 +161,13 @@ async fn patch_voting(
 pub async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     match ctx.login_state() {
         LoginState::NotLoggedIn => todo!(),
-        LoginState::Voter { .. } => get_votings_list_template(state.db.clone(), ctx.login_state())
-            .await?
-            .render()
-            .map(|html| Html(html))
-            .map_err(|_| ApiError::InternalServerError),
+        LoginState::Voter { .. } => {
+            get_votings_list_template(state.db.clone(), ctx.login_state(), None)
+                .await?
+                .render()
+                .map(|html| Html(html))
+                .map_err(|_| ApiError::InternalServerError)
+        }
         LoginState::Admin => get_admin_votings_list_template(state.db.clone(), ctx.login_state())
             .await?
             .render()
@@ -376,11 +378,13 @@ pub struct VotingListTemplate {
     pub draft_votings: Vec<Voting>,
     pub closed_votings: Vec<VotingResult>,
     pub login_state: LoginState,
+    pub newly_created_vote_uuids: Option<Vec<String>>,
 }
 
 pub async fn get_votings_list_template(
     db: Pool<Postgres>,
     login_state: LoginState,
+    newly_created_vote_uuids: Option<Vec<String>>,
 ) -> ApiResult<VotingListTemplate> {
     let token = match &login_state {
         LoginState::Voter { token, .. } => token.clone(),
@@ -566,6 +570,7 @@ pub async fn get_votings_list_template(
         closed_votings: results_votings,
         // csrf_token: todo!(),
         login_state: login_state,
+        newly_created_vote_uuids,
     };
 
     Ok(template)

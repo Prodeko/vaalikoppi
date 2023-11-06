@@ -9,18 +9,20 @@ use crate::{
     http::AppState,
     middleware::require_is_voter::require_is_voter,
 };
+use askama::Template;
 use axum::response::Html;
 use axum::{debug_handler, extract::State, middleware::from_fn, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::error::ErrorKind;
-use sqlx::QueryBuilder;
+use sqlx::{QueryBuilder, Row};
+use uuid::Uuid;
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/votes/", post(post_vote))
         .route_layer(from_fn(require_is_voter))
 }
-use crate::http::votings::get_votings;
+use crate::http::votings::{get_votings, get_votings_list_template};
 #[derive(Serialize)]
 struct PostVoteResponse {
     candidates: Vec<String>,
@@ -58,7 +60,7 @@ async fn post_vote(
     let mut tx = state.db.begin().await?;
 
     // If the voter does not vote for anyone ( candidates = [] ), then don't insert anything into vote, and the tx wont fail to syntax error
-    let _insert_vote = if post_vote_payload.candidates.len() > 0 {
+    let insert_vote: Option<Uuid> = if post_vote_payload.candidates.len() > 0 {
         QueryBuilder::new("INSERT INTO vote(id, candidate_name, voting_id, rank) ")
             .push_values(
                 post_vote_payload.candidates.iter().enumerate(),
@@ -70,12 +72,17 @@ async fn post_vote(
                         .push_bind(index as i32 + 1); // ranks start at 1 (rank int DEFAULT 1 defined in the db schema), not 0
                 },
             )
+            .push("returning id")
             .build()
+            .map(|row| row.get::<Uuid, &'static str>("id"))
             // Executor impl for Transaction has been removed since 0.7. Add a dereference to the inner connection which still impl's Transaction
             // https://github.com/launchbadge/sqlx/issues/2672
             // https://github.com/launchbadge/sqlx/blob/main/CHANGELOG.md#breaking
-            .execute(tx.deref_mut())
-            .await?;
+            .fetch_one(tx.deref_mut())
+            .await
+            .ok()
+    } else {
+        None
     };
 
     // Duplicate key error prevents us from voting twice, and the tx fails
@@ -92,8 +99,22 @@ async fn post_vote(
         _ => InternalServerError,
     })?;
 
-    tx.commit().await?;
+    let _txresult = tx.commit().await?;
 
     // TODO add meaningful error messages
-    get_votings(context, state).await
+
+    match context.login_state() {
+        LoginState::Voter { .. } => get_votings_list_template(
+            state.db.clone(),
+            context.login_state(),
+            insert_vote.map(|u| vec![u.to_string()]),
+            // TODO change Option<Vec<String>> to Option<String>
+        )
+        .await?
+        .render()
+        .map(|html| Html(html))
+        .map_err(|_| ApiError::InternalServerError),
+
+        _ => get_votings(context, state).await,
+    }
 }

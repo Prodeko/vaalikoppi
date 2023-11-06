@@ -1,4 +1,24 @@
 {# Avattu äänestys #}
+{% match newly_created_vote_uuids %}
+{% when Some with (uuids) %}
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <p class="">
+        Äänestäminen onnistui. Tallenna alla oleva id-tunniste, 
+        jos haluat auditoida ääntenlaskennan tulosta. Tunnisteen
+        avulla voit tarkistaa tulosjulkaisusta, että äänesi on laskettu.
+        Tunniste poistuu, kun päivität luettelon tai sivun, eikä sinua
+        voida yhdistää ääneesi tunnisteen poistumisen jälkeen.
+      </p>
+      {% for uuid in uuids %}
+        <span>{{ uuid }}{% if !loop.last %} / {% endif %}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% else %}
+{% endmatch %}
 {% if !open_votings.is_empty() %}
   <div class="row">
     <div class="col s12">
