@@ -574,7 +574,7 @@ pub async fn get_votings_list_template(
             INNER JOIN candidates_by_voting AS c ON v.id = c.id
             LEFT JOIN round_results AS r ON v.id = r.voting_id
             LEFT JOIN has_voted hv on v.id = hv.voting_id and hv.token_token = $1
-        ORDER BY round, v.created_at ASC;
+        ORDER BY round ASC, candidate_vote_count DESC, v.created_at ASC;
         ", token
         ).fetch_all(&db);
 
@@ -622,6 +622,13 @@ pub async fn get_votings_list_template(
                 (VotingState::Open, Some(_)) => Err(ApiError::CorruptDatabaseError),
                 (VotingState::Closed(_), None) => Err(ApiError::CorruptDatabaseError),
                 (VotingState::Closed(existing_result), Some(result)) => {
+                    existing_result.winners.extend(
+                        result
+                            .candidate_results
+                            .iter()
+                            .filter(|c| c.is_selected)
+                            .map(|c| c.data.name.to_owned()),
+                    );
                     existing_result.round_results.push(result);
                     Ok(())
                 }
