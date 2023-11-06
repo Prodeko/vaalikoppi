@@ -120,6 +120,33 @@ pub struct Voting {
     pub candidates: Vec<CandidateId>,
 }
 
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VotingForVoterTemplate {
+    pub id: VotingId,
+    pub name: String,
+    pub description: String,
+    pub state: VotingState,
+    pub created_at: DateTime<Utc>,
+    pub hide_vote_counts: bool,
+    pub candidates: Vec<CandidateId>,
+    pub you_have_voted: bool,
+}
+
+impl From<VotingForVoterTemplate> for Voting {
+    fn from(value: VotingForVoterTemplate) -> Self {
+        Voting {
+            id: value.id,
+            name: value.name,
+            description: value.description,
+            state: value.state,
+            created_at: value.created_at,
+            hide_vote_counts: value.hide_vote_counts,
+            candidates: value.candidates,
+        }
+    }
+}
+
 impl PartialEq<VotingUpdate> for Voting {
     fn eq(&self, other: &VotingUpdate) -> bool {
         let other_clone = other.clone();

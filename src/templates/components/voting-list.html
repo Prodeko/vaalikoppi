@@ -8,6 +8,21 @@
     </div>
   </div>
   {% for voting in open_votings %}
+    {% if voting.you_have_voted %}
+    <div class="row">
+      <div class="col s12">
+        {# Siirtoäänivaalitapa #}
+        <div class="card blue-grey lighten-5">
+          <div class="card-content grey-text center">
+            <span class="card-title blue-grey-text text-darken-3 bold-font">Äänestetty: {{ voting.name }}</span>
+            {% if !voting.description.is_empty() %}
+              <p>{{ voting.description }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
     <div class="row">
       <div class="col s12">
         {# Siirtoäänivaalitapa #}
@@ -39,6 +54,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
   {% endfor %}
 {% else %}
   <div class="row">

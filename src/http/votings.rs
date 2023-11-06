@@ -17,15 +17,16 @@ use chrono::DateTime;
 
 use crate::{
     api_types::{
-        ApiError::{self, InternalServerError},
+        ApiError::{self, AuthFailed, InternalServerError},
         ApiResult,
+        AuthFailedError::InvalidToken,
     },
     ctx::Ctx,
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
         Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
-        VotingCreate, VotingId, VotingRoundResult, VotingState, VotingStateWithoutResults,
-        VotingUpdate,
+        VotingCreate, VotingForVoterTemplate, VotingId, VotingRoundResult, VotingState,
+        VotingStateWithoutResults, VotingUpdate,
     },
 };
 
@@ -371,7 +372,7 @@ pub struct VotingResult {
 #[template(path = "components/voting-list.html")]
 
 pub struct VotingListTemplate {
-    pub open_votings: Vec<Voting>,
+    pub open_votings: Vec<VotingForVoterTemplate>,
     pub draft_votings: Vec<Voting>,
     pub closed_votings: Vec<VotingResult>,
     pub login_state: LoginState,
@@ -381,6 +382,10 @@ pub async fn get_votings_list_template(
     db: Pool<Postgres>,
     login_state: LoginState,
 ) -> ApiResult<VotingListTemplate> {
+    let token = match &login_state {
+        LoginState::Voter { token, .. } => token.clone(),
+        _ => Err(AuthFailed(InvalidToken))?,
+    };
     let rows = sqlx::query!(
         "
         with passing_candidate_result_data AS (
@@ -440,16 +445,18 @@ pub async fn get_votings_list_template(
             r.dropped_candidate_vote_count as \"dropped_candidate_vote_count?: f64\",
             r.candidate_names as \"candidate_names?: Vec<CandidateId>\",
             r.candidate_is_selected as \"candidate_is_selected?: Vec<bool>\",
-            r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\"
+            r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\",
+            (hv.token_token = $1) as \"you_have_voted?: bool\"
         FROM
             voting AS v
             INNER JOIN candidates_by_voting AS c ON v.id = c.id
             LEFT JOIN round_results AS r ON v.id = r.voting_id
+            LEFT JOIN has_voted hv on v.id = hv.voting_id and hv.token_token = $1
         ORDER BY round, v.created_at ASC;
-        "
+        ", token
         ).fetch_all(&db);
 
-    let mut votings: HashMap<VotingId, Voting> = HashMap::new();
+    let mut votings: HashMap<VotingId, VotingForVoterTemplate> = HashMap::new();
 
     let rows = rows.await?;
     rows.into_iter().try_for_each(|rec| {
@@ -519,7 +526,7 @@ pub async fn get_votings_list_template(
                     },
                 };
 
-                let voting = Voting {
+                let voting = VotingForVoterTemplate {
                     id: rec.id,
                     candidates: rec.candidates,
                     name: rec.name,
@@ -527,6 +534,7 @@ pub async fn get_votings_list_template(
                     state,
                     created_at: rec.created_at,
                     hide_vote_counts: rec.hide_vote_counts,
+                    you_have_voted: rec.you_have_voted.unwrap_or(false),
                 };
 
                 votings.insert(rec.id, voting);
@@ -535,26 +543,26 @@ pub async fn get_votings_list_template(
         }
     })?;
 
-    let mut closed_votings: Vec<Voting> = vec![];
-    let mut open_votings: Vec<Voting> = vec![];
+    let mut draft_votings: Vec<Voting> = vec![];
+    let mut open_votings: Vec<VotingForVoterTemplate> = vec![];
     let mut results_votings: Vec<VotingResult> = vec![];
 
     votings.values().for_each(|f| match &f.state {
-        VotingState::Draft => closed_votings.push(f.to_owned()),
-        VotingState::Open => open_votings.push(f.to_owned()),
+        VotingState::Draft => draft_votings.push(f.to_owned().into()),
+        VotingState::Open => open_votings.push(f.clone()),
         VotingState::Closed {
             round_results,
             winners,
         } => results_votings.push(VotingResult {
             round_results: round_results.to_owned(),
             winners: winners.to_owned(),
-            voting: f.to_owned(),
+            voting: f.to_owned().into(),
         }),
     });
 
     let template = VotingListTemplate {
         open_votings,
-        draft_votings: closed_votings,
+        draft_votings,
         closed_votings: results_votings,
         // csrf_token: todo!(),
         login_state: login_state,
