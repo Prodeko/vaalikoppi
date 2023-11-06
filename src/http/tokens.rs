@@ -27,6 +27,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/:id", patch(patch_token))
         .route_layer(from_fn_with_state(state, resolve_token))
         .route("/void-active", post(void_active_tokens))
+        .route("/print", get(get_print_tokens))
         .route("/", get(get_tokens))
         .route("/", post(generate_tokens))
         .route_layer(from_fn(require_is_admin))
@@ -66,6 +67,30 @@ async fn void_active_tokens(state: State<AppState>) -> ApiResult<Json<TokenInval
     .await
     .map(|t| Json(t))
     .map_err(|e| e.into())
+}
+
+#[derive(Template)]
+#[template(path = "pages/admin-print-tokens.html")]
+struct PrintTokensTemplate {
+    tokens: Vec<Token>,
+}
+
+#[debug_handler]
+async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+    let tokens = sqlx::query_as!(
+        Token,
+        "
+        select id, token, alias, state as \"state: TokenState\" from token
+        where state = 'unactivated'::token_state;
+        "
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    PrintTokensTemplate { tokens: tokens }
+        .render()
+        .map(|html| Html(html))
+        .map_err(|_| ApiError::InternalServerError)
 }
 
 #[debug_handler]

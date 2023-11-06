@@ -2,7 +2,8 @@
   <head>
     <style type="text/css">
       p {
-        font-size: 14pt;
+        font-size: 16pt;
+        margin: 2pt;
       }
 
       table {
@@ -21,17 +22,15 @@
   <body>
     <table>
       {% for token in tokens %}
+      {% if loop.index % 2 == 1 %}
         <tr>
-          {% if not forloop.counter|divisibleby:2 %}
-            <td>
-              <p>{{ token }}</p>
-            </td>
-          {% else %}
-            <td>
-              <p>{{ token }}</p>
-            </td>
-          {% endif %}
-        </tr>
+      {% endif %}
+        <td>
+          <p>{{token.token}}</p>
+        </td>
+      {% if (loop.index % 2 == 0) || (loop.last) %}
+          </tr>
+      {% endif %}
       {% endfor %}
     </table>
   </body>
