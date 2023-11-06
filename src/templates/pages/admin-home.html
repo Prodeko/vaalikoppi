@@ -28,7 +28,7 @@
         <div id="voting-list-updater" class="card blue-grey lighten-5">
           <div class="card-action center">
             <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList(true)">
-              Päivitä luettelo !TODO fix this for admin
+              Päivitä luettelo
             </button>
           </div>
         </div>
@@ -38,8 +38,6 @@
     <div id="voting-list-area" class="reduced-row-margin">
       {% match votings_list_template %}
       {% when AdminVotingListTemplate with {open_votings, closed_votings, draft_votings, login_state} %}
-        {% include "components/admin-overview-panel.html" %}
-        {% include "components/admin-create-new-voting.html" %}
         {% include "components/admin-voting-list.html" %}
       {% endmatch %}
     </div>
