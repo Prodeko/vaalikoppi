@@ -21,6 +21,7 @@ pub enum ApiError {
     InternalServerError,
     VotingNotFound,
     VotingAlreadyClosed,
+    NotAllActiveTokensHaveVoted,
     InvalidInput,
     AlreadyVoted,
     TokenNotFound,

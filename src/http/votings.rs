@@ -22,6 +22,7 @@ use crate::{
         AuthFailedError::InvalidToken,
     },
     ctx::Ctx,
+    helpers::calculate_stv_result,
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
         Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
@@ -224,24 +225,148 @@ impl Voting {
 
         let no_other_fields_modified = clone == voting_update_without_state_change;
 
-        if no_other_fields_modified {
-            let result = sqlx::query!(
-                "
+        if !no_other_fields_modified {
+            return Err(ApiError::InvalidInput);
+        }
+
+        let mut tx = db.begin().await?;
+
+        let count_of_active_tokens_that_have_not_voted = sqlx::query!(
+            "
+            WITH activated_tokens_without_vote AS (
+                SELECT token
+                FROM token
+                WHERE
+                    state = 'activated'::token_state
+                    AND token NOT IN (
+                        SELECT token_token AS token
+                        FROM has_voted
+                        WHERE voting_id = $1
+                    )
+            )
+            SELECT count(*) as \"count!\"
+            FROM activated_tokens_without_vote
+            ",
+            self.id
+        )
+        .map(|row| row.count)
+        .fetch_one(&mut *tx)
+        .await?;
+
+        if count_of_active_tokens_that_have_not_voted != 0 {
+            return Err(ApiError::NotAllActiveTokensHaveVoted);
+        }
+
+        let votes = sqlx::query!(
+            "
+            SELECT COALESCE(NULLIF(ARRAY_AGG(candidate_name ORDER BY rank), '{NULL}'), '{}') AS \"vote!: Vec<CandidateId>\"
+            FROM vote
+            WHERE voting_id = $1
+            GROUP BY id
+            ",
+            self.id,
+        ).map(|row| {
+            row.vote
+        }).fetch_all(&mut *tx).await?;
+
+        let number_of_winners: usize = self
+            .number_of_winners
+            .try_into()
+            .map_err(|_| ApiError::InternalServerError)?;
+
+        let round_results =
+            calculate_stv_result(self.candidates.clone(), votes, number_of_winners)?.round_results;
+
+        let mut winning_candidates = vec![];
+        let mut passing_candidates = vec![];
+        let mut dropped_candidates = vec![];
+
+        let round_results_references = round_results.iter().collect::<Vec<_>>();
+        round_results.iter().for_each(|r| {
+            r.candidate_results.iter().for_each(|c| {
+                if c.is_selected {
+                    winning_candidates.push((&c.data, r.round));
+                } else {
+                    passing_candidates.push((&c.data, r.round));
+                }
+            });
+
+            r.dropped_candidate.iter().for_each(|c| {
+                dropped_candidates.push((c, r.round));
+            });
+        });
+
+        QueryBuilder::new("INSERT INTO voting_round_result (voting_id, round)")
+            .push_values(round_results_references.clone(), |mut b, res| {
+                b.push_bind(self.id).push_bind(res.round);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+
+        let all_candidate_data = [
+            winning_candidates.clone(),
+            passing_candidates.clone(),
+            dropped_candidates,
+        ]
+        .concat();
+
+        QueryBuilder::new("INSERT INTO candidate_result_data (name, round, voting_id, vote_count)")
+            .push_values(all_candidate_data, |mut b, (result, round)| {
+                b.push_bind(&result.name)
+                    .push_bind(round)
+                    .push_bind(self.id)
+                    .push_bind(result.vote_count);
+            })
+            .build()
+            .execute(&mut *tx)
+            .await?;
+
+        QueryBuilder::new(
+            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+        )
+        .push_values(winning_candidates, |mut b, (result, round)| {
+            b.push_bind(&result.name)
+                .push_bind(round)
+                .push_bind(self.id)
+                .push_bind(result.vote_count)
+                .push_bind(true);
+        })
+        .build()
+        .execute(&mut *tx)
+        .await?;
+
+        QueryBuilder::new(
+            "INSERT INTO passing_candidate_result (name, round, voting_id, is_selected)",
+        )
+        .push_values(passing_candidates, |mut b, (result, round)| {
+            b.push_bind(&result.name)
+                .push_bind(round)
+                .push_bind(self.id)
+                .push_bind(result.vote_count)
+                .push_bind(false);
+        })
+        .build()
+        .execute(&mut *tx)
+        .await?;
+
+        let updated_voting = sqlx::query_as!(
+            VotingStateResult,
+            "
                 UPDATE voting
                 SET state = 'closed'::voting_state
                 WHERE id = $1
                 returning state AS \"state: VotingStateWithoutResults\";
                 ",
-                self.id
-            )
-            .fetch_one(&db)
-            .await?;
+            self.id
+        )
+        .fetch_one(&mut *tx)
+        .await?;
 
-            clone.state = VotingState::from(result.state);
-            return Ok(clone);
-        } else {
-            return Err(ApiError::InvalidInput);
-        }
+        tx.commit().await?;
+
+        clone.state = VotingState::from(updated_voting.state);
+        return Ok(clone);
     }
 
     async fn try_modify_and_reset_votes(
