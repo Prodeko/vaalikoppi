@@ -581,7 +581,9 @@ pub async fn get_votings_list_template(
     let mut votings: HashMap<VotingId, VotingForVoterTemplate> = HashMap::new();
 
     let rows = rows.await?;
+    //println!("{:#?}", rows);
     rows.into_iter().try_for_each(|rec| {
+        // println!("rec: {:#?}", rec);
         let candidate_results = rec
             .candidate_names
             .zip(rec.candidate_is_selected)
@@ -597,12 +599,12 @@ pub async fn get_votings_list_template(
                     })
                     .collect::<Vec<PassingCandidateResult>>()
             });
-
+        // println!("candidate_results: {:#?}", candidate_results);
         let dropped_candidate: Option<CandidateResultData> = rec
             .dropped_candidate_name
             .zip(rec.dropped_candidate_vote_count)
             .map(|(name, vote_count)| CandidateResultData { name, vote_count });
-
+        // println!("dropped_candidate: {:#?}", dropped_candidate);
         let round_result: Option<VotingRoundResult> =
             rec.round
                 .zip(candidate_results)
@@ -611,6 +613,7 @@ pub async fn get_votings_list_template(
                     dropped_candidate,
                     candidate_results: results,
                 });
+        // println!("round_result: {:#?}", round_result);
 
         let voting = votings.get_mut(&rec.id);
 
@@ -634,14 +637,22 @@ pub async fn get_votings_list_template(
                 }
             },
             None => {
-                let state = match rec.state {
-                    VotingStateWithoutResults::Draft => VotingState::Draft,
-                    VotingStateWithoutResults::Open => VotingState::Open,
-                    VotingStateWithoutResults::Closed => VotingState::Closed(VotingResult {
-                        round_results: Vec::new(),
-                        winners: Vec::new(),
-                    }),
-                };
+                let state = match (rec.state, round_result) {
+                    (VotingStateWithoutResults::Closed, Some(round_result)) => {
+                        Ok(VotingState::Closed(VotingResult {
+                            winners: round_result
+                                .candidate_results
+                                .iter()
+                                .filter(|c| c.is_selected)
+                                .map(|c| c.data.name.to_owned())
+                                .collect(),
+                            round_results: vec![round_result],
+                        }))
+                    }
+                    (VotingStateWithoutResults::Open, None) => Ok(VotingState::Open),
+                    (VotingStateWithoutResults::Draft, None) => Ok(VotingState::Draft),
+                    _ => Err(ApiError::CorruptDatabaseError),
+                }?;
 
                 let voting = VotingForVoterTemplate {
                     id: rec.id,
@@ -680,6 +691,7 @@ pub async fn get_votings_list_template(
         newly_created_vote_uuids,
     };
 
+    // println!("{:#?}", template.closed_votings);
     Ok(template)
 }
 
