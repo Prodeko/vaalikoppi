@@ -5,6 +5,9 @@ on:
     branches:
       - dockerfile
 
+env:
+  CARGO_HOME: ${CI_PROJECT_DIR}/.cargo # Move cargo data into the project
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
       AZURE_CORE_OUTPUT: none
     services:
       postgres:
-        images: postgres:14
+        image: postgres:14
         env:
           POSTGRES_PASSWORD: secret
           POSTGRES_DB: vaalikoppi
@@ -22,20 +25,6 @@ jobs:
           --health-interval 6s
           --health-timeout 5s
           --health-retries 5
-
-    variables:
-      CARGO_HOME: ${CI_PROJECT_DIR}/.cargo # Move cargo data into the project
-    cache:
-      key: ${CI_COMMIT_REF_SLUG}  # Share cache between all jobs on one branch/tag
-      paths:                      # Paths to cache
-        - .cargo/bin
-        - .cargo/registry/index
-        - .cargo/registry/cache
-        - target/release/
-        - target/release/
-        - target/x86_64-unknown-linux-musl/
-        - target/x86_64-unknown-linux-musl/
-      policy: pull-push
 
     steps:
       - uses: actions/checkout@v2
@@ -47,6 +36,19 @@ jobs:
 
       - name: Docker login to ACR
         run: az acr login --name {{ secrets.REGISTRY_NAME }}
+
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        with:
+          key: ${CI_COMMIT_REF_SLUG}  # Share cache between all jobs on one branch/tag
+          path: |                      # Paths to cache
+            .cargo/bin
+            .cargo/registry/index
+            .cargo/registry/cache
+            target/release/
+            target/release/
+            target/x86_64-unknown-linux-musl/
+            target/x86_64-unknown-linux-musl/
 
       - name: Build and push image
         run: |
@@ -65,8 +67,6 @@ jobs:
     
     steps:
       - uses: actions/checkout@v2
-
-    steps:
       - name: Log in to Azure
         uses: Azure/login@v1
         with:
