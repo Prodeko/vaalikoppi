@@ -23,6 +23,20 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    variables:
+      CARGO_HOME: ${CI_PROJECT_DIR}/.cargo # Move cargo data into the project
+    cache:
+      key: ${CI_COMMIT_REF_SLUG}  # Share cache between all jobs on one branch/tag
+      paths:                      # Paths to cache
+        - .cargo/bin
+        - .cargo/registry/index
+        - .cargo/registry/cache
+        - target/release/
+        - target/release/
+        - target/x86_64-unknown-linux-musl/
+        - target/x86_64-unknown-linux-musl/
+      policy: pull-push
+
     steps:
       - uses: actions/checkout@v2
 
