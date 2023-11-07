@@ -1,0 +1,49 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select id, token, alias, state as \"state: TokenState\" from token\n        where state = 'unactivated'::token_state;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "token",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "alias",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "state: TokenState",
+        "type_info": {
+          "Custom": {
+            "name": "token_state",
+            "kind": {
+              "Enum": [
+                "unactivated",
+                "activated",
+                "voided"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "026bfe5fadf16904f50b937b6add50c83acf4dfba3e0e0267c5b17965f702683"
+}
