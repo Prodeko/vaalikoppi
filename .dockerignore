@@ -1,0 +1,11 @@
+.git
+.github
+.ssh
+.env
+.vscode
+
+target/*
+!target/release
+!target/.rustc_info.json
+!target/CACHEDIR.TAG
+
