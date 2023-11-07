@@ -1,0 +1,63 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        UPDATE token\n        SET state = $2\n        WHERE id = $1\n        RETURNING\n            id,\n            token,\n            state AS \"state: TokenState\",\n            alias\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "token",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "state: TokenState",
+        "type_info": {
+          "Custom": {
+            "name": "token_state",
+            "kind": {
+              "Enum": [
+                "unactivated",
+                "activated",
+                "voided"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "alias",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        {
+          "Custom": {
+            "name": "token_state",
+            "kind": {
+              "Enum": [
+                "unactivated",
+                "activated",
+                "voided"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "4b3752f1f241cd17385c7408553ad40a8bcbae6f174cec1cf90412825c182e52"
+}

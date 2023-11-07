@@ -1,0 +1,33 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE voting\n                SET state = 'closed'::voting_state\n                WHERE id = $1\n                returning state AS \"state: VotingStateWithoutResults\";\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state: VotingStateWithoutResults",
+        "type_info": {
+          "Custom": {
+            "name": "voting_state",
+            "kind": {
+              "Enum": [
+                "draft",
+                "open",
+                "closed"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "055b6e73439dd9a80eb14be3ad856cbbed458ec92d1bd7c6e16c2fae97996f81"
+}

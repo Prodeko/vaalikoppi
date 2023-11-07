@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO has_voted (token_token, voting_id) VALUES ($1, $2) ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "610913058444c45aee5f56be7b6bdedddb58221902548d2b046b2466f85369b5"
+}

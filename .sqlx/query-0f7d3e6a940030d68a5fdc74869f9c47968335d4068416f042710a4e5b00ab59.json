@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH activated_tokens_without_vote AS (\n                SELECT token\n                FROM token\n                WHERE\n                    state = 'activated'::token_state\n                    AND token NOT IN (\n                        SELECT token_token AS token\n                        FROM has_voted\n                        WHERE voting_id = $1\n                    )\n            )\n            SELECT count(*) as \"count!\"\n            FROM activated_tokens_without_vote\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "0f7d3e6a940030d68a5fdc74869f9c47968335d4068416f042710a4e5b00ab59"
+}

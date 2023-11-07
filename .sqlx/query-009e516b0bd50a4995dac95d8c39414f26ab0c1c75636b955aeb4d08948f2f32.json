@@ -1,0 +1,75 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT\n            v.id,\n            v.name,\n            v.description,\n            v.state AS \"state: VotingStateWithoutResults\",\n            v.created_at,\n            v.hide_vote_counts,\n            v.number_of_winners,\n            COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') AS \"candidates!: Vec<CandidateId>\"\n        FROM voting as v LEFT JOIN candidate as c\n            ON v.id = c.voting_id\n        WHERE v.id = $1\n        GROUP BY v.id;\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "state: VotingStateWithoutResults",
+        "type_info": {
+          "Custom": {
+            "name": "voting_state",
+            "kind": {
+              "Enum": [
+                "draft",
+                "open",
+                "closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "hide_vote_counts",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 6,
+        "name": "number_of_winners",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "candidates!: Vec<CandidateId>",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "009e516b0bd50a4995dac95d8c39414f26ab0c1c75636b955aeb4d08948f2f32"
+}
