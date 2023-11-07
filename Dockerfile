@@ -22,5 +22,6 @@ FROM scratch
 
 WORKDIR /vaalikoppi
 
-COPY --from=build-stage /vaalikoppi/target/x86_64-unknown-linux-musl/release/vaalikoppi /vaalikoppi/binary
-CMD binary
+COPY --from=build-stage /vaalikoppi/target/x86_64-unknown-linux-musl/release/vaalikoppi /vaalikoppi/target/x86_64-unknown-linux-musl/release/vaalikoppi
+COPY --from=build-stage /vaalikoppi/src/static /vaalikoppi/src/static
+CMD /vaalikoppi/target/x86_64-unknown-linux-musl/release/vaalikoppi
