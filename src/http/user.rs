@@ -23,7 +23,9 @@ struct LoginPayload {
 struct LoginResponse {}
 
 pub fn router() -> Router<AppState> {
-    Router::new().route("/login/", post(user_login))
+    Router::new()
+        .route("/login/", post(user_login))
+        .route("/logout/", post(user_logout))
 }
 
 async fn user_login(
@@ -65,6 +67,18 @@ async fn user_login(
             .finish(),
     );
     return Ok(Json(LoginResponse {}));
+}
+
+#[derive(Serialize)]
+struct UserLogoutResponse {
+    status: i32,
+}
+async fn user_logout(cookies: Cookies) -> ApiResult<Json<UserLogoutResponse>> {
+    let mut cookie = Cookie::named(VOTER_TOKEN);
+    cookie.set_path("/");
+
+    cookies.remove(cookie);
+    Ok(Json(UserLogoutResponse { status: 0 }))
 }
 
 async fn register_and_validate_alias(
