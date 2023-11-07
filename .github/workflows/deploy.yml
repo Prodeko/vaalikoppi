@@ -36,7 +36,7 @@ jobs:
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          allow-no-subscriptions: true
 
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
@@ -73,7 +73,7 @@ jobs:
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+          allow-no-subscriptions: true
 
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
