@@ -19,7 +19,7 @@ jobs:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_PASSWORD: secret
+          POSTGRES_PASSWORD: ci-password
           POSTGRES_DB: vaalikoppi
           POSTGRES_USER: vaalikoppi
         options: >-
@@ -56,7 +56,7 @@ jobs:
 
       - name: Build and push image
         run: |
-          DATABASE_URL="postgres://vaalikoppi:secret@postgres:5432/vaalikoppi" docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
+          docker build -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }} --build-arg="DATABASE_URL=postgres://vaalikoppi:ci-password@postgres:5432/vaalikoppi" .
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
 
       - name: Azure logout

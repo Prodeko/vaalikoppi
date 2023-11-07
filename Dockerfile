@@ -1,6 +1,9 @@
 FROM rust:1.72 as build-stage
 
+
 WORKDIR /vaalikoppi
+
+ARG DATABASE_URL
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install musl-tools -y
