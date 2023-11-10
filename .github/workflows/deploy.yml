@@ -9,7 +9,6 @@ permissions:
   id-token: write
 
 env:
-  CARGO_HOME: ${CI_PROJECT_DIR}/.cargo # Move cargo data into the project
   AZURE_CORE_OUTPUT: none
 
 jobs:
@@ -43,27 +42,20 @@ jobs:
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        with:
-          key: ${CI_COMMIT_REF_SLUG}  # Share cache between all jobs on one branch/tag
-          path: |                      # Paths to cache
-            .cargo/bin
-            .cargo/registry/index
-            .cargo/registry/cache
-            target/release/
-            target/release/
-            target/x86_64-unknown-linux-musl/
-            target/x86_64-unknown-linux-musl/
+      - uses: docker/setup-buildx-action@v3
 
       - name: Build and push image
-        run: |
-          docker build \
-            --tag ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }} \
-            --build-arg "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi" \
-            --network host .
-          docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
-
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
+          cache-from: type=gha,ref=${{ github.ref_name }}
+          cache-to: type=gha,mode=max
+          build-args: |
+            "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
+          network: host
+          
       - name: Azure logout
         run: |
           az logout
