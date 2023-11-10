@@ -58,7 +58,10 @@ jobs:
 
       - name: Build and push image
         run: |
-          docker build -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }} --build-arg="DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi" .
+          docker build \
+            --tag ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }} \
+            --build-arg "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi" \
+            --network host .
           docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
 
       - name: Azure logout
