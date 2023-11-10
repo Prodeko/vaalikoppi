@@ -54,6 +54,8 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
+          allow: |
+            network.host
           network: host
           
       - name: Azure logout
