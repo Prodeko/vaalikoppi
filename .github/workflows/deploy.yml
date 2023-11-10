@@ -56,6 +56,7 @@ jobs:
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
           allow: |
             network.host
+            security.insecure
           network: host
           
       - name: Azure logout
