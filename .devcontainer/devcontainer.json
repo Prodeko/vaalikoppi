@@ -15,7 +15,8 @@
 				"tamasfe.even-better-toml",
 				"serayuzgur.crates",
 				"ms-ossdata.vscode-postgresql",
-				"adpyke.vscode-sql-formatter"
+				"adpyke.vscode-sql-formatter",
+				"github.vscode-github-actions"
 			],
 			"settings": {
 				"[sql]": {
