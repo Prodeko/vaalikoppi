@@ -53,7 +53,7 @@ jobs:
           cache-from: type=gha,ref=${{ github.ref_name }}
           cache-to: type=gha,mode=max
           build-args: |
-            "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
+            DATABASE_URL="postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
           allow: |
             network.host
             security.insecure
