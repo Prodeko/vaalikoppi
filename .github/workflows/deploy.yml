@@ -3,7 +3,7 @@ name: Build and deploy
 on:
   push:
     branches:
-      - ci-debugging
+      - rewrite
 
 permissions:
   id-token: write
