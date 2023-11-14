@@ -43,6 +43,9 @@ jobs:
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
 
       - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
 
       - name: Build and push image
         uses: docker/build-push-action@v5
