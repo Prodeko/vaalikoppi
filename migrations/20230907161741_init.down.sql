@@ -13,6 +13,8 @@ DROP TABLE IF EXISTS vote;
 
 DROP TABLE IF EXISTS candidate;
 
+DROP INDEX IF EXISTS token_token_hash_index;
+
 DROP TABLE IF EXISTS token;
 
 DROP TABLE IF EXISTS voting;

@@ -21,6 +21,8 @@ CREATE TABLE token (
     alias text UNIQUE
 );
 
+CREATE INDEX token_token_hash_index ON token USING hash(token);
+
 CREATE TABLE candidate (
     name text NOT NULL,
     voting_id int REFERENCES voting ON DELETE CASCADE NOT NULL,
