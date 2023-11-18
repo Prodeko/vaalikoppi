@@ -11,12 +11,20 @@ pub type ApiResult<T> = core::result::Result<T, ApiError>;
 pub enum AuthFailedError {
     MissingToken,
     InvalidToken,
+    TokenUnactivated,
+    TokenVoided,
+    WrongAdminToken,
+}
+
+#[derive(Serialize, Debug)]
+pub enum InvalidAliasError {
+    AliasAlreadyInUse,
+    BadAlias,
 }
 
 #[serde_as]
 #[derive(Serialize, Debug)]
 pub enum ApiError {
-    LoginFail,
     AuthFailed(AuthFailedError),
     InternalServerError,
     VotingNotFound,
@@ -29,12 +37,36 @@ pub enum ApiError {
     CorruptDatabaseError,
     TemplatingError(#[serde_as(as = "DisplayFromStr")] askama::Error),
     VotingAlgorithmError(&'static str),
+    InvalidAlias(InvalidAliasError),
 }
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         println!("{:?}", self);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response()
+        match self {
+            ApiError::InvalidAlias(InvalidAliasError::AliasAlreadyInUse) => {
+                (StatusCode::BAD_REQUEST, "Alias already in use").into_response()
+            }
+            ApiError::InvalidAlias(InvalidAliasError::BadAlias) => {
+                (StatusCode::BAD_REQUEST, "Bad alias").into_response()
+            }
+            ApiError::AuthFailed(AuthFailedError::MissingToken) => {
+                (StatusCode::UNAUTHORIZED, "Token missing").into_response()
+            }
+            ApiError::AuthFailed(AuthFailedError::InvalidToken) => {
+                (StatusCode::UNAUTHORIZED, "Token invalid").into_response()
+            }
+            ApiError::AuthFailed(AuthFailedError::TokenUnactivated) => {
+                (StatusCode::UNAUTHORIZED, "Token unactivated").into_response()
+            }
+            ApiError::AuthFailed(AuthFailedError::TokenVoided) => {
+                (StatusCode::UNAUTHORIZED, "Token voided").into_response()
+            }
+            ApiError::AuthFailed(AuthFailedError::WrongAdminToken) => {
+                (StatusCode::UNAUTHORIZED, "Wrong admin token").into_response()
+            }
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response(),
+        }
     }
 }
 

@@ -1,14 +1,14 @@
+use crate::api_types::ApiError::{self, *};
+use crate::api_types::AuthFailedError::{self};
+use crate::api_types::InvalidAliasError::*;
 use crate::models::{Token, TokenState};
+use crate::{api_types::ApiResult, http::AppState};
 use axum::{extract::State, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
+use sqlx::error::ErrorKind;
 use sqlx::Postgres;
 use sqlx::{self, Pool};
 use tower_cookies::{Cookie, Cookies};
-
-use crate::{
-    api_types::{ApiError, ApiResult},
-    http::AppState,
-};
 
 pub const VOTER_TOKEN: &str = "voter-token";
 pub const VOTER_TOKEN_MAX_AGE_DAYS: i64 = 1;
@@ -47,26 +47,37 @@ async fn user_login(
         login_payload.token
     )
     .fetch_one(&state.db)
-    .await?;
+    .await
+    .map_err(|e| match e {
+        sqlx::Error::RowNotFound => AuthFailed(AuthFailedError::MissingToken),
+        _ => InternalServerError,
+    })?;
 
-    if row.state != TokenState::Activated {
-        return Err(ApiError::LoginFail);
-    }
-
-    // register alias
-    let token =
-        register_and_validate_alias(&state.0.db, &login_payload.token, &login_payload.alias)
+    match row.state {
+        TokenState::Unactivated => {
+            return Err(ApiError::AuthFailed(AuthFailedError::TokenUnactivated))
+        }
+        TokenState::Voided => return Err(ApiError::AuthFailed(AuthFailedError::TokenVoided)),
+        TokenState::Activated => {
+            // register alias
+            let token = register_and_validate_alias(
+                &state.0.db,
+                &login_payload.token,
+                &login_payload.alias,
+            )
             .await?;
 
-    cookies.add(
-        Cookie::build(VOTER_TOKEN, token.token)
-            .http_only(true)
-            .path("/")
-            .secure(true)
-            .max_age(time::Duration::days(VOTER_TOKEN_MAX_AGE_DAYS))
-            .finish(),
-    );
-    return Ok(Json(LoginResponse {}));
+            cookies.add(
+                Cookie::build(VOTER_TOKEN, token.token)
+                    .http_only(true)
+                    .path("/")
+                    .secure(true)
+                    .max_age(time::Duration::days(VOTER_TOKEN_MAX_AGE_DAYS))
+                    .finish(),
+            );
+            Ok(Json(LoginResponse {}))
+        }
+    }
 }
 
 #[derive(Serialize)]
@@ -87,7 +98,7 @@ async fn register_and_validate_alias(
     alias: &str,
 ) -> ApiResult<Token> {
     if alias.len() < 4 || alias.len() > 16 {
-        return Err(ApiError::InvalidInput);
+        return Err(ApiError::InvalidAlias(BadAlias));
     }
 
     // Database should check for alias uniqueness
@@ -107,7 +118,14 @@ async fn register_and_validate_alias(
         token
     )
     .fetch_one(executor)
-    .await?;
+    .await
+    .map_err(|e| match e {
+        // Handle unique key error (alias in use)
+        sqlx::Error::Database(err) if err.kind() == ErrorKind::UniqueViolation => {
+            InvalidAlias(AliasAlreadyInUse)
+        }
+        _ => InternalServerError,
+    })?;
 
     return Ok(token);
 }

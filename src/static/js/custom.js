@@ -341,10 +341,9 @@ function adminLogin() {
   callApi(`${SITE_ROOT_PATH}login`, "POST", {
     token
   })
-    .then((res) => {
-      console.log(res)
+    .then(async res => {
       if (!res.ok) {
-        throw Error("Kirjautuminen epäonnistui");
+        throw Error(await res.text());
       }
       location.replace("/")
     })
@@ -371,14 +370,10 @@ function submitToken() {
     token: token,
     alias: alias,
   })
-    .then((res) => {
+    .then(async res => {
       if (!res.ok) {
-        if (res.status === 401) {
-          throw Error("Virheellinen kirjautumiskoodi");
-        } else if (res.status === 403) {
-          throw Error("Alias ei ole sallittu, tai se on jo varattu");
-        }
-        throw Error("Kirjautuminen epäonnistui");
+        if (res.status === 400 ||res.status === 401) throw Error(await res.text())
+        else throw Error("Kirjautuminen epäonnistui")
       }
       location.reload();
     })
@@ -687,7 +682,7 @@ function setupEventListeners() {
 
 function validateAliasSyntax(aliasInput) {
   const aliasRegex = /^[A-Z0-9\u00C0-\u00D6\u00D8-\u00DE][A-Z0-9\u00C0-\u00D6\u00D8-\u00DE_-]+$/;
-  const lengthOk = aliasInput.length >= 3 && aliasInput.length <= 20;
+  const lengthOk = aliasInput.length >= 4 && aliasInput.length <= 16;
   return lengthOk && aliasRegex.test(aliasInput.toUpperCase());
 }
 

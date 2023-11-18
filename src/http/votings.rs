@@ -17,9 +17,8 @@ use chrono::DateTime;
 
 use crate::{
     api_types::{
-        ApiError::{self, AuthFailed, InternalServerError},
+        ApiError::{self, InternalServerError},
         ApiResult,
-        AuthFailedError::InvalidToken,
     },
     ctx::Ctx,
     helpers::calculate_stv_result,
