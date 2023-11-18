@@ -553,8 +553,8 @@ async fn get_voting_data(
                     ON r.voting_id = d.voting_id AND r.round = d.round
             GROUP BY (r.voting_id, r.round, d.name, d.vote_count)
         ),
-        candidates_by_voting AS (
-            SELECT v.id, COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') as candidates
+        voting_with_candidates AS (
+            SELECT v.*, COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') as candidates
             FROM voting AS v LEFT JOIN candidate AS c ON v.id = c.voting_id
             GROUP BY v.id
         )
@@ -568,7 +568,7 @@ async fn get_voting_data(
             v.created_at as \"created_at!: DateTime<Utc>\",
             v.hide_vote_counts as \"hide_vote_counts!: bool\",
             v.number_of_winners,
-            c.candidates as \"candidates!: Vec<CandidateId>\",
+            v.candidates as \"candidates!: Vec<CandidateId>\",
             r.round as \"round?: i32\",
             r.dropped_candidate_name as \"dropped_candidate_name?: String\",
             r.dropped_candidate_vote_count as \"dropped_candidate_vote_count?: f64\",
@@ -577,8 +577,7 @@ async fn get_voting_data(
             r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\",
             (hv.token_token = $1) as \"you_have_voted?: bool\"
         FROM
-            voting AS v
-            INNER JOIN candidates_by_voting AS c ON v.id = c.id
+            voting_with_candidates AS v            
             LEFT JOIN round_results AS r ON v.id = r.voting_id
             LEFT JOIN has_voted hv on v.id = hv.voting_id and hv.token_token = $1
         ORDER BY round ASC, candidate_vote_count DESC, v.created_at ASC;
