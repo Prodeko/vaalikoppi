@@ -82,7 +82,7 @@ function getChosenCandidates(isRankedChoice, votingId) {
   ).map((input) => {
     const candidateId = input.getAttribute("value");
     const nameNode = form.querySelector(
-      `label[for=candidate-v-${votingId}-${candidateId}]`
+      `label[for="candidate-v-${votingId}-${candidateId}"]`
     );
     const labelText = nameNode.childNodes[0].textContent;
     const labelRankedPosition = isRankedChoice
