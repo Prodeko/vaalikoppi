@@ -12,7 +12,7 @@ RUN cargo install sqlx-cli --no-default-features --features native-tls,postgres 
 COPY . .
 RUN sqlx migrate run
 RUN rsass src/static/scss/main.scss --style compressed > src/static/css/main.css
-RUN cargo build --release --target x86_64-unknown-linux-musl
+RUN --mount=type=cache cargo build --release --target x86_64-unknown-linux-musl
 
 
 FROM scratch
