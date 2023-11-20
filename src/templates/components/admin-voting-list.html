@@ -13,21 +13,13 @@
       <div class="col s12">
         <div class="card blue-grey lighten-5">
           <div class="card-content blue-grey-text text-darken-1 center">
-            <div class="row">
-              <div class="col s12">
-                <span class="card-title bold-font">Auki: {{ voting.name }}, Äänestänyt: {{ voting.total_votes }}/{{ voting.eligible_token_count }}</span>
-                {# <!--<p>Salasana vaaditaan:
-                  <span class="bold-font">{% if voting.is_password_protected %}Kyllä{% else %}Ei{% endif %}</span>.&nbsp;
-                  {% if voting.is_password_protected %}Salasana:
-                    <span class="bold-font">{{ voting.voting_password }}</span>
-                  {% endif %}
-                </p>--> #}
-                {% if voting.description.len() > 0 %}
-                  <div class="section grey-text">
-                    <p>{{ voting.description }}</p>
-                  </div>
-                {% endif %}
-              </div>
+            <div class="col s12">
+              <div class="card-title bold-font">Auki: {{ voting.name }} <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i></div>
+              {% if voting.description.len() > 0 %}
+                <div class="section grey-text">
+                  <p>{{ voting.description }}</p>
+                </div>
+              {% endif %}
             </div>
             {% if voting.candidates.len() > 0 %}
               <div class="divider"></div>
@@ -42,7 +34,7 @@
             <div class="divider"></div>
             <div class="row votes-left-row">
               <div class="col s12 votes-left-col">
-                <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.id }}')">Koodit, jotka eivät ole vielä äänestäneet</h6>
+                <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.id }}')">Äänestänyt: {{ voting.total_votes }}/{{ voting.eligible_token_count }} (näytä puuttuvat)</h6>
                 <table id="votes-left-table-{{ voting.id }}" class="votes-left-table hide">
                   <thead>
                     <tr>
