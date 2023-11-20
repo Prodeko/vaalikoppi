@@ -14,7 +14,7 @@
         {% when LoginState::Admin %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
-              <span class="card-title text-lighten-1">Avaamaton: {{ voting.name }}</span>
+              <div class="card-title bold-font">Avaamaton: {{ voting.name }} <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i></div>
               {% if !voting.description.is_empty() %}
                 <div class="section grey-text">
                   <p>{{ voting.description }}</p>
@@ -114,7 +114,15 @@
                           (valittu)
                         {% endif %}
                       </td>
-                      <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
+                      {% match login_state %}
+                        {% when LoginState::Admin %}
+                          <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
+                        {% when LoginState::Voter with { token, alias } %}
+                          {% if !voting.hide_vote_counts %}
+                            <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
+                          {% endif %}
+                        {% when _ %}
+                      {% endmatch %}
                     </tr>
                   {% endfor %}
                   {% match round.dropped_candidate %}
@@ -124,7 +132,15 @@
                             {{ candidate_data.name }}
                             (pudonnut)
                           </td>
-                          <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+                          {% match login_state %}
+                            {% when LoginState::Admin %}
+                              <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+                            {% when LoginState::Voter with { token, alias } %}
+                              {% if !voting.hide_vote_counts %}
+                                <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+                              {% endif %}
+                            {% when _ %}
+                          {% endmatch %}
                         </tr>
                       {% when None %}
                     {% endmatch %}
