@@ -729,6 +729,7 @@ pub struct AdminOpenVoting {
     pub description: String,    // voting
     pub state: VotingState,     // voting
     pub hide_vote_counts: bool, // voting
+    pub number_of_winners: i32, // voting
 
     pub total_votes: i32,                         // has_voted
     pub eligible_token_count: i32,                // live count of activated tokens
@@ -745,6 +746,7 @@ pub struct AdminDraftVoting {
     pub state: VotingState,
     pub candidates: Vec<CandidateId>,
     pub hide_vote_counts: bool,
+    pub number_of_winners: i32,
 }
 
 #[derive(Validate, Debug, Clone, Deserialize, Serialize)]
@@ -796,6 +798,7 @@ pub async fn get_admin_votings_list_template(
                 v.description,
                 v.state,
                 v.hide_vote_counts,
+                v.number_of_winners,
                 coalesce(nullif(array_agg(c.name), '{null}'), '{}') as candidates
             from voting v
             left join candidate c on v.id = c.voting_id
@@ -808,6 +811,7 @@ pub async fn get_admin_votings_list_template(
             v_c.state as \"voting_state!: VotingStateWithoutResults\",
             v_c.candidates as \"candidates!: Vec<String>\",
             v_c.hide_vote_counts,
+            v_c.number_of_winners,
             u_t.unused_tokens as \"unused_tokens!: Vec<(String, Alias)>\",
             t_v.total_votes
         from v_c natural join u_t natural join t_v;
@@ -836,7 +840,6 @@ pub async fn get_admin_votings_list_template(
     let closed_votings: Vec<Voting> = data.closed_votings;
 
     rows.iter().for_each(|row| match row.voting_state {
-        // TODO admin voting results
         VotingStateWithoutResults::Closed => (),
         VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
             id: row.id,
@@ -844,6 +847,7 @@ pub async fn get_admin_votings_list_template(
             description: row.description.clone(),
             state: row.voting_state.into(),
             hide_vote_counts: row.hide_vote_counts,
+            number_of_winners: row.number_of_winners,
             candidates: row.candidates.clone(),
         }),
         VotingStateWithoutResults::Open => open_votings.push(AdminOpenVoting {
@@ -852,6 +856,7 @@ pub async fn get_admin_votings_list_template(
             name: row.name.clone(),
             state: row.voting_state.into(),
             hide_vote_counts: row.hide_vote_counts,
+            number_of_winners: row.number_of_winners,
             total_votes: row.total_votes.map_or(-1 as i32, |t| t as i32),
             eligible_token_count: count_of_live_tokens,
             candidates: row.candidates.clone(),

@@ -48,7 +48,7 @@
         {# Siirtoäänivaalitapa #}
         <div class="card blue-grey lighten-5">
           <div class="card-content grey-text center">
-            <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting.name }}</span>
+            <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting.name }} (valitaan {{ voting.number_of_winners }})</span>
             {% if !voting.description.is_empty() %}
               <p>{{ voting.description }}</p>
             {% endif %}
