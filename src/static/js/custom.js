@@ -388,6 +388,61 @@ function submitToken() {
 }
 
 // Admin
+function makeEditable(votingId) {
+  if (!confirm("Haluatko varmasti muokata äänestystä? Samalla poistetaan kaikki olemassa olevat äänet.")) {
+    return
+  }
+  const data = {
+    state: "Draft"
+  }
+  callApi(`${SITE_ROOT_PATH}votings/${votingId}`, "PATCH", data)
+    .then(async (res) => {
+      const data = await res.json();
+      if (res.status !== 200) {
+        if (data.message) {
+          showUserNotification(USER_NOTIFICATION.WARNING, data.message);
+        }
+      }
+      return data;
+    })
+    .then(res => {
+      refreshVotingList(true)
+    })
+    .catch((err) =>
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Jotain meni pieleen! Päivitä sivu!"
+      )
+    );
+}
+
+function deleteVoting(votingId) {
+  if (!confirm("Haluatko varmasti poistaa äänestyksen?")) {
+    return
+  }
+
+  callApi(`${SITE_ROOT_PATH}votings/${votingId}`, "DELETE", {})
+    .then(async (res) => {
+      if (res.status !== 200) {
+        const data = await res.json();
+        if (data.message) {
+          showUserNotification(USER_NOTIFICATION.WARNING, data.message);
+        }
+        return data;
+      }
+    })
+    .then(res => {
+      refreshVotingList(true)
+    })
+    .catch((err) =>
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Jotain meni pieleen! Päivitä sivu!"
+      )
+    );
+
+}
+
 function generateTokens(count) {
   const generateTokensButton = document.getElementById(
     "generate-tokens-button"

@@ -2,7 +2,7 @@ use std::ops::DerefMut;
 
 use crate::api_types::ApiError;
 
-use crate::models::LoginState;
+use crate::models::{LoginState, VotingStateWithoutResults};
 use crate::{
     api_types::{ApiError::AlreadyVoted, ApiError::InternalServerError, ApiResult},
     ctx::Ctx,
@@ -58,6 +58,25 @@ async fn post_vote(
     let uuid = uuid::Uuid::new_v4();
     // Start a transaction to add tuples to both vote and has_voted
     let mut tx = state.db.begin().await?;
+
+    // Ensure that the voting exists and is open
+    let voting_state = sqlx::query!(
+        "
+        SELECT
+            state as \"state: VotingStateWithoutResults\"
+        FROM voting WHERE id = $1
+        ",
+        post_vote_payload.voting_id
+    )
+    .map(|r| r.state)
+    .fetch_one(&mut *tx)
+    .await
+    .map_err(|_| ApiError::VotingNotFound)?;
+
+    match voting_state {
+        VotingStateWithoutResults::Open => Ok(()),
+        _ => Err(ApiError::VotingNotOpen),
+    }?;
 
     // If the voter does not vote for anyone ( candidates = [] ), then don't insert anything into vote, and the tx wont fail to syntax error
     let insert_vote: Option<Uuid> = if post_vote_payload.candidates.len() > 0 {

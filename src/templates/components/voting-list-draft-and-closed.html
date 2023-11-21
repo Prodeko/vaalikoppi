@@ -14,7 +14,15 @@
         {% when LoginState::Admin %}
           <div class="card grey lighten-3">
             <div class="card-content blue-grey-text text-lighten-1 center">
-              <div class="card-title bold-font">Avaamaton: {{ voting.name }} <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i></div>
+              <div class="row">
+                <div class="col s10 offset-s1 card-title bold-font">
+                  Avaamaton: {{ voting.name }} (valitaan {{ voting.number_of_winners }})
+                  <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
+                </div>
+                <div class="col s1">
+                  <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
+                </div>
+              </div>
               {% if !voting.description.is_empty() %}
                 <div class="section grey-text">
                   <p>{{ voting.description }}</p>

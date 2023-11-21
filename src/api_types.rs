@@ -29,6 +29,7 @@ pub enum ApiError {
     InternalServerError,
     VotingNotFound,
     VotingAlreadyClosed,
+    VotingNotOpen,
     NotAllActiveTokensHaveVoted,
     InvalidInput,
     AlreadyVoted,
@@ -64,6 +65,9 @@ impl IntoResponse for ApiError {
             }
             ApiError::AuthFailed(AuthFailedError::WrongAdminToken) => {
                 (StatusCode::UNAUTHORIZED, "Wrong admin token").into_response()
+            }
+            ApiError::VotingNotFound => {
+                (StatusCode::BAD_REQUEST, "Voting is not open").into_response()
             }
             _ => (StatusCode::INTERNAL_SERVER_ERROR, "Unhandled client error").into_response(),
         }
