@@ -398,6 +398,10 @@ impl Voting {
             .execute(&mut *tx)
             .await?;
 
+        sqlx::query!("DELETE FROM has_voted WHERE voting_id = $1", self.id)
+            .execute(&mut *tx)
+            .await?;
+
         let candidates = insert_candidates_into_db(
             self.id,
             voting_update.candidates.unwrap_or(self.candidates.clone()),
@@ -471,7 +475,7 @@ async fn delete_voting(
         "
         WITH deleted_rows AS (
             DELETE FROM voting
-            WHERE voting.id = $1 AND voting.state = 'draft'::voting_state
+            WHERE voting.id = $1
             RETURNING *
         )
         SELECT COUNT(*) AS \"count!\"

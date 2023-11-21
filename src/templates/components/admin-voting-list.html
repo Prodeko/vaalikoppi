@@ -13,8 +13,17 @@
       <div class="col s12">
         <div class="card blue-grey lighten-5">
           <div class="card-content blue-grey-text text-darken-1 center">
-            <div class="col s12">
-              <div class="card-title bold-font">Auki: {{ voting.name }} <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i></div>
+            <div class="row">
+              <div class="col s10 offset-s1 card-title bold-font">
+                Auki: {{ voting.name }}
+                <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
+              </div>
+              <div class="col s1">
+                <div class="row s2">
+                  <i class="material-icons col s1" onclick="makeEditable({{ voting.id }})">edit</i>
+                  <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
+                </div>
+              </div>
               {% if voting.description.len() > 0 %}
                 <div class="section grey-text">
                   <p>{{ voting.description }}</p>
