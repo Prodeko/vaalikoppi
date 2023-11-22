@@ -1,0 +1,36 @@
+{% extends "components/base.html" %}
+
+{% block body %}
+<div class="tokens-table-wrapper card-content text-lighten-1">
+  <table class="highlight bordered" id="search-table">
+    <thead>
+      <tr>
+        <th>Äänestys</th>
+        <th>ID</th>
+        <th>Ääni</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vote in votes %}
+        {% match login_state %}
+          {% when LoginState::Admin %}
+            <tr>
+              <td>{{ vote.voting_name }}</td>
+              <td>{{ vote.id }}</td>
+              <td>{{ vote.vote|join(", ") }}</td>
+            </tr>    
+          {% when LoginState::Voter with { token, alias } %}
+            {% if !vote.hide_vote_counts %}
+              <tr>
+                <td>{{ vote.voting_name }}</td>
+                <td>{{ vote.id }}</td>
+                <td>{{ vote.vote|join(", ") }}</td>
+              </tr>
+            {% endif %}
+          {% when LoginState::NotLoggedIn %}
+        {% endmatch%}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
