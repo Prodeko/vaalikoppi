@@ -20,24 +20,33 @@
         </li>
       </ul>
     </div>
-    <div class="nav-content">
-      <ul class="tabs tabs-transparent">
-        <div id="logo" class="center brand-logo">
+    <div id="normal-nav">
+      <a href="/audit" id="audit-btn" class="transparent left">
+        <i class="large material-icons">app_registration</i>
+      </a>
+      <div id="logo" class="center brand-logo">
+        <a href="/">
           <img id="vaalikoppi-logo" src="/static/images/vaalikoppi.png" />
-        </div>
-      </ul>
-    </div>
-  </nav>
-  {% else %}
-  <nav id="normal-nav">
-    <div id="logo" class="center brand-logo">
-      <img id="vaalikoppi-logo" src="/static/images/vaalikoppi.png" />
-    </div>
-    <div class="fixed-action-btn toolbar" id="deactivate-btn">
-      <a class="transparent right">
+        </a>
+      </div>
+      <a id="deactivate-btn" class="transparent right">
         <i class="large material-icons" onclick="logout()">fingerprint</i>
       </a>
     </div>
+  </nav>
+  {% else %}
+  <nav id="normal-nav" class="nav-wrapper">
+    <a href="/audit" id="audit-btn" class="transparent left">
+      <i class="large material-icons">app_registration</i>
+    </a>
+    <div id="logo" class="center brand-logo">
+      <a href="/">
+        <img id="vaalikoppi-logo" src="/static/images/vaalikoppi.png" />
+      </a>
+    </div>
+    <a id="deactivate-btn" class="transparent right">
+      <i class="large material-icons" onclick="logout()">fingerprint</i>
+    </a>
   </nav>
 {% endmatch %}
 
