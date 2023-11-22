@@ -12,14 +12,14 @@
             <tbody>
               <tr>
                 <td>Kaikki äänestykset</td>
-                <td>{{ open_votings.len() + closed_votings.len() + closed_votings.len() }}</td>
+                <td>{{ draft_votings.len() + open_votings.len() + closed_votings.len() }}</td>
               </tr>
               <tr>
                 <td>Avoimet äänestykset</td>
                 <td>{{ open_votings.len() }}</td>
               </tr>
               <tr>
-                <td>Suljetut äänestykset</td>
+                <td>Avaamattomat äänestykset</td>
                 <td>{{ draft_votings.len() }}</td>
               </tr>
               <tr>
