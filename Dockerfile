@@ -1,6 +1,5 @@
 FROM rust:1.81 as build-stage
 
-
 WORKDIR /vaalikoppi
 
 ARG DATABASE_URL
