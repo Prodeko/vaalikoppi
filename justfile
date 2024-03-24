@@ -1,5 +1,5 @@
 tailwind:
-    bunx tailwindcss -i styles/tailwind.css -o src/static/main.css
+    bunx tailwindcss -i src/styles/tailwind.css -o src/static/tailwind.css
 
 watch-tailwind:
     cargo watch -w src/templates/ -- just tailwind
