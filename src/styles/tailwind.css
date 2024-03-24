@@ -3,3 +3,12 @@
 @tailwind components;
 
 @tailwind utilities;
+
+@layer components {
+  .card {
+    background-color: theme('colors.primary-container');
+    border-radius: theme('borderRadius.md');
+    box-shadow: theme('boxShadow.md');
+    padding: theme('padding.4');
+  }
+}
