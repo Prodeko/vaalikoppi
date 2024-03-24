@@ -19,6 +19,11 @@ RUN cargo install just
 
 # Install SQLx CLI for database migrations (see README)
 RUN cargo install sqlx-cli@0.8.3 --no-default-features --features native-tls,postgres && cargo install rsass-cli@0.29.0
+RUN bun install
+# No need to copy or build anything in dev container
+# COPY ./Cargo.* .
+# RUN cargo build
+# COPY . .
 
 # Install dependencies for Playwright tests
 COPY package.json package-lock.json ./

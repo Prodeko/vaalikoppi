@@ -1,11 +1,11 @@
 tailwind:
-    npx tailwindcss -i styles/tailwind.css -o static/main.css
+    bunx tailwindcss -i styles/tailwind.css -o static/main.css
 
 watch-tailwind:
-    cargo watch -w templates/ -- just tailwind
+    cargo watch -w src/templates/ -- just tailwind
 
 prettier:
-    npx prettier --write --ignore-unknown .
+    bunx prettier --write --ignore-unknown .
 
 watch-cargo:
     cargo watch -w src/ -x run
