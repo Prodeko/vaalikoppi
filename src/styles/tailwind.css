@@ -6,9 +6,14 @@
 
 @layer components {
   .card {
-    background-color: theme('colors.primary-container');
-    border-radius: theme('borderRadius.md');
-    box-shadow: theme('boxShadow.md');
-    padding: theme('padding.4');
+    @apply bg-primary-container rounded-md shadow-md p-4;
+  }
+
+  
+}
+
+@layer utilities {
+  .mobile-column {
+    @apply mx-4 max-w-6xl;
   }
 }
