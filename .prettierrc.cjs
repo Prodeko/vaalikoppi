@@ -1,5 +1,13 @@
 /** @type {import('prettier').Config} */
 module.exports = {
   singleQuote: true,
-  plugins: ['prettier-plugin-tailwindcss'],
+  plugins: ['prettier-plugin-tailwindcss', 'prettier-plugin-jinja-template'],
+  overrides: [
+    {
+      files: ['*.html'],
+      options: {
+        parser: 'jinja-template',
+      },
+    },
+  ],
 };

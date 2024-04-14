@@ -1,7 +1,13 @@
 FROM rust:1.81
+WORKDIR /vaalikoppi
 
 # Install bun.js
+ENV BUN_INSTALL="$HOME/.bun/"
 RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+
+COPY package.json bun.lockb /vaalikoppi
+RUN bun install
 
 RUN rustup target add x86_64-unknown-linux-musl
 
@@ -11,7 +17,6 @@ RUN apt-get update && apt-get install musl-tools nodejs -y
 
 RUN rustup component add rustfmt
 RUN USER=root cargo new --bin vaalikoppi
-WORKDIR /vaalikoppi
 RUN git config --global --add safe.directory /vaalikoppi
 
 RUN cargo install cargo-watch
