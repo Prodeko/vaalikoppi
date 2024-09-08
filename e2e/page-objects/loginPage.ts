@@ -1,13 +1,14 @@
 import type { Locator, Page } from "@playwright/test";
-import { NavBarPage } from "./navBarPage";
 import type { VoterLoginDetails } from "../types";
+import { NavBar } from "../components/navBar";
 
-export class LoginPage extends NavBarPage {
+export class LoginPage {
+	private readonly navBar: NavBar;
 	private readonly tokenInput: Locator;
 	private readonly loginButton: Locator;
 
 	constructor(private readonly page: Page) {
-		super(page);
+		this.navBar = new NavBar(this.page.getByRole("navigation"));
 		this.tokenInput = this.page.getByRole("textbox", {
 			name: "Kirjautumiskoodi",
 		});
