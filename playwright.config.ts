@@ -1,6 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "node:path";
 
-const port = process.env["PORT"] ?? 80;
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+
+// biome-ignore lint/style/noNonNullAssertion: <explanation>
+const port = process.env.PORT!;
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -54,6 +59,5 @@ export default defineConfig({
 	webServer: {
 		command: "cargo run",
 		url: `http://localhost:${port}`,
-		reuseExistingServer: !process.env.CI,
 	},
 });

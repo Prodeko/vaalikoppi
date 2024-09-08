@@ -10,7 +10,7 @@ export class NavBar {
 			name: "app_registration",
 		});
 		this.homeLink = this.locator.getByRole("link").nth(1); // TODO: Get this with some more robust method
-		this.auditLink = this.locator.getByText("fingerprint");
+		this.logoutButton = this.locator.getByText("fingerprint");
 	}
 
 	public goToAudit() {

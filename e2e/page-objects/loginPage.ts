@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { NavBarPage } from "./navBarPage";
+import type { VoterLoginDetails } from "../types";
 
 export class LoginPage extends NavBarPage {
 	private readonly tokenInput: Locator;
@@ -13,8 +14,13 @@ export class LoginPage extends NavBarPage {
 		this.loginButton = this.page.getByRole("button", { name: "KIRJAUDU" });
 	}
 
-	public async login(adminToken: string) {
-		await this.tokenInput.fill(adminToken);
+	public async goTo() {
+		await this.page.goto("");
+		await this.navBar.logout();
+	}
+
+	public async login({ alias, token }: VoterLoginDetails) {
+		await this.tokenInput.fill(token);
 		await this.loginButton.click();
 	}
 }
