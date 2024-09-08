@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: CI environment
+        type: environment
+        required: true
+    
 permissions:
   id-token: write
 
@@ -13,6 +19,7 @@ env:
 
 jobs:
   build:
+    environment: Production
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -67,6 +74,7 @@ jobs:
           az logout
 
   deploy:
+    environment: Production
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -82,10 +90,13 @@ jobs:
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
 
       - name: Deploy from ACR
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'vaalikoppi'
-          images: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
+        run: |
+          az webapp config container set \
+            --container-image-name ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} \
+            --container-registry-url https://${{ secrets.REGISTRY_NAME }}.azurecr.io \
+            --subscription ${{ secrets.SUBSCRIPTION }} \
+            --resource-group vaalikoppi_group \
+            --name vaalikoppi
 
       - name: Azure logout
         run: |
