@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: CI environment
+        type: environment
+        required: true
+    
 
 permissions:
   id-token: write
