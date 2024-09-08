@@ -122,15 +122,9 @@
                           (valittu)
                         {% endif %}
                       </td>
-                      {% match login_state %}
-                        {% when LoginState::Admin %}
-                          <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
-                        {% when LoginState::Voter with { token, alias } %}
                           {% if !voting.hide_vote_counts %}
                             <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
                           {% endif %}
-                        {% when _ %}
-                      {% endmatch %}
                     </tr>
                   {% endfor %}
                   {% match round.dropped_candidate %}
