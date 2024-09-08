@@ -7,6 +7,9 @@ test("Can log in as admin", async ({ adminLoginPage }) => {
 });
 
 test("Can create tokens", async ({ adminLoginPage }) => {
-	const adminHomePage = await adminLoginPage.login();
-	await adminHomePage.expectIsVisible();
+	const homePage = await adminLoginPage.login();
+	await homePage.expectIsVisible();
+	const tokensPage = await homePage.goToTokens();
+	await tokensPage.expectIsVisible();
+	await tokensPage.generateBulkTokens();
 });
