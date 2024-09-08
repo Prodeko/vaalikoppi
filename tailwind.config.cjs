@@ -5,13 +5,15 @@ module.exports = {
   content: ['./src/templates/**/*.html'],
   theme: {
     colors: {
-      // Colors from Prodeko's style guide, https://static.prodeko.org/media/public/2023/12/14/brandidokumentti_final.pdf 
-      'on-primary': '#f6f6f6', // Prodeko's official "valkoinen 1"
-      'on-secondary': '#f6f6f6', // Prodeko's official "valkoinen 1"
-      'primary-container': '#ececec', // Prodeko's official "valkoinen 2"
-      'on-primary-container': '#000A14', // Prodeko's official "musta"
-      'primary': '#002e7d', // Prodeko's official "keskisininen"
-      'secondary': '#002851', // Prodekos official "tummansininen"
+      "surface-strong": "var(--surface-strong)",
+      "surface-weak": "var(--surface-weak)",
+      "surface-primary": "var(--surface-primary)",
+      "content-on-strong-strong": "var(--content-on-strong-strong)",
+      "content-on-strong-weak": "var(--content-on-strong-weak)",
+      "content-on-weak-weak": "var(--content-on-weak-weak)",
+      "content-on-weak-strong": "var(--content-on-weak-strong)",
+      "content-on-primary": "var(--content-on-primary)",
+      "content-primary": "var(--content-primary)",
     },
     fontFamily: {
       sans: ['Raleway', ...fontFamily.sans]

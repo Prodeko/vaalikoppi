@@ -6,14 +6,53 @@
 
 @layer components {
   .card {
-    @apply bg-primary-container rounded-md shadow-md p-4;
+    @apply bg-surface-strong rounded-md shadow-md p-4;
   }
-
-  
 }
 
 @layer utilities {
   .mobile-column {
     @apply mx-4 max-w-6xl;
   }
+}
+
+:root {
+  --blue-100: #a3c5ff;
+  --blue-300: #1a57c1;
+  --blue-500: #002e7d;
+  --blue-700: #001f54;
+  --blue-900: #003d37;
+  --grey-100: #fcfcfc;
+  --grey-200: #f6f6f6;
+  --grey-300: #d8dadd;
+  --grey-400: #a3a8b1;
+  --grey-500: #787e87;
+  --grey-600: #60646a;
+  --grey-700: #484c53;
+  --grey-800: #353940;
+  --grey-900: #000a14;
+}
+
+.light {
+  --surface-strong: var(--grey-100);
+  --surface-weak: var(--grey-200);
+  --surface-primary: var(--blue-100);
+  --content-on-strong-strong: var(--grey-800);
+  --content-on-strong-weak: var(--grey-600);
+  --content-on-weak-weak: var(--grey-600);
+  --content-on-weak-strong: var(--grey-800);
+  --content-on-primary: var(--blue-900);
+  --content-primary: var(--blue-500);
+}
+
+.dark {
+  --surface-strong: var(--grey-800);
+  --surface-weak: var(--grey-700);
+  --surface-primary: var(--blue-900);
+  --content-on-strong-strong: var(--grey-200);
+  --content-on-strong-weak: var(--grey-400);
+  --content-on-weak-weak: var(--grey-400);
+  --content-on-weak-strong: var(--grey-200);
+  --content-on-primary: var(--blue-100);
+  --content-primary: var(--blue-500);
 }
