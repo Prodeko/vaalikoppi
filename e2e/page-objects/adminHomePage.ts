@@ -1,9 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
 import { CreateVotingBox } from "../components/createVotingBox";
 import { AdminNavBar } from "../components/adminNavBar";
+import { TokensPage } from "./tokensPage";
 
 export class AdminHomePage {
-	public readonly navBar: AdminNavBar;
+	private readonly navBar: AdminNavBar;
 	private readonly createVotingBox: CreateVotingBox;
 
 	constructor(private readonly page: Page) {
@@ -13,5 +14,14 @@ export class AdminHomePage {
 
 	public async expectIsVisible() {
 		await this.createVotingBox.expectIsVisible();
+	}
+
+	public async goToTokens(): Promise<TokensPage> {
+		await this.navBar.tokensLink.click();
+		return new TokensPage(this.page);
+	}
+
+	public async goToVotings() {
+		await this.navBar.votingsLink.click();
 	}
 }

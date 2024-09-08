@@ -3,8 +3,8 @@ import { NavBar } from "./navBar";
 
 export class AdminNavBar {
 	public readonly normalNavBar: NavBar;
-	private readonly votingsLink: Locator;
-	private readonly tokensLink: Locator;
+	public readonly votingsLink: Locator;
+	public readonly tokensLink: Locator;
 
 	constructor(private readonly locator: Locator) {
 		this.normalNavBar = new NavBar(this.locator);
