@@ -4,6 +4,9 @@ FROM rust:1.72
 RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb && \
     apt install ./libffi6_3.2.1-8_amd64.deb
 
+# Install bun for running playwright
+RUN curl -fsSL https://bun.sh/install | bash
+
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install musl-tools -y    
 
