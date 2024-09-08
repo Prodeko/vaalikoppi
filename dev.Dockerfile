@@ -4,8 +4,10 @@ FROM rust:1.72
 RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb && \
     apt install ./libffi6_3.2.1-8_amd64.deb
 
-# Install bun for running playwright
-RUN curl -fsSL https://bun.sh/install | bash
+# installs fnm (Fast Node Manager)
+RUN curl -fsSL https://fnm.vercel.app/install | bash && \
+    source ~/.bashrc && \
+    fnm use --install-if-missing 20
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install musl-tools -y    
