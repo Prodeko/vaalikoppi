@@ -3,7 +3,7 @@ name: Build and deploy
 on:
   push:
     branches:
-      - rewrite
+      - main
 
 permissions:
   id-token: write
