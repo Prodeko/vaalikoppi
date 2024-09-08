@@ -10,5 +10,8 @@
   "devDependencies": {
     "@playwright/test": "^1.47.0",
     "@types/node": "^22.5.4"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^1.8.3"
   }
 }
