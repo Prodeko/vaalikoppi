@@ -1,17 +1,14 @@
 import type { Locator, Page } from "@playwright/test";
-import { NavBarPage } from "./navBarPage";
 import { AdminHomePage } from "./adminHomePage";
 
 // biome-ignore lint/style/noNonNullAssertion: Can't run tests without knowing admin password
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
 
-export class AdminLoginPage extends NavBarPage {
+export class AdminLoginPage {
 	private readonly tokenInput: Locator;
 	private readonly loginButton: Locator;
 
 	constructor(private readonly page: Page) {
-		super(page);
-
 		this.tokenInput = this.page.getByRole("textbox", {
 			name: "Kirjautumiskoodi",
 		});
