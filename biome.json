@@ -13,6 +13,7 @@
 		"ignore": [
 			"target",
 			"node_modules",
+			"package.json",
 			"test-results",
 			"src/static/js/custom.js"
 		]
