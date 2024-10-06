@@ -7,3 +7,5 @@
 - Peruuta migraatio: `sqlx migrate revert`
 - Luo SQL-kyselyistä tyypit CI:tä varten `cargo sqlx prepare -- --release --all-targets --all-features`
 - Buildaa SCSS: `rsass /vaalikoppi/src/static/scss/main.scss --style compressed > /vaalikoppi/src/static/css/main.css`
+- Asenna Playwrightin vaatimat paketit: `npx playwright install --with-deps`
+- Aja Playwright: `npx playwright test`
