@@ -5,9 +5,10 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_
     apt install ./libffi6_3.2.1-8_amd64.deb
 
 # installs fnm (Fast Node Manager)
-ARG NODE_VERSION=22
+ARG version=22
+
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir './fnm' \
-    && cp ./fnm/fnm /usr/bin && fnm install $NODE_VERSION
+    && cp ./fnm/fnm /usr/bin && fnm install $version
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install musl-tools -y    
@@ -24,3 +25,4 @@ RUN cargo install sqlx-cli@0.7.3 --locked --no-default-features --features nativ
 # RUN cargo build
 # COPY . .
 
+ENTRYPOINT tail -f /dev/null
