@@ -1,4 +1,4 @@
-FROM rust:1.72
+FROM rust:1.81
 
 # Workaround for issue with postgres vscode extension https://github.com/microsoft/vscode-postgresql/issues/77
 RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_amd64.deb && \

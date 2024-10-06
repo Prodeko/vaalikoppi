@@ -1,4 +1,4 @@
-FROM rust:1.72 as build-stage
+FROM rust:1.81 as build-stage
 
 
 WORKDIR /vaalikoppi
@@ -12,7 +12,7 @@ RUN cargo install sqlx-cli@0.7.3 --locked --no-default-features --features nativ
 COPY . .
 RUN sqlx migrate run
 RUN rsass src/static/scss/main.scss --style compressed > src/static/css/main.css
-RUN --mount=type=cache,target=/usr/local/cargo,from=rust:1.72,source=/usr/local/cargo \
+RUN --mount=type=cache,target=/usr/local/cargo,from=rust:1.81,source=/usr/local/cargo \
     --mount=type=cache,target=target \
     cargo build --release --target x86_64-unknown-linux-musl && cp target/x86_64-unknown-linux-musl/release/vaalikoppi output_binary
 
