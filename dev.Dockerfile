@@ -5,9 +5,9 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libf/libffi/libffi6_3.2.1-8_
     apt install ./libffi6_3.2.1-8_amd64.deb
 
 # installs fnm (Fast Node Manager)
-RUN curl -fsSL https://fnm.vercel.app/install | bash && \
-    source ~/.bashrc && \
-    fnm use --install-if-missing 20
+ARG NODE_VERSION=22
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --install-dir './fnm' \
+    && cp ./fnm/fnm /usr/bin && fnm install $NODE_VERSION
 
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt-get update && apt-get install musl-tools -y    
