@@ -12,4 +12,5 @@ test("Can create tokens", async ({ adminLoginPage }) => {
 	const tokensPage = await homePage.goToTokens();
 	await tokensPage.expectIsVisible();
 	await tokensPage.generateBulkTokens();
+	await tokensPage.expectCanSeeTokens();
 });

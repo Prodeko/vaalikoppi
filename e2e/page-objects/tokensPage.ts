@@ -6,6 +6,7 @@ export class TokensPage {
 	private readonly generateBulkTokensButton: Locator;
 	private readonly printTokensLink: Locator;
 	private readonly invalidateAllTokensButton: Locator;
+	private readonly tokenRows: Locator;
 
 	constructor(public readonly page: Page) {
 		this.navBar = new AdminNavBar(this.page.getByRole("navigation"));
@@ -18,6 +19,9 @@ export class TokensPage {
 		this.invalidateAllTokensButton = this.page.getByRole("button", {
 			name: "Mitätöi aktiiviset koodit",
 		});
+		this.tokenRows = this.page
+			.getByTestId("tokens-table-body")
+			.getByRole("row");
 	}
 
 	public async generateBulkTokens() {
@@ -34,5 +38,9 @@ export class TokensPage {
 
 	public async expectIsVisible() {
 		await expect(this.generateBulkTokensButton).toBeVisible();
+	}
+
+	public async expectCanSeeTokens() {
+		await expect(this.tokenRows.first()).toBeVisible();
 	}
 }
