@@ -8,5 +8,13 @@
 		"rules": {
 			"recommended": true
 		}
+	},
+	"files": {
+		"ignore": [
+			"target",
+			"node_modules",
+			"test-results",
+			"src/static/js/custom.js"
+		]
 	}
 }
