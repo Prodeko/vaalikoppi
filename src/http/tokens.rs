@@ -7,7 +7,7 @@ use axum::{
     routing::{get, patch, post},
     Router,
 };
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sqlx::{Postgres, QueryBuilder};
 
 use crate::{
@@ -17,29 +17,30 @@ use crate::{
     models::{generate_token, LoginState, Token, TokenState, TokenUpdate},
 };
 
-#[derive(Deserialize)]
-struct GenerateTokenInput {
-    count: u32,
-}
-
 pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/:id", patch(patch_token))
         .route_layer(from_fn_with_state(state, resolve_token))
         .route("/void-active", post(void_active_tokens))
         .route("/print", get(get_print_tokens))
-        .route("/", get(get_tokens))
+        .route("/", get(get_tokens_page))
         .route("/", post(generate_tokens))
         .route_layer(from_fn(require_is_admin))
 }
 
 #[derive(Template)]
-#[template(path = "pages/admin-tokens.html")]
+#[template(path = "components/admin-tokens.html")]
 struct TokensTemplate {
     tokens: Vec<Token>,
     unactivated_token_count: i32,
     activated_token_count: i32,
     voided_token_count: i32,
+}
+
+#[derive(Template)]
+#[template(path = "pages/admin-tokens.html")]
+struct TokensPageTemplate {
+    tokens: TokensTemplate,
     login_state: LoginState,
 }
 
@@ -93,8 +94,7 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         .map_err(|_| ApiError::InternalServerError)
 }
 
-#[debug_handler]
-async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+async fn get_tokens(state: State<AppState>) -> ApiResult<TokensTemplate> {
     let tokens = sqlx::query_as!(
         Token,
         "
@@ -118,11 +118,20 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         TokenState::Voided => voided_token_count += 1,
     });
 
-    TokensTemplate {
+    Ok(TokensTemplate {
         tokens,
         unactivated_token_count,
         activated_token_count,
         voided_token_count,
+    })
+}
+
+#[debug_handler]
+async fn get_tokens_page(state: State<AppState>) -> ApiResult<Html<String>> {
+    let tokens_page_template = get_tokens(state).await?;
+
+    TokensPageTemplate {
+        tokens: tokens_page_template,
         login_state: LoginState::Admin,
     }
     .render()
@@ -178,12 +187,15 @@ impl Token {
 }
 
 #[debug_handler]
-async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateTokenInput>) {
-    if input.count == 0 {
-        return;
+async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+    // This could be passed with some request params if necessary
+    let count = 100;
+
+    if count == 0 {
+        return Err(ApiError::InvalidInput);
     }
 
-    let tokens = (0..input.count).map(|_| generate_token());
+    let tokens = (0..count).map(|_| generate_token());
 
     let mut query_builder: QueryBuilder<Postgres> =
         QueryBuilder::new("INSERT INTO token(token, state) ");
@@ -194,13 +206,8 @@ async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateToken
 
     // TODO If tokens collide, the database will throw a duplicate key error which will return error code 500
     // to the admin's browser. This shouldn't break the application but the admin UX is bad.
-    let result = query_builder.build().execute(&state.0.db).await;
+    query_builder.build().execute(&state.0.db).await?;
 
-    match result {
-        Ok(res) => println!(
-            "Successfully nserted {} tokens into database",
-            res.rows_affected()
-        ),
-        Err(err) => print!("Error while trying to insert tokens to database: {}", err),
-    }
+    // TODO run this get and the insertion of the tokens in a single
+    Ok(get_tokens(state).await?.render().map(|html| Html(html))?)
 }

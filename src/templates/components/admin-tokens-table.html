@@ -1,0 +1,67 @@
+<div id="admin-tokens-table" class="tokens-table-wrapper card-content text-lighten-1">
+  <table class="highlight bordered" id="search-table">
+    <thead>
+      <tr>
+        <th>Koodi / Alias</th>
+        <th>#</th>
+        <th>Aktivoitu</th>
+        <th>Mitätöity</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody data-testid="tokens-table-body">
+      {% for token in tokens %}
+      <tr>
+        {% match token.alias %}
+        {% when Some with (alias) %}
+        <td>{{ token.token }}<br>{{ alias }}</td>
+        {% when None %}
+        <td>{{ token.token }}</td>
+        {% endmatch %}
+        <td>{{ token.id }}</td>
+        {% match token.state %}
+        {% when TokenState::Unactivated %}
+        <td>Aktivoimaton</td>
+        <td>
+          <button id="activate-token-button-{{ loop.index }}"
+            class="btn waves-effect waves-light darken-1 white-text green candidate bold-font"
+            onclick="activateOrInvalidateToken(true, '{{ token.id }}',{{ loop.index }})"
+            data-clicked="0">Aktivoi</button>
+        </td>
+        <td>
+          <button id="invalidate-token-button-{{ loop.index }}"
+            class="btn waves-effect waves-light darken-1 white-text red candidate bold-font"
+            onclick="activateOrInvalidateToken(false, '{{ token.id }}',{{ loop.index }})"
+            data-clicked="0">Mitätöi</button>
+        </td>
+
+        {% when TokenState::Activated %}
+        <td>Aktivoitu</td>
+        <td>
+          <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font"
+            disabled=True>Aktivoitu</button>
+        </td>
+        <td>
+          <button id="invalidate-token-button-{{ loop.index }}"
+            class="btn waves-effect waves-light darken-1 white-text red candidate bold-font"
+            onclick="activateOrInvalidateToken(false, '{{ token.id }}',{{ loop.index }})"
+            data-clicked="0">Mitätöi</button>
+        </td>
+
+        {% when TokenState::Voided %}
+        <td>Mitätöity</td>
+        <td>
+          <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font"
+            disabled=True>Mitätöity</button>
+        </td>
+        <td>
+          <button class="btn waves-effect waves-light darken-1 white-text grey candidate bold-font"
+            disabled=True>Mitätöity</button>
+        </td>
+        {% endmatch%}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

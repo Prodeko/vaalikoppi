@@ -443,29 +443,6 @@ function deleteVoting(votingId) {
 
 }
 
-function generateTokens(count) {
-  const generateTokensButton = document.getElementById(
-    "generate-tokens-button"
-  );
-  generateTokensButton.setAttribute("disabled", true);
-
-  callApi(`${SITE_ROOT_PATH}tokens`, "POST", { count })
-    .then(() => {
-      showUserNotification(
-        USER_NOTIFICATION.CONFIRMATION,
-        "Koodien generointi onnistui."
-      );
-      setTimeout(() => location.reload(), 500);
-    })
-    .catch(() =>
-      showUserNotification(
-        USER_NOTIFICATION.WARNING,
-        "Koodien generointi epäonnistui."
-      )
-    );
-  generateTokensButton.removeAttribute("disabled");
-}
-
 function activateOrInvalidateToken(isActivate, code, number) {
   var token = code;
 

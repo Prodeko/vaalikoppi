@@ -1,0 +1,74 @@
+<div id="admin-tokens" class="container">
+  {% if tokens.is_empty() %}
+  <div class="card blue-grey lighten-5">
+    <div class="card-content blue-grey-text text-lighten-1 center">
+      <span class="card-title blue-grey-text text-lighten-1">Luo ensin koodit.</span>
+    </div>
+  </div>
+  {% endif %}
+  {# {% csrf_token %} #}
+  <div class="card blue-grey lighten-5">
+    <div class="card-action center">
+      <button id="generate-tokens-button"
+        class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" hx-post="/tokens"
+        hx-target="#admin-tokens" hx-swap="outerHTML" hx-trigger="click">
+        Generoi 100 uutta koodia
+      </button>
+      <a href="/tokens/print" id="generate-tokens-button"
+        class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue">Tulosta koodit</a>
+      <button id="invalidate-active-tokens-button"
+        class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue"
+        onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
+    </div>
+  </div>
+  {% if !tokens.is_empty() %}
+  <div class="card blue-grey lighten-5">
+    <div class="card-content text-lighten-1">
+      <table class="highlight bordered">
+        <thead>
+          <tr>
+            <th>Koodin tila</th>
+            <th>Lukumäärä</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Kaikki koodit</td>
+            <td>{{ tokens.len() }}</td>
+          </tr>
+          <tr>
+            <td>Aktivoimattomat koodit</td>
+            <td>{{ unactivated_token_count }}</td>
+          </tr>
+          <tr>
+            <td>Aktiiviset koodit</td>
+            <td>{{ activated_token_count }}</td>
+          </tr>
+          <tr>
+            <td>Mitätöidyt koodit</td>
+            <td>{{ voided_token_count }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card blue-grey lighten-5">
+    <div class="card-content blue-grey-text text-lighten-1">
+      <span class="card-title center blue-grey-text text-darken-1">Hallitse koodeja</span>
+      <div class="card-content">
+        <input type="text" id="search" onkeyup="searchFunction()" placeholder="Etsi koodia.."
+          style="box-sizing:border-box" autofocus>
+      </div>
+    </div>
+    {% include "components/admin-tokens-table.html" %}
+  </div>
+  {% endif %}
+</div>
+
+<script type="text/javascript">
+  window.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("search").value = ''
+    document.getElementById("search").focus()
+  })
+</script>
