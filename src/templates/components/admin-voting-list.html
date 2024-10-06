@@ -1,83 +1,86 @@
 {% include "components/admin-overview-panel.html" %}
 {% include "components/admin-create-new-voting.html" %}
 {% if !open_votings.is_empty() %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Avoimia äänestyksiä {{ open_votings.len() }} kpl.</span>
-      </div>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Avoimia äänestyksiä {{ open_votings.len() }} kpl.</span>
     </div>
   </div>
-  {% for voting in open_votings %}
-    <div class="row">
-      <div class="col s12">
-        <div class="card blue-grey lighten-5">
-          <div class="card-content blue-grey-text text-darken-1 center">
-            <div class="row">
-              <div class="col s10 offset-s1 card-title bold-font">
-                Auki: {{ voting.name }} (valitaan {{ voting.number_of_winners }})
-                <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
-              </div>
-              <div class="col s1">
-                <div class="row s2">
-                  <i class="material-icons col s1" onclick="makeEditable({{ voting.id }})">edit</i>
-                  <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
-                </div>
-              </div>
-              {% if voting.description.len() > 0 %}
-                <div class="section grey-text">
-                  <p>{{ voting.description }}</p>
-                </div>
-              {% endif %}
-            </div>
-            {% if voting.candidates.len() > 0 %}
-              <div class="divider"></div>
-              <div id="voting-form-{{ voting.id }}" class="row">
-                <ul class="col s12">
-                  {% for candidate in voting.candidates %}
-                    <li>{{ candidate }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% endif %}
-            <div class="divider"></div>
-            <div class="row votes-left-row">
-              <div class="col s12 votes-left-col">
-                <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.id }}')">Äänestänyt: {{ voting.total_votes }}/{{ voting.eligible_token_count }} (näytä puuttuvat)</h6>
-                <table id="votes-left-table-{{ voting.id }}" class="votes-left-table hide">
-                  <thead>
-                    <tr>
-                      <td>Koodi</td>
-                      <td>Alias</td>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for token in voting.tokens_not_voted %}
-                      <tr>
-                        <td>{{ token.token }}</td>
-                        <td>{{ token.alias }}</td>
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>
+</div>
+{% for voting in open_votings %}
+<div class="row">
+  <div class="col s12">
+    <div class="card blue-grey lighten-5">
+      <div class="card-content blue-grey-text text-darken-1 center">
+        <div class="row">
+          <div class="col s10 offset-s1 card-title bold-font">
+            Auki: {{ voting.name }} (valitaan {{ voting.number_of_winners }})
+            <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
+          </div>
+          <div class="col s1">
+            <div class="row s2">
+              <i class="material-icons col s1" onclick="makeEditable({{ voting.id }})">edit</i>
+              <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
             </div>
           </div>
-          <div class="card-action center">
-            <button onclick="closeVoting({{ voting.id }}, true)" {% if voting.total_votes < voting.eligible_token_count %} disabled {% endif %} class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Sulje äänestys</button>
+          {% if voting.description.len() > 0 %}
+          <div class="section grey-text">
+            <p>{{ voting.description }}</p>
+          </div>
+          {% endif %}
+        </div>
+        {% if voting.candidates.len() > 0 %}
+        <div class="divider"></div>
+        <div id="voting-form-{{ voting.id }}" class="row">
+          <ul class="col s12">
+            {% for candidate in voting.candidates %}
+            <li>{{ candidate }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        <div class="divider"></div>
+        <div class="row votes-left-row">
+          <div class="col s12 votes-left-col">
+            <h6 class="votes-left-expander" onclick="toggleNotVotedList('votes-left-table-{{ voting.id }}')">Äänestänyt:
+              {{ voting.total_votes }}/{{ voting.eligible_token_count }} (näytä puuttuvat)</h6>
+            <table id="votes-left-table-{{ voting.id }}" class="votes-left-table hide">
+              <thead>
+                <tr>
+                  <td>Koodi</td>
+                  <td>Alias</td>
+                </tr>
+              </thead>
+              <tbody>
+                {% for token in voting.tokens_not_voted %}
+                <tr>
+                  <td>{{ token.token }}</td>
+                  <td>{{ token.alias }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
-    </div>
-  {% endfor %}
-{% else %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Ei avoimia äänestyksiä.</span>
+      <div class="card-action center">
+        <button onclick="closeVoting({{ voting.id }}, true)" {% if voting.total_votes < voting.eligible_token_count %}
+          disabled {% endif %} class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">Sulje
+          äänestys</button>
       </div>
     </div>
   </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Ei avoimia äänestyksiä.</span>
+    </div>
+  </div>
+</div>
 {% endif %}
 
 {% include "components/voting-list-draft-and-closed.html" %}

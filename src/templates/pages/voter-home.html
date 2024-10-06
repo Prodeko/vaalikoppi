@@ -7,24 +7,26 @@
       <div id="voting-list-updater" class="card blue-grey lighten-5">
         <div class="card-content center-align">
           {% match login_state %}
-            {% when LoginState::Voter with { alias, token } %}
-            <p>Olet kirjautunut sisään aliaksella <b>{{ alias }}</b>.</p>
-            {% else %}
+          {% when LoginState::Voter with { alias, token } %}
+          <p>Olet kirjautunut sisään aliaksella <b>{{ alias }}</b>.</p>
+          {% else %}
           {% endmatch %}
         </div>
         <div class="card-action center-align">
-          <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue" onclick="refreshVotingList()">
+          <button id="voting-list-refresh-button" class="btn white-text candidate bold-font prodeko-blue"
+            onclick="refreshVotingList()">
             Päivitä luettelo
           </button>
         </div>
       </div>
     </div>
   </div>
-  
+
   <div id="voting-list-area" class="reduced-row-margin">
     {% match votings_list_template %}
-      {% when VotingListTemplate with {open_votings, draft_votings, closed_votings, login_state, newly_created_vote_uuids} %}
-        {% include "components/voting-list.html" %}
+    {% when VotingListTemplate with {open_votings, draft_votings, closed_votings, login_state, newly_created_vote_uuids}
+    %}
+    {% include "components/voting-list.html" %}
     {% endmatch %}
   </div>
 </div>

@@ -1,41 +1,26 @@
 {% match login_state %}
-  {% when LoginState::Admin %}
-  <nav id="admin-nav" class="navbar-fixed nav-extended red-darken-1">
-    <div class="nav-wrapper">
-      <ul class="right">
-        <li>
-          <a href="/">Äänestykset</a>
-        </li>
-<!--        <li>-->
-<!--          <a href="/" target="_blank">Django Admin</a>-->
-<!--        </li>-->
-<!--        <li>-->
-<!--          <a href="/votings">Äänestykset</a>-->
-<!--        </li>-->
-        <!-- <li> -->
-          <!-- <a href="/results">Tulokset</a> -->
-        <!-- </li> -->
-        <li>
-          <a href="/tokens">Koodit</a>
-        </li>
-      </ul>
-    </div>
-    <div id="normal-nav">
-      <a href="/audit" id="audit-btn" class="transparent left">
-        <i class="large material-icons">app_registration</i>
-      </a>
-      <div id="logo" class="center brand-logo">
-        <a href="/">
-          <img id="vaalikoppi-logo" src="/static/images/vaalikoppi.png" />
-        </a>
-      </div>
-      <a id="deactivate-btn" class="transparent right">
-        <i class="large material-icons" onclick="logout()">fingerprint</i>
-      </a>
-    </div>
-  </nav>
-  {% else %}
-  <nav id="normal-nav" class="nav-wrapper">
+{% when LoginState::Admin %}
+<nav id="admin-nav" class="navbar-fixed nav-extended red-darken-1">
+  <div class="nav-wrapper">
+    <ul class="right">
+      <li>
+        <a href="/">Äänestykset</a>
+      </li>
+      <!--        <li>-->
+      <!--          <a href="/" target="_blank">Django Admin</a>-->
+      <!--        </li>-->
+      <!--        <li>-->
+      <!--          <a href="/votings">Äänestykset</a>-->
+      <!--        </li>-->
+      <!-- <li> -->
+      <!-- <a href="/results">Tulokset</a> -->
+      <!-- </li> -->
+      <li>
+        <a href="/tokens">Koodit</a>
+      </li>
+    </ul>
+  </div>
+  <div id="normal-nav">
     <a href="/audit" id="audit-btn" class="transparent left">
       <i class="large material-icons">app_registration</i>
     </a>
@@ -47,7 +32,20 @@
     <a id="deactivate-btn" class="transparent right">
       <i class="large material-icons" onclick="logout()">fingerprint</i>
     </a>
-  </nav>
+  </div>
+</nav>
+{% else %}
+<nav id="normal-nav" class="nav-wrapper">
+  <a href="/audit" id="audit-btn" class="transparent left">
+    <i class="large material-icons">app_registration</i>
+  </a>
+  <div id="logo" class="center brand-logo">
+    <a href="/">
+      <img id="vaalikoppi-logo" src="/static/images/vaalikoppi.png" />
+    </a>
+  </div>
+  <a id="deactivate-btn" class="transparent right">
+    <i class="large material-icons" onclick="logout()">fingerprint</i>
+  </a>
+</nav>
 {% endmatch %}
-
-
