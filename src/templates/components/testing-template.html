@@ -1,56 +1,61 @@
 {# Avattu äänestys #}
 {% if open_votings.len() > 0 %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Avoimia äänestyksiä {{ open_votings.len() }} kpl.</span>
-      </div>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Avoimia äänestyksiä {{ open_votings.len() }} kpl.</span>
     </div>
   </div>
-  {% for voting in open_votings %}
-    <div class="row">
-      <div class="col s12">
-        {# Siirtoäänivaalitapa #}
-        <div class="card blue-grey lighten-5">
-          <div class="card-content grey-text center">
-            <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting }}</span>
-            {% if voting.description.len() > 0 %}
-              <p>{{ voting.description }}</p>
-            {% endif %}
-            <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
+</div>
+{% for voting in open_votings %}
+<div class="row">
+  <div class="col s12">
+    {# Siirtoäänivaalitapa #}
+    <div class="card blue-grey lighten-5">
+      <div class="card-content grey-text center">
+        <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting }}</span>
+        {% if voting.description.len() > 0 %}
+        <p>{{ voting.description }}</p>
+        {% endif %}
+        <p>Valitse haluamasi määrä ehdokkaita järjestyksessä. Valitsemattomat ehdokkaat merkitään tyhjiksi ääniksi.</p>
+      </div>
+      <div class="card-action">
+        {% let all_candidates = voting.candidates %}
+        {% if all_candidates.len() > 0 %}
+        <div id="voting-form-{{ voting.id }}">
+          {# % csrf_token % #}
+          {% for candidate in all_candidates %}
+          <div class="voting-candidates">
+            <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate }}"
+              value="{{ candidate }}">-</div>
+            <label for="candidate-v-{{ voting.id }}-{{ candidate }}" value="candidate-v-{{ voting.id }}-{{ candidate }}"
+              class="transfer-vote-candidate waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{
+              candidate }}</label>
+            <br>
           </div>
-          <div class="card-action">
-            {% let all_candidates = voting.candidates %}
-              {% if all_candidates.len() > 0 %}
-                <div id="voting-form-{{ voting.id }}">
-                  {# % csrf_token % #}
-                  {% for candidate in all_candidates %}
-                    <div class="voting-candidates">
-                      <div class="voting-order prodeko-blue" name="candidate" id="candidate-v-{{ voting.id }}-{{ candidate }}" value="{{ candidate }}">-</div>
-                      <label for="candidate-v-{{ voting.id }}-{{ candidate }}" value="candidate-v-{{ voting.id }}-{{ candidate }}" class="transfer-vote-candidate waves-effect waves-blue blue-grey darken-2 btn-large wide-button hoverable">{{ candidate }}</label>
-                      <br>
-                    </div>
-                  {% endfor %}
-                  <div class="section">
-                    <button onclick="RankedChoiceVoteElection({{ voting.id }})" class="btn waves-effect waves-light green darken-2 white-text wide-button bold-font">Äänestä</button>
-                    <button onclick="clearVotes({{ voting.id }})" class="btn waves-effect waves-light red darken-2 white-text wide-button bold-font">Tyhjennä</button>
-                  </div>
-                </div>
-              {% endif %}
-            {{ all_candidates }}
+          {% endfor %}
+          <div class="section">
+            <button onclick="RankedChoiceVoteElection({{ voting.id }})"
+              class="btn waves-effect waves-light green darken-2 white-text wide-button bold-font">Äänestä</button>
+            <button onclick="clearVotes({{ voting.id }})"
+              class="btn waves-effect waves-light red darken-2 white-text wide-button bold-font">Tyhjennä</button>
           </div>
         </div>
-      </div>
-    </div>
-  {% endfor %}
-{% else %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Ei avoimia äänestyksiä.</span>
+        {% endif %}
+        {{ all_candidates }}
       </div>
     </div>
   </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Ei avoimia äänestyksiä.</span>
+    </div>
+  </div>
+</div>
 {% endif %}
 
 {# {% include "voting-list-ended-and-closed.html" %} #}

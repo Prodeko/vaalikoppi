@@ -1,37 +1,41 @@
 <html lang="fi">
-  <head>
-    <style type="text/css">
-      p {
-        font-size: 16pt;
-        margin: 2pt;
-      }
 
-      table {
-        width: 100%;
-      }
+<head>
+  <style type="text/css">
+    p {
+      font-size: 16pt;
+      margin: 2pt;
+    }
 
-      table, td {
-        border: 2px solid black;
-      }
+    table {
+      width: 100%;
+    }
 
-      td {
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <table>
-      {% for token in tokens %}
-      {% if loop.index % 2 == 1 %}
-        <tr>
+    table,
+    td {
+      border: 2px solid black;
+    }
+
+    td {
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <table>
+    {% for token in tokens %}
+    {% if loop.index % 2 == 1 %}
+    <tr>
       {% endif %}
-        <td>
-          <p>{{token.token}}</p>
-        </td>
+      <td>
+        <p>{{token.token}}</p>
+      </td>
       {% if (loop.index % 2 == 0) || (loop.last) %}
-          </tr>
-      {% endif %}
-      {% endfor %}
-    </table>
-  </body>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+</body>
+
 </html>
