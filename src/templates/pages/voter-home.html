@@ -4,7 +4,7 @@
 <div class="container">
   <div class="row">
     <div class="col s12">
-      <div id="voting-list-updater" class="card blue-grey lighten-5">
+      <div id="voting-list-updater" class="card blue-grey lighten-5" data-testid="login-status-box">
         <div class="card-content center-align">
           {% match login_state %}
           {% when LoginState::Voter with { alias, token } %}
