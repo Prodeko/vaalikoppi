@@ -25,19 +25,26 @@ export class TokensPage {
 	}
 
 	public async generateBulkTokens(): Promise<string[]> {
-		// const response = this.page.waitForResponse(/.*tokens.*/);
-		// const responseWordSet = new Set((await (await response).text()).split(" "));
+		const response = this.page.waitForResponse(/.*tokens.*/);
 
-		// await Promise.all([response, this.generateBulkTokensButton.click()]);
+		const [responseBody, _] = await Promise.all([
+			response,
+			this.generateBulkTokensButton.click(),
+		]);
 
-		const allTokenRows = await this.tokenRows.all();
+		const responseBodyWords = new Set(
+			(await responseBody.text()).split(/<\/?td>/),
+		);
+
+		const allTokenRows = (await this.tokenRows.all()).slice(-100);
 
 		const allTokens = (
 			await Promise.all(
 				allTokenRows.map((row) => row.getByRole("cell").first().textContent()),
 			)
-		).filter((s) => s != null);
-		//.filter((token) => responseWordSet.has(token));
+		)
+			.filter((s) => s != null)
+			.filter((token) => responseBodyWords.has(token));
 
 		return allTokens;
 	}
