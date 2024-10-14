@@ -4,11 +4,15 @@ import { NavBar } from "../components/navBar";
 
 export class LoginPage {
 	private readonly navBar: NavBar;
+	private readonly aliasInput: Locator;
 	private readonly tokenInput: Locator;
 	private readonly loginButton: Locator;
 
-	constructor(private readonly page: Page) {
+	constructor(readonly page: Page) {
 		this.navBar = new NavBar(this.page.getByRole("navigation"));
+		this.aliasInput = this.page.getByRole("textbox", {
+			name: "Alias",
+		});
 		this.tokenInput = this.page.getByRole("textbox", {
 			name: "Kirjautumiskoodi",
 		});
@@ -17,11 +21,12 @@ export class LoginPage {
 
 	public async goTo() {
 		await this.page.goto("");
-		await this.navBar.logout();
+		// await this.navBar.logout();
 	}
 
 	public async login({ alias, token }: VoterLoginDetails) {
 		await this.tokenInput.fill(token);
+		await this.aliasInput.fill(alias);
 		await this.loginButton.click();
 	}
 }

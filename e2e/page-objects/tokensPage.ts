@@ -64,4 +64,24 @@ export class TokensPage {
 	public async expectCanSeeTokens() {
 		await expect(this.tokenRows.first()).toBeVisible();
 	}
+
+	public async activateToken(token: string) {
+		const tokenRow = this.tokenRows.filter({ hasText: token });
+		await tokenRow.getByRole("button", { name: "Aktivoi" }).click();
+
+		const response = this.page.waitForResponse(/.*\/tokens.*/);
+		const click = tokenRow.getByRole("button", { name: "Aktivoi?" }).click();
+
+		await Promise.all([response, click]);
+	}
+
+	public async voidToken(token: string) {
+		const tokenRow = this.tokenRows.filter({ hasText: token });
+		await tokenRow.getByRole("button", { name: "Mitätöi" }).click();
+
+		const response = this.page.waitForResponse(/.*\/tokens.*/);
+		const click = tokenRow.getByRole("button", { name: "Mitätöi?" }).click();
+
+		await Promise.all([response, click]);
+	}
 }
