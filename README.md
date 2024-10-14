@@ -9,3 +9,4 @@
 - Buildaa SCSS: `rsass /vaalikoppi/src/static/scss/main.scss --style compressed > /vaalikoppi/src/static/css/main.css`
 - Asenna Playwrightin vaatimat paketit: `npx playwright install --with-deps`
 - Aja Playwright: `npx playwright test`
+- Aja Playwright selaimella `npx playwright test --headed`
