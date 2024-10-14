@@ -8,7 +8,7 @@ use axum::{
     Router,
 };
 use serde::Serialize;
-use sqlx::{Postgres, QueryBuilder};
+use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::{
     api_types::{ApiError, ApiResult},
@@ -94,7 +94,7 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         .map_err(|_| ApiError::InternalServerError)
 }
 
-async fn get_tokens(state: State<AppState>) -> ApiResult<TokensTemplate> {
+async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<TokensTemplate> {
     let tokens = sqlx::query_as!(
         Token,
         "
@@ -106,8 +106,9 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<TokensTemplate> {
         FROM token
         "
     )
-    .fetch_all(&state.db)
+    .fetch_all(&mut **conn)
     .await?;
+
     let mut unactivated_token_count = 0;
     let mut activated_token_count = 0;
     let mut voided_token_count = 0;
@@ -128,15 +129,20 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<TokensTemplate> {
 
 #[debug_handler]
 async fn get_tokens_page(state: State<AppState>) -> ApiResult<Html<String>> {
-    let tokens_page_template = get_tokens(state).await?;
+    let mut tx = state.db.begin().await?;
+    let tokens_page_template = get_tokens(&mut tx).await?;
 
-    TokensPageTemplate {
+    let res = TokensPageTemplate {
         tokens: tokens_page_template,
         login_state: LoginState::Admin,
     }
     .render()
     .map(|html| Html(html))
-    .map_err(|_| ApiError::InternalServerError)
+    .map_err(|_| ApiError::InternalServerError);
+
+    tx.commit().await?;
+
+    res
 }
 
 #[debug_handler]
@@ -197,6 +203,8 @@ async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
 
     let tokens = (0..count).map(|_| generate_token());
 
+    let mut tx = state.db.begin().await?;
+
     let mut query_builder: QueryBuilder<Postgres> =
         QueryBuilder::new("INSERT INTO token(token, state) ");
 
@@ -206,8 +214,11 @@ async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
 
     // TODO If tokens collide, the database will throw a duplicate key error which will return error code 500
     // to the admin's browser. This shouldn't break the application but the admin UX is bad.
-    query_builder.build().execute(&state.0.db).await?;
+    query_builder.build().execute(&mut *tx).await?;
 
-    // TODO run this get and the insertion of the tokens in a single
-    Ok(get_tokens(state).await?.render().map(|html| Html(html))?)
+    let res = get_tokens(&mut tx).await?.render().map(|html| Html(html))?;
+
+    tx.commit().await?;
+
+    Ok(res)
 }

@@ -24,8 +24,22 @@ export class TokensPage {
 			.getByRole("row");
 	}
 
-	public async generateBulkTokens() {
-		await this.generateBulkTokensButton.click();
+	public async generateBulkTokens(): Promise<string[]> {
+		// const response = this.page.waitForResponse(/.*tokens.*/);
+		// const responseWordSet = new Set((await (await response).text()).split(" "));
+
+		// await Promise.all([response, this.generateBulkTokensButton.click()]);
+
+		const allTokenRows = await this.tokenRows.all();
+
+		const allTokens = (
+			await Promise.all(
+				allTokenRows.map((row) => row.getByRole("cell").first().textContent()),
+			)
+		).filter((s) => s != null);
+		//.filter((token) => responseWordSet.has(token));
+
+		return allTokens;
 	}
 
 	public async goToPrint() {
