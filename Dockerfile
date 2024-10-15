@@ -22,4 +22,4 @@ WORKDIR /vaalikoppi
 
 COPY --from=build-stage /vaalikoppi/output_binary /vaalikoppi/output_binary
 COPY --from=build-stage /vaalikoppi/src/static /vaalikoppi/src/static
-CMD /vaalikoppi/output_binary
+ENTRYPOINT /vaalikoppi/output_binary
