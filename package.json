@@ -9,10 +9,10 @@
   "license": "ISC",
   "devDependencies": {
     "@biomejs/biome": "^1.9.3",
-    "@types/node": "^22.5.4",
     "dotenv": "^16.4.5"
   },
   "dependencies": {
-    "@playwright/test": "^1.48.0"
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.5"
   }
 }
