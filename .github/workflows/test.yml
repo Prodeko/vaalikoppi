@@ -1,0 +1,71 @@
+name: Run E2E tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: CI environment
+        type: environment
+        required: true
+
+jobs:
+  e2e:
+    environment: Production
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: ci-password
+          POSTGRES_DB: vaalikoppi
+          POSTGRES_USER: vaalikoppi
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 6s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build testing image # For now this is just a production image but --release could be parametrized out for faster runs
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: vaalikoppi/e2e:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
+          allow: |
+            network.host
+            security.insecure
+
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+       
+      - name: Run vaalikoppi and tests
+        run: |
+          docker run \
+            -e PORT=80 \
+            -e DATABASE_URL='postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi' \
+            -e HMAC_KEY='1234' \
+            -e ADMIN_PASSWORD='CI_ADMIN_PASSWORD' \
+            --name vaalikoppi \
+            --network host \
+            -d \
+            vaalikoppi/e2e:${{ github.sha }} && \
+            ADMIN_PASSWORD='CI_ADMIN_PASSWORD' PORT=80 npx playwright test

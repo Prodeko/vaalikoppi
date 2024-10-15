@@ -19,12 +19,12 @@ export default defineConfig({
 	/* Retry on CI only */
 	retries: process.env.CI ? 2 : 0,
 	/* Opt out of parallel tests on CI. */
-	workers: process.env.CI ? 1 : undefined,
+	workers: process.env.CI ? undefined : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
 	reporter: "html",
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
-		baseURL: `http://localhost:${port}`,
+		baseURL: `http://127.0.0.1:${port}`,
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: "on-first-retry",
 	},
@@ -55,8 +55,10 @@ export default defineConfig({
 	],
 
 	/* Run your local dev server before starting the tests */
-	webServer: {
-		command: "sqlx migrate revert && sqlx migrate run && cargo run",
-		url: `http://localhost:${port}`,
-	},
+	webServer: process.env.CI
+		? undefined
+		: {
+				command: "sqlx migrate revert && sqlx migrate run && cargo run",
+				url: `http://localhost:${port}`,
+			},
 });

@@ -8,11 +8,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@playwright/test": "^1.47.0",
-    "@types/node": "^22.5.4",
-    "dotenv": "^16.4.5"
+    "@biomejs/biome": "^1.9.3"
   },
   "dependencies": {
-    "@biomejs/biome": "^1.8.3"
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.5",
+    "dotenv": "^16.4.5"
   }
 }
