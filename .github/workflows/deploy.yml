@@ -110,12 +110,13 @@ jobs:
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
     
       - name: Run vaalikoppi
-        run: docker run ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} \
+        run: docker run \
             -e PORT=80 \
             -e DATABASE_URL='postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi' \
             -e HMAC_KEY='1234' \
             -e ADMIN_PASSWORD='CI_ADMIN_PASSWORD' \
-            -d
+            -d \
+            ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }}
 
       - name: Run Playwright
         run: npx playwright test
