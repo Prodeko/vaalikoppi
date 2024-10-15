@@ -104,7 +104,7 @@ jobs:
           allow-no-subscriptions: true
 
       - name: Install playwright dependencies
-        run: npx playwright install --with-deps
+        run: npm ci && npx playwright install --with-deps
 
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
