@@ -24,7 +24,7 @@ export default defineConfig({
 	reporter: "html",
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
-		baseURL: `http://127.0.0.1:${port}`,
+		baseURL: `http://localhost:${port}`,
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: "on-first-retry",
 	},
@@ -59,6 +59,6 @@ export default defineConfig({
 		? undefined
 		: {
 				command: "sqlx migrate revert && sqlx migrate run && cargo run",
-				url: `http://127.0.0.1:${port}`,
+				url: `http://localhost:${port}`,
 			},
 });
