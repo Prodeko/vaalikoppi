@@ -118,9 +118,12 @@ jobs:
             -e DATABASE_URL='postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi' \
             -e HMAC_KEY='1234' \
             -e ADMIN_PASSWORD='CI_ADMIN_PASSWORD' \
+            -t vaalikoppi \
             -d \
             -p 80:80 \
             ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} && \
+            docker ps && \
+            docker container logs vaalikoppi && \
             wget http://127.0.0.1:80 && \
             PORT=80 npx playwright test
 
