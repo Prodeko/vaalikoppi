@@ -61,7 +61,7 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
-          cache-from: type=gha,ref=${{ github.ref_name }}
+          cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
