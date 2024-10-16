@@ -111,7 +111,7 @@ jobs:
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
     
-      - name: Run vaalikoppi
+      - name: Run vaalikoppi and tests
         run: |
           docker run \
             -e PORT=80 \
@@ -120,10 +120,8 @@ jobs:
             -e ADMIN_PASSWORD='CI_ADMIN_PASSWORD' \
             -d \
             -p 80:80 \
-            ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }}
-
-      - name: Run Playwright
-        run: npx playwright test
+            ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} && \
+            npx playwright test
 
   deploy:
     environment: Production
