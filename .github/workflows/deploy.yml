@@ -121,6 +121,7 @@ jobs:
             -d \
             -p 80:80 \
             ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} && \
+            wget http://127.0.0.1:80 && \
             PORT=80 npx playwright test
 
   deploy:
