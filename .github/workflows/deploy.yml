@@ -126,6 +126,7 @@ jobs:
             docker container logs vaalikoppi && \
             wget http://127.0.0.1:80 || \
             docker ps && \
+            docker container logs vaalikoppi && \
             PORT=80 npx playwright test
 
   deploy:
