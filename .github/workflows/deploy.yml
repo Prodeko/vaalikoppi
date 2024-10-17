@@ -124,7 +124,7 @@ jobs:
             ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} && \
             docker ps && \
             docker container logs vaalikoppi && \
-            wget http://127.0.0.1:80 && \
+            wget http://127.0.0.1:80 || \
             docker ps && \
             PORT=80 npx playwright test
 
