@@ -115,7 +115,7 @@ jobs:
         run: |
           docker run \
             -e PORT=80 \
-            -e DATABASE_URL='postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi' \
+            -e DATABASE_URL='postgres://vaalikoppi:ci-password@postgres:5432/vaalikoppi' \
             -e HMAC_KEY='1234' \
             -e ADMIN_PASSWORD='CI_ADMIN_PASSWORD' \
             --name vaalikoppi \
