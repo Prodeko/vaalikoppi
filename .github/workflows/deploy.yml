@@ -59,8 +59,10 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # There is intentionally no scope on the cache due to github's cache access restrictions.
+          # Both the release and debug file will now be stored in the same location.
+          cache-from: type=gha 
+          cache-to: type=gha,mode=max 
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
           allow: |

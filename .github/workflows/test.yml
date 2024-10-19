@@ -49,8 +49,13 @@ jobs:
           push: false
           load: true
           tags: vaalikoppi/e2e:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # There is intentionally no scope on the cache due to github's cache access restrictions.
+          # Both the release and debug file will now be stored in the same location.
+          # Might be worth it to just build the release version even when testing -
+          # the main build would then be very fast and you'd save the costs of loading twice the amount of cache
+          # (both debug and release) even when you only need one of them
+          cache-from: type=gha 
+          cache-to: type=gha,mode=max 
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
             "DEBUG=true"
