@@ -37,6 +37,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            network=host
+
       - name: Build testing image # For now this is just a production image but --release could be parametrized out for faster runs
         uses: docker/build-push-action@v5
         with:
