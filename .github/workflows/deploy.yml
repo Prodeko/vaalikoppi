@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:14
+        image: postgres:14-alpine
         env:
           POSTGRES_PASSWORD: ci-password
           POSTGRES_DB: vaalikoppi
@@ -80,7 +80,7 @@ jobs:
     needs: build
     services:
       postgres:
-        image: postgres:14
+        image: postgres:14-alpine
         env:
           POSTGRES_PASSWORD: ci-password
           POSTGRES_DB: vaalikoppi
