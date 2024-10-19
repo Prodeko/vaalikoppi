@@ -4,6 +4,7 @@ FROM rust:1.81 as build-stage
 WORKDIR /vaalikoppi
 
 ARG DATABASE_URL
+ARG DEBUG
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
@@ -23,7 +24,15 @@ RUN \
     --mount=type=cache,target=/usr/local/cargo/registry/cache/,from=rust:1.81 \
     --mount=type=cache,target=/usr/local/cargo/git/db/,from=rust:1.81 \
     --mount=type=cache,target=./target/,from=rust:1.81 \
-    cargo build --release --target x86_64-unknown-linux-musl && cp target/x86_64-unknown-linux-musl/release/vaalikoppi output_binary
+    if [ $DEBUG ]; then \
+        # Debug for faster build times for running e2e test
+        echo "Warning: building DEBUG build with performance inferior to release build"; \
+        cargo build --target x86_64-unknown-linux-musl && cp target/x86_64-unknown-linux-musl/debug/vaalikoppi output_binary; \
+    else \
+        # Release build for performance in prod
+        cargo build --release --target x86_64-unknown-linux-musl && cp target/x86_64-unknown-linux-musl/release/vaalikoppi output_binary; \
+    fi
+
 
 FROM scratch
 

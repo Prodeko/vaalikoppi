@@ -42,7 +42,7 @@ jobs:
           driver-opts: |
             network=host
 
-      - name: Build testing image # For now this is just a production image but --release could be parametrized out for faster runs
+      - name: Build testing image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -53,6 +53,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
+            "DEBUG=true"
           allow: |
             network.host
             security.insecure
