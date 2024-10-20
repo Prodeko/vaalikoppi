@@ -18,6 +18,9 @@ RUN USER=root cargo new --bin vaalikoppi
 WORKDIR /vaalikoppi
 RUN git config --global --add safe.directory /vaalikoppi
 
+# Install playwright dependencies
+RUN npm install && npx playwright install --with-deps
+
 # Install SQLx CLI for database migrations (see README)
 RUN cargo install sqlx-cli@0.7.3 --locked --no-default-features --features native-tls,postgres && cargo install rsass-cli@0.28.8 --locked
 # No need to copy or build anything in dev container
