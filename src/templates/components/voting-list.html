@@ -32,7 +32,7 @@
 <div class="row">
   <div class="col s12">
     {# Siirtoäänivaalitapa #}
-    <div class="card blue-grey lighten-5">
+    <div class="card blue-grey lighten-5" data-testid="voting-{{ voting.id }}">
       <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-3 bold-font">Äänestetty: {{ voting.name }}</span>
         {% if !voting.description.is_empty() %}
@@ -46,7 +46,7 @@
 <div class="row">
   <div class="col s12">
     {# Siirtoäänivaalitapa #}
-    <div class="card blue-grey lighten-5">
+    <div class="card blue-grey lighten-5" data-testid="voting-{{ voting.id }}">
       <div class="card-content grey-text center">
         <span class="card-title blue-grey-text text-darken-3 bold-font">{{ voting.name }} (valitaan {{
           voting.number_of_winners }})</span>

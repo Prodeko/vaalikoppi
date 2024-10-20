@@ -1,6 +1,4 @@
 import { test } from "../fixtures";
-import { AdminLoginPage } from "../page-objects/adminLoginPage";
-import { AdminVotingsPage } from "../page-objects/adminVotingsPage";
 
 test("Can log in as admin", async ({ adminLoginPage }) => {
 	const adminVotingsPage = await adminLoginPage.login();

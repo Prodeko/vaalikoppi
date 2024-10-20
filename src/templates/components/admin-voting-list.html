@@ -11,7 +11,7 @@
 {% for voting in open_votings %}
 <div class="row">
   <div class="col s12">
-    <div class="card blue-grey lighten-5">
+    <div class="card blue-grey lighten-5" data-testid="voting-{{ voting.id }}">
       <div class="card-content blue-grey-text text-darken-1 center">
         <div class="row">
           <div class="col s10 offset-s1 card-title bold-font">
