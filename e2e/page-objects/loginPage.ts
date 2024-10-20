@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import type { VoterLoginDetails } from "../types";
 import { NavBar } from "../components/navBar";
-import { HomePage } from "./homePage";
+import { VotingsPage } from "./votingsPage";
 
 export class LoginPage {
 	private readonly navBar: NavBar;
@@ -25,11 +25,14 @@ export class LoginPage {
 		// await this.navBar.logout();
 	}
 
-	public async login({ alias, token }: VoterLoginDetails): Promise<HomePage> {
+	public async login({
+		alias,
+		token,
+	}: VoterLoginDetails): Promise<VotingsPage> {
 		await this.tokenInput.fill(token);
 		await this.aliasInput.fill(alias);
 		await this.loginButton.click();
 
-		return new HomePage(this.page);
+		return new VotingsPage(this.page);
 	}
 }

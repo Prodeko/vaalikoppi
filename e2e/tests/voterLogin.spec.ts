@@ -8,10 +8,10 @@ test("User can log in", async ({ adminLoginPage, loginPage }) => {
 	const selectedToken = tokens[0];
 	await adminTokensPage.activateToken(selectedToken);
 
-	const homePage = await loginPage.login({
+	const votingsPage = await loginPage.login({
 		alias: generateRandomString(),
 		token: selectedToken,
 	});
 
-	await homePage.expectIsVisible();
+	await votingsPage.expectIsVisible();
 });

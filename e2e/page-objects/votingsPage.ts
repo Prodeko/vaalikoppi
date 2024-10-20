@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { NavBar } from "../components/navBar";
 
-export class HomePage {
+export class VotingsPage {
 	private readonly navBar: NavBar;
 	private readonly loginStatusBox: Locator;
 
