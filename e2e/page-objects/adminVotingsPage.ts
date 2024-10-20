@@ -3,7 +3,7 @@ import { CreateVotingBox } from "../components/createVotingBox";
 import { AdminNavBar } from "../components/adminNavBar";
 import { TokensPage } from "./tokensPage";
 
-export class AdminHomePage {
+export class AdminVotingsPage {
 	private readonly navBar: AdminNavBar;
 	private readonly createVotingBox: CreateVotingBox;
 
@@ -19,9 +19,5 @@ export class AdminHomePage {
 	public async goToTokens(): Promise<TokensPage> {
 		await this.navBar.tokensLink.click();
 		return new TokensPage(this.page);
-	}
-
-	public async goToVotings() {
-		await this.navBar.votingsLink.click();
 	}
 }

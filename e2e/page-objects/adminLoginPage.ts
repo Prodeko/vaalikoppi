@@ -1,5 +1,5 @@
 import type { Locator, Page } from "@playwright/test";
-import { AdminHomePage } from "./adminHomePage";
+import { AdminVotingsPage } from "./adminVotingsPage";
 
 // biome-ignore lint/style/noNonNullAssertion: Can't run tests without knowing admin password
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
@@ -21,9 +21,9 @@ export class AdminLoginPage {
 
 	public async login(
 		adminToken: string = ADMIN_PASSWORD,
-	): Promise<AdminHomePage> {
+	): Promise<AdminVotingsPage> {
 		await this.tokenInput.fill(adminToken);
 		await this.loginButton.click();
-		return new AdminHomePage(this.page);
+		return new AdminVotingsPage(this.page);
 	}
 }
