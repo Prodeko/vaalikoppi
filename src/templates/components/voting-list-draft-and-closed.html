@@ -1,165 +1,173 @@
 {# Suljettu äänestys #}
 {% if !draft_votings.is_empty() %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Avaamattomia tai suljettuja äänestyksiä {{ draft_votings.len() }} kpl.</span>
-      </div>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Avaamattomia tai suljettuja äänestyksiä {{ draft_votings.len() }} kpl.</span>
     </div>
   </div>
-  {% for voting in draft_votings %}
-    <div class="row">
-      <div class="col s12">
-        {% match self.login_state %}
-        {% when LoginState::Admin %}
-          <div class="card grey lighten-3">
-            <div class="card-content blue-grey-text text-lighten-1 center">
-              <div class="row">
-                <div class="col s10 offset-s1 card-title bold-font">
-                  Avaamaton: {{ voting.name }} (valitaan {{ voting.number_of_winners }})
-                  <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
-                </div>
-                <div class="col s1">
-                  <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
-                </div>
-              </div>
-              {% if !voting.description.is_empty() %}
-                <div class="section grey-text">
-                  <p>{{ voting.description }}</p>
-                </div>
-              {% endif %}
-            </div>
-            <div class="card-action reduced-row-margin">
-              <div class="row">
-                <div class="col s12">
-                  {% for candidate in voting.candidates %}
-                    <div class="blue-grey lighten-1 btn-large wide-button" name="candidate-of-voting-{{voting.id}}"
-                    onclick="removeCandidate({{ voting.id }}, '{{ candidate }}')"
-                    >{{ candidate }}</div>
-                  {% endfor %}
-                </div>
-              </div>
-              <div class="row">
-                <div class="input-field col s12">
-                  <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
-                  <label for="candidate_name">Ehdokkaan nimi</label>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col s12">
-                  <button onclick="addCandidate({{ voting.id }})" class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
-                    Lisää<i class="material-icons right">add</i>
-                  </button>
-                  <button onclick="openVoting({{ voting.id }})" class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
-                    Avaa äänestys
-                  </button>
-                </div>
-              </div>
-            </div>
+</div>
+{% for voting in draft_votings %}
+<div class="row">
+  <div class="col s12">
+    {% match self.login_state %}
+    {% when LoginState::Admin %}
+    <div class="card grey lighten-3" data-testid="voting-{{ voting.id }}">
+      <div class="card-content blue-grey-text text-lighten-1 center">
+        <div class="row">
+          <div class="col s10 offset-s1 card-title bold-font">
+            Avaamaton: {{ voting.name }} (valitaan {{ voting.number_of_winners }})
+            <i class="material-icons">{% if voting.hide_vote_counts %}visibility_off{% else %}visibility{% endif %}</i>
           </div>
-        {% else %}
-          <div class="card grey lighten-3">
-            <div class="card-content blue-grey-text text-lighten-1 center">
-              <span class="card-title blue-grey-text text-lighten-1">Odottaa avaamista: {{ voting.name }}</span>
-              {% if !voting.description.is_empty() %}
-                <p>{{ voting.description }}</p>
-              {% endif %}
-            </div>
-            <div class="card-action">
-              {% for candidate in voting.candidates %}
-                <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate }}</a>
-              {% endfor %}
-            </div>
+          <div class="col s1">
+            <i class="material-icons col s1" onclick="deleteVoting({{ voting.id }})">delete</i>
           </div>
-        {% endmatch %}
+        </div>
+        {% if !voting.description.is_empty() %}
+        <div class="section grey-text">
+          <p>{{ voting.description }}</p>
+        </div>
+        {% endif %}
+      </div>
+      <div class="card-action reduced-row-margin">
+        <div class="row">
+          <div class="col s12">
+            {% for candidate in voting.candidates %}
+            <div class="blue-grey lighten-1 btn-large wide-button" name="candidate-of-voting-{{voting.id}}"
+              onclick="removeCandidate({{ voting.id }}, '{{ candidate }}')">{{ candidate }}</div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="voting-{{ voting.id }}-candidate-name" name="candidate_name" type="text" required>
+            <label for="candidate_name">Ehdokkaan nimi</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <button onclick="addCandidate({{ voting.id }})"
+              class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
+              Lisää<i class="material-icons right">add</i>
+            </button>
+            <button onclick="openVoting({{ voting.id }})"
+              class="btn waves-effect waves-light red darken-1 white-text wide-button bold-font">
+              Avaa äänestys
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  {% endfor %}
+    {% else %}
+    <div class="card grey lighten-3">
+      <div class="card-content blue-grey-text text-lighten-1 center">
+        <span class="card-title blue-grey-text text-lighten-1">Odottaa avaamista: {{ voting.name }}</span>
+        {% if !voting.description.is_empty() %}
+        <p>{{ voting.description }}</p>
+        {% endif %}
+      </div>
+      <div class="card-action">
+        {% for candidate in voting.candidates %}
+        <a class="disabled blue-grey lighten-1 btn-large wide-button">{{ candidate }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endmatch %}
+  </div>
+</div>
+{% endfor %}
 {% else %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Ei avaamattomia äänestyksiä.</span>
-      </div>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Ei avaamattomia äänestyksiä.</span>
     </div>
   </div>
+</div>
 {% endif %}
 
 {# Päättynyt äänestys #}
 {% if !closed_votings.is_empty() %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Päättyneitä äänestyksiä {{ closed_votings.len() }} kpl.</span>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Päättyneitä äänestyksiä {{ closed_votings.len() }} kpl.</span>
+    </div>
+  </div>
+</div>
+{% for voting in closed_votings %}
+{% match voting.state %}
+{% when VotingState::Closed with (result) %}
+<div class="row">
+  <div class="col s12">
+    <div class="transfer-election closed-voting card prodeko-blue white-text center"
+      data-testid="voting-{{ voting.id }}">
+      <div class="card-title-container" onclick="expandResults(this)">
+        <h3 class="card-title bold-font">{{ voting.name }}</h3>
+        {% if result.round_results.len() > 1 %}
+        <i class="expand-results material-icons">chevron_right</i>
+        {% endif %}
+      </div>
+      <div class="results">
+        {% for round in result.round_results %}
+        <div class="result">
+          <div class="voting-round">
+            <span class="round-number">{{ round.round }}.</span>
+            kierros
+          </div>
+          <table class="result-table">
+            {% for candidate in round.candidate_results %}
+            <tr class="candidate {% if candidate.is_selected %} elected {% endif %}">
+              <td class="candidate-name">
+                {{ candidate.data.name }}
+                {% if candidate.is_selected %}
+                (valittu)
+                {% endif %}
+              </td>
+              {% if !voting.hide_vote_counts %}
+              <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
+              {% endif %}
+            </tr>
+            {% endfor %}
+            {% match round.dropped_candidate %}
+            {% when Some with (candidate_data) %}
+            <tr class="candidate dropped">
+              <td class="candidate-name">
+                {{ candidate_data.name }}
+                (pudonnut)
+              </td>
+              {% match login_state %}
+              {% when LoginState::Admin %}
+              <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+              {% when LoginState::Voter with { token, alias } %}
+              {% if !voting.hide_vote_counts %}
+              <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
+              {% endif %}
+              {% when _ %}
+              {% endmatch %}
+            </tr>
+            {% when None %}
+            {% endmatch %}
+          </table>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="empty-votes">
+        Valitaan: {{ result.winners|join(", ") }}
       </div>
     </div>
   </div>
-{% for voting in closed_votings %}
-  {% match voting.state %}
-    {% when VotingState::Closed with (result) %}
-    <div class="row">
-      <div class="col s12">
-        <div class="transfer-election closed-voting card prodeko-blue white-text center">
-          <div class="card-title-container" onclick="expandResults(this)">
-            <h3 class="card-title bold-font">{{ voting.name }}</h3>
-            {% if result.round_results.len() > 1 %}
-              <i class="expand-results material-icons">chevron_right</i>
-            {% endif %}
-          </div>
-          <div class="results">
-            {% for round in result.round_results %}
-              <div class="result">
-                <div class="voting-round">
-                  <span class="round-number">{{ round.round }}.</span>
-                  kierros
-                </div>
-                <table class="result-table">
-                  {% for candidate in round.candidate_results %}
-                    <tr class="candidate {% if candidate.is_selected %} elected {% endif %}">
-                      <td class="candidate-name">
-                        {{ candidate.data.name }}
-                        {% if candidate.is_selected %}
-                          (valittu)
-                        {% endif %}
-                      </td>
-                          {% if !voting.hide_vote_counts %}
-                            <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
-                          {% endif %}
-                    </tr>
-                  {% endfor %}
-                  {% match round.dropped_candidate %}
-                      {% when Some with (candidate_data) %}
-                        <tr class="candidate dropped">
-                          <td class="candidate-name">
-                            {{ candidate_data.name }}
-                            (pudonnut)
-                          </td>
-                          {% if !voting.hide_vote_counts %}
-                            <td>{{ "{:.4}"|format(candidate_data.vote_count) }}</td>
-                          {% endif %}
-                        </tr>
-                      {% when None %}
-                    {% endmatch %}
-                  </table>
-                </div>
-              {% endfor %}
-            </div>
-            <div class="empty-votes">
-              Valitaan: {{ result.winners|join(", ") }}
-            </div>
-          </div>
-        </div>
-      </div>
-    {% else %}
-  {% endmatch %}
+</div>
+{% else %}
+{% endmatch %}
 {% endfor %}
 
 {% else %}
-  <div class="row">
-    <div class="col s12">
-      <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
-        <span class="">Ei päättyneitä äänestyksiä.</span>
-      </div>
+<div class="row">
+  <div class="col s12">
+    <div class="card-panel blue-grey lighten-4 blue-grey-text text-darken-3 small">
+      <span class="">Ei päättyneitä äänestyksiä.</span>
     </div>
   </div>
+</div>
 {% endif %}

@@ -1,14 +1,14 @@
 <div class="row">
-    <div class="col s12">
-      <div class="card blue-grey lighten-5">
-        <div class="card-content grey-text">
-          <div class="row">
-            <div class="col s12">
-              <span class="card-title blue-grey-text text-darken-3 bold-font">Luo uusi äänestys</span>
-            </div>
+  <div class="col s12">
+    <div class="card blue-grey lighten-5">
+      <div class="card-content grey-text">
+        <div class="row">
+          <div class="col s12">
+            <span class="card-title blue-grey-text text-darken-3 bold-font">Luo uusi äänestys</span>
           </div>
-          <div class="row">
-            <!--<div class="col s6">
+        </div>
+        <div class="row">
+          <!--<div class="col s6">
               <label>
                 <input type="checkbox" class="filled-in" id="is-ranked-choice-election" value="is-ranked-choice-election" />
                 <span>Siirtoäänivaalitapa</span>
@@ -20,29 +20,29 @@
                 <span>Äänestyskohtainen salasana</span>
               </label>
             </div>-->
-            <div class="col s6">
-              <label>
-                <input type="checkbox" class="filled-in" id="hide-vote-counts" value="hide-vote-counts" />
-                <span>Piilota äänten määrä</span>
-              </label>
-            </div>
-            <div class="input-field col s6">
-              <input id="number-of-winners" type="number" min="1" value="1" name="number-of-winners" class="validate">
-              <label for="number-of-winners">Kuinka monta valitaan?</label>
-            </div>
+          <div class="col s6">
+            <label>
+              <input type="checkbox" class="filled-in" id="hide-vote-counts" value="hide-vote-counts" />
+              <span>Piilota äänten määrä</span>
+            </label>
           </div>
-  
-          <div class="row">
-            <div class="input-field col s6">
-              <input id="voting-name" name="voting-name" type="text" class="validate" required>
-              <label for="voting-name">Äänestyksen nimi</label>
-            </div>
-            <div class="input-field col s6">
-              <input id="voting-description" name="voting-description" type="text">
-              <label for="voting-description">Kuvaus</label>
-            </div>
+          <div class="input-field col s6">
+            <input id="number-of-winners" type="number" min="1" value="1" name="number-of-winners" class="validate">
+            <label for="number-of-winners">Kuinka monta valitaan?</label>
           </div>
-          <!--
+        </div>
+
+        <div class="row">
+          <div class="input-field col s6">
+            <input id="voting-name" name="voting-name" type="text" class="validate" required>
+            <label for="voting-name">Äänestyksen nimi</label>
+          </div>
+          <div class="input-field col s6">
+            <input id="voting-description" name="voting-description" type="text">
+            <label for="voting-description">Kuvaus</label>
+          </div>
+        </div>
+        <!--
           <div class="row">
             
             <div class="input-field col s6">
@@ -50,11 +50,12 @@
               <label for="voting-add-voting-password">Äänestyskohtainen salasana</label>
             </div>
           </div>-->
-  
-          <button class="btn waves-effect waves-light wide-button bold-font prodeko-blue" onclick="createVoting()" name="action">Luo äänestys
-            <i class="material-icons right">send</i>
-          </button>
-        </div>
+
+        <button class="btn waves-effect waves-light wide-button bold-font prodeko-blue" onclick="createVoting()"
+          name="action">Luo äänestys
+          <i class="material-icons right">send</i>
+        </button>
       </div>
     </div>
   </div>
+</div>

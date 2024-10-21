@@ -1,0 +1,18 @@
+{
+  "name": "vaalikoppi",
+  "version": "1.0.0",
+  "description": "## Komennot",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3"
+  },
+  "dependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.5",
+    "dotenv": "^16.4.5"
+  }
+}

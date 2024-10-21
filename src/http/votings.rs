@@ -812,9 +812,10 @@ pub async fn get_admin_votings_list_template(
             v_c.candidates as \"candidates!: Vec<String>\",
             v_c.hide_vote_counts,
             v_c.number_of_winners,
-            u_t.unused_tokens as \"unused_tokens!: Vec<(String, Alias)>\",
+            COALESCE(u_t.unused_tokens, '{}') as \"unused_tokens!: Vec<(String, Alias)>\",
             t_v.total_votes
-        from v_c natural join u_t natural join t_v;
+        from v_c natural join t_v left join u_t
+            on v_c.id = u_t.id;
         "
     )
     .fetch_all(&db)

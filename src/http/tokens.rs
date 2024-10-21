@@ -7,8 +7,8 @@ use axum::{
     routing::{get, patch, post},
     Router,
 };
-use serde::{Deserialize, Serialize};
-use sqlx::{Postgres, QueryBuilder};
+use serde::Serialize;
+use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::{
     api_types::{ApiError, ApiResult},
@@ -17,29 +17,30 @@ use crate::{
     models::{generate_token, LoginState, Token, TokenState, TokenUpdate},
 };
 
-#[derive(Deserialize)]
-struct GenerateTokenInput {
-    count: u32,
-}
-
 pub fn router(state: AppState) -> Router<AppState> {
     Router::new()
         .route("/:id", patch(patch_token))
         .route_layer(from_fn_with_state(state, resolve_token))
         .route("/void-active", post(void_active_tokens))
         .route("/print", get(get_print_tokens))
-        .route("/", get(get_tokens))
+        .route("/", get(get_tokens_page))
         .route("/", post(generate_tokens))
         .route_layer(from_fn(require_is_admin))
 }
 
 #[derive(Template)]
-#[template(path = "pages/admin-tokens.html")]
+#[template(path = "components/admin-tokens.html")]
 struct TokensTemplate {
     tokens: Vec<Token>,
     unactivated_token_count: i32,
     activated_token_count: i32,
     voided_token_count: i32,
+}
+
+#[derive(Template)]
+#[template(path = "pages/admin-tokens.html")]
+struct TokensPageTemplate {
+    tokens: TokensTemplate,
     login_state: LoginState,
 }
 
@@ -93,8 +94,7 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         .map_err(|_| ApiError::InternalServerError)
 }
 
-#[debug_handler]
-async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<TokensTemplate> {
     let tokens = sqlx::query_as!(
         Token,
         "
@@ -106,8 +106,9 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         FROM token
         "
     )
-    .fetch_all(&state.db)
+    .fetch_all(&mut **conn)
     .await?;
+
     let mut unactivated_token_count = 0;
     let mut activated_token_count = 0;
     let mut voided_token_count = 0;
@@ -118,16 +119,30 @@ async fn get_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         TokenState::Voided => voided_token_count += 1,
     });
 
-    TokensTemplate {
+    Ok(TokensTemplate {
         tokens,
         unactivated_token_count,
         activated_token_count,
         voided_token_count,
+    })
+}
+
+#[debug_handler]
+async fn get_tokens_page(state: State<AppState>) -> ApiResult<Html<String>> {
+    let mut tx = state.db.begin().await?;
+    let tokens_page_template = get_tokens(&mut tx).await?;
+
+    let res = TokensPageTemplate {
+        tokens: tokens_page_template,
         login_state: LoginState::Admin,
     }
     .render()
     .map(|html| Html(html))
-    .map_err(|_| ApiError::InternalServerError)
+    .map_err(|_| ApiError::InternalServerError);
+
+    tx.commit().await?;
+
+    res
 }
 
 #[debug_handler]
@@ -178,12 +193,17 @@ impl Token {
 }
 
 #[debug_handler]
-async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateTokenInput>) {
-    if input.count == 0 {
-        return;
+async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+    // This could be passed with some request params if necessary
+    let count = 100;
+
+    if count == 0 {
+        return Err(ApiError::InvalidInput);
     }
 
-    let tokens = (0..input.count).map(|_| generate_token());
+    let tokens = (0..count).map(|_| generate_token());
+
+    let mut tx = state.db.begin().await?;
 
     let mut query_builder: QueryBuilder<Postgres> =
         QueryBuilder::new("INSERT INTO token(token, state) ");
@@ -194,13 +214,11 @@ async fn generate_tokens(state: State<AppState>, Json(input): Json<GenerateToken
 
     // TODO If tokens collide, the database will throw a duplicate key error which will return error code 500
     // to the admin's browser. This shouldn't break the application but the admin UX is bad.
-    let result = query_builder.build().execute(&state.0.db).await;
+    query_builder.build().execute(&mut *tx).await?;
 
-    match result {
-        Ok(res) => println!(
-            "Successfully nserted {} tokens into database",
-            res.rows_affected()
-        ),
-        Err(err) => print!("Error while trying to insert tokens to database: {}", err),
-    }
+    let res = get_tokens(&mut tx).await?.render().map(|html| Html(html))?;
+
+    tx.commit().await?;
+
+    Ok(res)
 }

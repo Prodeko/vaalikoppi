@@ -16,7 +16,8 @@
 				"serayuzgur.crates",
 				"ms-ossdata.vscode-postgresql",
 				"adpyke.vscode-sql-formatter",
-				"github.vscode-github-actions"
+				"github.vscode-github-actions",
+				"biomejs.biome"
 			],
 			"settings": {
 				"[sql]": {
@@ -26,6 +27,9 @@
 				"[rust]": {
 					"editor.defaultFormatter": "rust-lang.rust-analyzer",
 					"editor.tabSize": 4
+				},
+				"[typescript]": {
+					"editor.defaultFormatter": "biomejs.biome"
 				}
 			}
 		}

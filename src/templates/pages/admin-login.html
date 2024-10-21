@@ -8,25 +8,27 @@
         <span class="card-title blue-grey-text text-darken-1 bold-font">
           Kirjaudu admin-paneeliin syöttämällä kirjautumiskoodi
         </span>
-        
+
         <div class="row">
           <div class="input-field col s12">
-            <input type="text" id="admin-login-field" class="token-input-field" size="50" >
-          <label for="admin-login-field">Kirjautumiskoodi</label>
+            <input type="text" id="admin-login-field" class="token-input-field" size="50">
+            <label for="admin-login-field">Kirjautumiskoodi</label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <span id="login-notification-area">
+              Syötä kirjautumistiedot ylle
+            </span>
+          </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col s12">
-          <span id="login-notification-area">
-            Syötä kirjautumistiedot ylle
-          </span>
-        </div>
+      <div class="card-action center">
+        <button id="invalidate-token-button"
+          class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue"
+          onclick="adminLogin()">Kirjaudu</button>
       </div>
-    </div>
-    <div class="card-action center">
-      <button id="invalidate-token-button" class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue" onclick="adminLogin()">Kirjaudu</button>
     </div>
   </div>
-</div>
 </div>
 {% endblock %}
