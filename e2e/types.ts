@@ -6,11 +6,12 @@ export interface VoterLoginDetails {
 	token: VoterToken;
 }
 
-export interface VotingMeta {
+export interface CreateVoting {
 	hideVoteCount: boolean;
 	seats: number;
 	name: string;
 	description: string;
+	candidates: string[];
 }
 
 export type Regexable<T> = {

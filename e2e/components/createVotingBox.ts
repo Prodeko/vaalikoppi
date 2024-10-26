@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
-import type { VotingMeta } from "../types";
+import type { CreateVoting } from "../types";
 
 export class CreateVotingBox {
 	private readonly locator: Locator;
@@ -44,7 +44,7 @@ export class CreateVotingBox {
 		]);
 	}
 
-	public async create(voting: VotingMeta) {
+	public async create(voting: CreateVoting) {
 		await this.hideVoteCountCheckbox.setChecked(voting.hideVoteCount);
 		await this.numberOfSeatsInput.fill(voting.seats.toString());
 		await this.nameInput.fill(voting.name);

@@ -1,9 +1,11 @@
 import { expect, type Locator, type Page } from "@playwright/test";
 import { AdminNavBar } from "../components/adminNavBar";
+import { AdminVotingsPage } from "./adminVotingsPage";
 
 export class TokensPage {
 	public readonly navBar: AdminNavBar;
 	private readonly generateBulkTokensButton: Locator;
+	private readonly votingsLink: Locator;
 	private readonly printTokensLink: Locator;
 	private readonly invalidateAllTokensButton: Locator;
 	private readonly tokenRows: Locator;
@@ -51,6 +53,11 @@ export class TokensPage {
 
 	public async goToPrint() {
 		await this.printTokensLink.click();
+	}
+
+	public async goToVotings(): Promise<AdminVotingsPage> {
+		await this.navBar.normalNavBar.goToHome();
+		return new AdminVotingsPage(this.page);
 	}
 
 	public async invalidateAllTokens() {
