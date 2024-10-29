@@ -620,6 +620,10 @@ function searchFunction() {
 }
 
 function invalidateActiveTokens() {
+  const userConfirmed = confirm("Oletko varma, että haluat mitätöidä aktiiviset koodit?");
+  
+  if (!userConfirmed) return
+
   callApi(`${SITE_ROOT_PATH}tokens/void-active`, "POST")
     .then(() => location.reload())
     .catch(() =>
