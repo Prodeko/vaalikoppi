@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use float_cmp::{approx_eq};
+use float_cmp::approx_eq;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;
@@ -12,7 +12,7 @@ pub type TokenId = i32;
 pub type Alias = Option<String>;
 
 static CHARSET: &[u8] = b"0123456789abcdefghijklmnopqrstuvxyz";
-static TOKEN_LENGTH: usize = 6;
+static TOKEN_LENGTH: usize = 9;
 
 pub fn generate_token() -> String {
     let mut rng = rand::thread_rng();
@@ -236,6 +236,7 @@ pub struct VoteCastStatus {
 pub struct CandidateResultData {
     pub name: CandidateId,
     pub vote_count: f64,
+    pub is_draw: bool,
 }
 
 impl PartialEq for CandidateResultData {

@@ -1,15 +1,17 @@
 use askama::Template;
 use axum::{
     debug_handler,
+    error_handling::HandleErrorLayer,
     extract::State,
     response::Html,
     routing::{get, post},
     Json, Router,
 };
-use chrono::{Duration, Utc};
+use chrono::Utc;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use tower::{buffer::BufferLayer, limit::RateLimitLayer, BoxError, ServiceBuilder};
 use tower_cookies::{Cookie, Cookies};
 
 use crate::{
@@ -40,6 +42,15 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/login", post(json_web_token_login))
         .route("/admin", get(admin_login))
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|err: BoxError| async move {
+                    println!("{}", err);
+                    Err::<(), ApiError>(ApiError::InternalServerError)
+                }))
+                .layer(BufferLayer::new(1024))
+                .layer(RateLimitLayer::new(100, std::time::Duration::from_secs(1))),
+        )
 }
 
 #[debug_handler]
@@ -53,7 +64,7 @@ async fn json_web_token_login(
     }
 
     let current_timestamp = Utc::now();
-    let expiration_time = current_timestamp + Duration::hours(TOKEN_EXPIRY_DURATION_HOURS);
+    let expiration_time = current_timestamp + chrono::Duration::hours(TOKEN_EXPIRY_DURATION_HOURS);
 
     let claims = JsonWebTokenClaims {
         exp: expiration_time.timestamp(),

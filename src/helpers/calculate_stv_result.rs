@@ -119,10 +119,13 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
 
     let candidates_with_votes_equal_to_minimum_value = vote_counts
         .iter()
-        .filter(|(_, votes)| approx_eq!(f64, min_number_of_votes, *votes, epsilon = 0.000001));
+        .filter(|(_, votes)| approx_eq!(f64, min_number_of_votes, *votes, epsilon = 0.000001))
+        .collect::<Vec<_>>();
 
     // If there are multiple candidates with equal votes, choose one at random
     let candidate_to_be_dropped = candidates_with_votes_equal_to_minimum_value
+        .clone()
+        .into_iter()
         .choose(&mut rand::thread_rng())
         .ok_or(ApiError::VotingAlgorithmError(
             "Expected to find at least one value in candidates_with_votes_equal_to_minimum_value",
@@ -148,8 +151,11 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
         .filter(|(c, _)| *c != candidate_to_be_dropped.0)
         .map(|(c, v)| PassingCandidateResult {
             data: CandidateResultData {
-                name: c.to_owned(),
-                vote_count: *v,
+                name: c.clone(),
+                vote_count: v.clone(),
+                is_draw: candidates_with_votes_equal_to_minimum_value
+                    .to_owned()
+                    .contains(&&(c.clone(), *v)),
             },
             is_selected: false,
         })
@@ -158,6 +164,7 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
     let dropped_candidate = Some(CandidateResultData {
         name: candidate_to_be_dropped.0.to_owned(),
         vote_count: candidate_to_be_dropped.1,
+        is_draw: candidates_with_votes_equal_to_minimum_value.contains(&candidate_to_be_dropped),
     });
 
     Ok(VotingRoundResult {
@@ -206,6 +213,7 @@ fn transfer_surplus_votes(
             data: CandidateResultData {
                 name: (*c).to_owned(),
                 vote_count: *v,
+                is_draw: false,
             },
             is_selected: elected_candidates.contains(c),
         })
@@ -305,6 +313,7 @@ mod tests {
                     data: CandidateResultData {
                         name: "a".to_string(),
                         vote_count: 0.0,
+                        is_draw: false,
                     },
                     is_selected: true,
                 }],
@@ -332,6 +341,7 @@ mod tests {
                     data: CandidateResultData {
                         name: "a".to_string(),
                         vote_count: 1.0,
+                        is_draw: false,
                     },
                     is_selected: true,
                 }],
@@ -360,12 +370,14 @@ mod tests {
                         data: CandidateResultData {
                             name: "a".to_string(),
                             vote_count: 1.0,
+                            is_draw: false,
                         },
                         is_selected: false,
                     }],
                     dropped_candidate: Some(CandidateResultData {
                         name: "b".to_string(),
                         vote_count: 0.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -374,6 +386,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "a".to_string(),
                             vote_count: 1.0,
+                            is_draw: false,
                         },
                         is_selected: true,
                     }],
@@ -403,6 +416,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "a".to_string(),
                             vote_count: 1.0,
+                            is_draw: false,
                         },
                         is_selected: true,
                     },
@@ -410,6 +424,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "b".to_string(),
                             vote_count: 0.0,
+                            is_draw: false,
                         },
                         is_selected: true,
                     },
@@ -447,6 +462,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 4.0,
+                                is_draw: false,
                             },
                             is_selected: true,
                         },
@@ -454,6 +470,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 1.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -461,6 +478,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 0.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -473,12 +491,14 @@ mod tests {
                         data: CandidateResultData {
                             name: "b".to_string(),
                             vote_count: 1.0 + (4.0 - quota) * (2.0 / 4.0),
+                            is_draw: false,
                         },
                         is_selected: false,
                     }],
                     dropped_candidate: Some(CandidateResultData {
                         name: "c".to_string(),
                         vote_count: (4.0 - quota) * (1.0 / 4.0),
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -487,6 +507,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "b".to_string(),
                             vote_count: 1.0 + (4.0 - quota) * ((2.0 / 4.0) + (1.0 / 4.0)),
+                            is_draw: false,
                         },
                         is_selected: true,
                     }],
@@ -536,6 +557,8 @@ mod tests {
                     data: CandidateResultData {
                         name: "a".to_string(),
                         vote_count: 16.0,
+
+                        is_draw: false,
                     },
                     is_selected: true,
                 },
@@ -543,6 +566,7 @@ mod tests {
                     data: CandidateResultData {
                         name: "b".to_string(),
                         vote_count: 12.0,
+                        is_draw: false,
                     },
                     is_selected: true,
                 },
@@ -550,6 +574,7 @@ mod tests {
                     data: CandidateResultData {
                         name: "c".to_string(),
                         vote_count: 1.0,
+                        is_draw: false,
                     },
                     is_selected: false,
                 },
@@ -557,6 +582,7 @@ mod tests {
                     data: CandidateResultData {
                         name: "d".to_string(),
                         vote_count: 0.0,
+                        is_draw: false,
                     },
                     is_selected: false,
                 },
@@ -602,6 +628,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 27.0,
+                                is_draw: false,
                             },
                             is_selected: true,
                         },
@@ -609,6 +636,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 10.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -616,6 +644,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 9.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -628,12 +657,14 @@ mod tests {
                         data: CandidateResultData {
                             name: "b".to_string(),
                             vote_count: 10.0 + (27.0 - quota) * (10.0 / 27.0),
+                            is_draw: false,
                         },
                         is_selected: false,
                     }],
                     dropped_candidate: Some(CandidateResultData {
                         name: "c".to_string(),
                         vote_count: 9.0 + (27.0 - quota) * (9.0 / 27.0),
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -642,6 +673,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "b".to_string(),
                             vote_count: 10.0 + (27.0 - quota) * (10.0 / 27.0),
+                            is_draw: false,
                         },
                         is_selected: true,
                     }],
@@ -699,6 +731,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 6.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -706,6 +739,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 4.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -713,6 +747,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 2.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -720,6 +755,7 @@ mod tests {
                     dropped_candidate: Some(CandidateResultData {
                         name: "d".to_string(),
                         vote_count: 1.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -729,6 +765,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 6.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -736,6 +773,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 4.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -743,6 +781,7 @@ mod tests {
                     dropped_candidate: Some(CandidateResultData {
                         name: "c".to_string(),
                         vote_count: 3.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -751,12 +790,14 @@ mod tests {
                         data: CandidateResultData {
                             name: "a".to_string(),
                             vote_count: 6.0,
+                            is_draw: false,
                         },
                         is_selected: false,
                     }],
                     dropped_candidate: Some(CandidateResultData {
                         name: "b".to_string(),
                         vote_count: 5.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -765,6 +806,7 @@ mod tests {
                         data: CandidateResultData {
                             name: "a".to_string(),
                             vote_count: 7.0,
+                            is_draw: false,
                         },
                         is_selected: true,
                     }],
@@ -1305,6 +1347,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 34.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1312,6 +1355,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 15.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1319,6 +1363,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 13.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1326,6 +1371,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "d".to_string(),
                                 vote_count: 11.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1333,6 +1379,7 @@ mod tests {
                     dropped_candidate: Some(CandidateResultData {
                         name: "e".to_string(),
                         vote_count: 8.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -1342,6 +1389,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 37.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1349,6 +1397,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 18.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1356,6 +1405,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 14.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1363,6 +1413,7 @@ mod tests {
                     dropped_candidate: Some(CandidateResultData {
                         name: "d".to_string(),
                         vote_count: 12.0,
+                        is_draw: false,
                     }),
                 },
                 VotingRoundResult {
@@ -1372,6 +1423,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "a".to_string(),
                                 vote_count: 42.0,
+                                is_draw: false,
                             },
                             is_selected: true,
                         },
@@ -1379,6 +1431,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "b".to_string(),
                                 vote_count: 21.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
@@ -1386,6 +1439,7 @@ mod tests {
                             data: CandidateResultData {
                                 name: "c".to_string(),
                                 vote_count: 18.0,
+                                is_draw: false,
                             },
                             is_selected: false,
                         },
