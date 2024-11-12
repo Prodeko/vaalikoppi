@@ -1,13 +1,20 @@
+use std::time::Duration;
+
 use crate::api_types::ApiError::{self, *};
 use crate::api_types::AuthFailedError::{self};
 use crate::api_types::InvalidAliasError::*;
 use crate::models::{Token, TokenState};
 use crate::{api_types::ApiResult, http::AppState};
+use axum::error_handling::HandleErrorLayer;
+use axum::BoxError;
 use axum::{extract::State, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 use sqlx::error::ErrorKind;
 use sqlx::Postgres;
 use sqlx::{self, Pool};
+use tower::buffer::BufferLayer;
+use tower::limit::RateLimitLayer;
+use tower::ServiceBuilder;
 use tower_cookies::{Cookie, Cookies};
 
 pub const VOTER_TOKEN: &str = "voter-token";
@@ -25,6 +32,15 @@ struct LoginResponse {}
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/login/", post(user_login))
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|err: BoxError| async move {
+                    println!("{}", err);
+                    Err::<(), ApiError>(ApiError::InternalServerError)
+                }))
+                .layer(BufferLayer::new(1024))
+                .layer(RateLimitLayer::new(100, Duration::from_secs(1))),
+        )
         .route("/logout/", post(user_logout))
 }
 
