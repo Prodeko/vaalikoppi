@@ -12,7 +12,7 @@ pub type TokenId = i32;
 pub type Alias = Option<String>;
 
 static CHARSET: &[u8] = b"0123456789abcdefghijklmnopqrstuvxyz";
-static TOKEN_LENGTH: usize = 6;
+static TOKEN_LENGTH: usize = 9;
 
 pub fn generate_token() -> String {
     let mut rng = rand::thread_rng();
