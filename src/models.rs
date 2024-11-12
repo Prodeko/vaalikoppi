@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use float_cmp::{approx_eq};
+use float_cmp::approx_eq;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::iter;
@@ -236,6 +236,7 @@ pub struct VoteCastStatus {
 pub struct CandidateResultData {
     pub name: CandidateId,
     pub vote_count: f64,
+    pub is_draw: bool,
 }
 
 impl PartialEq for CandidateResultData {

@@ -123,6 +123,9 @@
                 {% if candidate.is_selected %}
                 (valittu)
                 {% endif %}
+                {% if candidate.data.is_draw %}
+                🎲
+                {% endif %}
               </td>
               {% if !voting.hide_vote_counts %}
               <td>{{ "{:.4}"|format(candidate.data.vote_count) }}</td>
@@ -135,6 +138,9 @@
               <td class="candidate-name">
                 {{ candidate_data.name }}
                 (pudonnut)
+                {% if candidate_data.is_draw %}
+                🎲
+                {% endif %}
               </td>
               {% match login_state %}
               {% when LoginState::Admin %}

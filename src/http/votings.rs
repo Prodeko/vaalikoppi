@@ -310,16 +310,19 @@ impl Voting {
         ]
         .concat();
 
-        QueryBuilder::new("INSERT INTO candidate_result_data (name, round, voting_id, vote_count)")
-            .push_values(all_candidate_data, |mut b, (result, round)| {
-                b.push_bind(&result.name)
-                    .push_bind(round)
-                    .push_bind(self.id)
-                    .push_bind(result.vote_count);
-            })
-            .build()
-            .execute(&mut *tx)
-            .await?;
+        QueryBuilder::new(
+            "INSERT INTO candidate_result_data (name, round, voting_id, vote_count, is_draw)",
+        )
+        .push_values(all_candidate_data, |mut b, (result, round)| {
+            b.push_bind(&result.name)
+                .push_bind(round)
+                .push_bind(self.id)
+                .push_bind(result.vote_count)
+                .push_bind(result.is_draw);
+        })
+        .build()
+        .execute(&mut *tx)
+        .await?;
 
         if winning_candidates.len() > 0 {
             QueryBuilder::new(
@@ -521,14 +524,14 @@ async fn get_voting_data(
     let rows = sqlx::query!(
         "
         with passing_candidate_result_data AS (
-            SELECT p.*, c.vote_count
+            SELECT p.*, c.vote_count, c.is_draw
             FROM passing_candidate_result as p INNER JOIN candidate_result_data as c
                 ON p.voting_id = c.voting_id
                 AND p.name = c.name
                 AND p.round = c.round
         ),
         dropped_candidates AS (
-            SELECT name, round, voting_id, vote_count
+            SELECT name, round, voting_id, vote_count, is_draw
             FROM candidate_result_data
             WHERE (voting_id, round, name) NOT IN (
                 SELECT voting_id, round, name
@@ -546,16 +549,18 @@ async fn get_voting_data(
                 r.round as round,
                 d.name as dropped_candidate_name,
                 d.vote_count as dropped_candidate_vote_count,
+                d.is_draw as dropped_candidate_is_draw,
                 COALESCE(NULLIF(ARRAY_AGG(p.name), '{NULL}'), '{}') as candidate_names,
                 COALESCE(NULLIF(ARRAY_AGG(p.is_selected), '{NULL}'), '{}') as candidate_is_selected,
-                COALESCE(NULLIF(ARRAY_AGG(p.vote_count), '{NULL}'), '{}') as candidate_vote_count
+                COALESCE(NULLIF(ARRAY_AGG(p.vote_count), '{NULL}'), '{}') as candidate_vote_count,
+                COALESCE(NULLIF(ARRAY_AGG(p.is_draw), '{NULL}'), '{}') as candidate_is_draw
             FROM
                 voting_round_result as r
                 LEFT JOIN passing_candidate_result_data as p
                     ON r.voting_id = p.voting_id AND r.round = p.round
                 LEFT JOIN dropped_candidates as d
                     ON r.voting_id = d.voting_id AND r.round = d.round
-            GROUP BY (r.voting_id, r.round, d.name, d.vote_count)
+            GROUP BY (r.voting_id, r.round, d.name, d.vote_count, d.is_draw)
         ),
         voting_with_candidates AS (
             SELECT v.*, COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') as candidates
@@ -576,9 +581,11 @@ async fn get_voting_data(
             r.round as \"round?: i32\",
             r.dropped_candidate_name as \"dropped_candidate_name?: String\",
             r.dropped_candidate_vote_count as \"dropped_candidate_vote_count?: f64\",
+            r.dropped_candidate_is_draw as \"dropped_candidate_is_draw?: bool\",
             r.candidate_names as \"candidate_names?: Vec<CandidateId>\",
             r.candidate_is_selected as \"candidate_is_selected?: Vec<bool>\",
             r.candidate_vote_count as \"candidate_vote_count?: Vec<f64>\",
+            r.candidate_is_draw as \"candidate_is_draw?: Vec<bool>\",
             (hv.token_token = $1) as \"you_have_voted?: bool\"
         FROM
             voting_with_candidates AS v            
@@ -598,22 +605,35 @@ async fn get_voting_data(
             .candidate_names
             .zip(rec.candidate_is_selected)
             .zip(rec.candidate_vote_count)
-            .map(|((names, is_selecteds), vote_counts)| {
+            .zip(rec.candidate_is_draw)
+            .map(|(((names, is_selecteds), vote_counts), is_draws)| {
                 names
                     .into_iter()
                     .zip(is_selecteds.into_iter())
                     .zip(vote_counts.into_iter())
-                    .map(|((name, is_selected), vote_count)| PassingCandidateResult {
-                        data: CandidateResultData { name, vote_count },
-                        is_selected,
-                    })
+                    .zip(is_draws.into_iter())
+                    .map(
+                        |(((name, is_selected), vote_count), is_draw)| PassingCandidateResult {
+                            data: CandidateResultData {
+                                name,
+                                vote_count,
+                                is_draw,
+                            },
+                            is_selected,
+                        },
+                    )
                     .collect::<Vec<PassingCandidateResult>>()
             });
         // println!("candidate_results: {:#?}", candidate_results);
         let dropped_candidate: Option<CandidateResultData> = rec
             .dropped_candidate_name
             .zip(rec.dropped_candidate_vote_count)
-            .map(|(name, vote_count)| CandidateResultData { name, vote_count });
+            .zip(rec.dropped_candidate_is_draw)
+            .map(|((name, vote_count), is_draw)| CandidateResultData {
+                name,
+                vote_count,
+                is_draw,
+            });
         // println!("dropped_candidate: {:#?}", dropped_candidate);
         let round_result: Option<VotingRoundResult> =
             rec.round
