@@ -153,9 +153,10 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
             data: CandidateResultData {
                 name: c.clone(),
                 vote_count: v.clone(),
-                is_draw: candidates_with_votes_equal_to_minimum_value
-                    .to_owned()
-                    .contains(&&(c.clone(), *v)),
+                is_draw: candidates_with_votes_equal_to_minimum_value.len() > 1
+                    && candidates_with_votes_equal_to_minimum_value
+                        .to_owned()
+                        .contains(&&(c.clone(), *v)),
             },
             is_selected: false,
         })
@@ -164,7 +165,8 @@ fn drop_one_candidate<'a>(vote_map: &'a mut VoteMap, round: usize) -> ApiResult<
     let dropped_candidate = Some(CandidateResultData {
         name: candidate_to_be_dropped.0.to_owned(),
         vote_count: candidate_to_be_dropped.1,
-        is_draw: candidates_with_votes_equal_to_minimum_value.contains(&candidate_to_be_dropped),
+        is_draw: candidates_with_votes_equal_to_minimum_value.len() > 1
+            && candidates_with_votes_equal_to_minimum_value.contains(&candidate_to_be_dropped),
     });
 
     Ok(VotingRoundResult {
