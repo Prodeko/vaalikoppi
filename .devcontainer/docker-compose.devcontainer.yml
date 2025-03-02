@@ -3,6 +3,7 @@ version: "3"
 services:
   vaalikoppi:
     volumes:
+      - ~/.ssh:/.ssh
       - .:/vaalikoppi:cached
     command: /bin/sh -c "while sleep 1000; do :; done"
     

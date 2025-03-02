@@ -8,16 +8,15 @@ services:
       - POSTGRES_DB=vaalikoppi
       - POSTGRES_USER=vaalikoppi
 
-  redis:
-    image: redis:6-alpine
-    container_name: vaalikoppi_redis
-
   vaalikoppi:
     build:
       context: .
       dockerfile: dev.Dockerfile
     ports:
       - 80:80
-    volumes:
-      - ~/.ssh:/.ssh
+    environment:
+      - DATABASE_URL=postgres://vaalikoppi:secret@db:5432/vaalikoppi
+      - HMAC_KEY=ThisShouldBeALongStringWithHighEntropy
+      - PORT=80
+      - ADMIN_PASSWORD=kettu
     
