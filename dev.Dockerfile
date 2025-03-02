@@ -12,7 +12,7 @@ WORKDIR /vaalikoppi
 RUN git config --global --add safe.directory /vaalikoppi
 
 # Install SQLx CLI for database migrations (see README)
-RUN cargo install sqlx-cli@0.7.3 --locked --no-default-features --features native-tls,postgres && cargo install rsass-cli@0.28.8 --locked
+RUN cargo install sqlx-cli@0.8.3 --no-default-features --features native-tls,postgres && cargo install rsass-cli@0.29.0
 
 # Install dependencies for Playwright tests
 COPY package.json package-lock.json ./
