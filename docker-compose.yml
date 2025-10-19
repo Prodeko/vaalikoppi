@@ -7,6 +7,8 @@ services:
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=vaalikoppi
       - POSTGRES_USER=vaalikoppi
+    ports:
+      - 5432:5432
 
   vaalikoppi:
     build:

@@ -44,7 +44,31 @@ struct AdminVotingTemplate {
 
 async fn login_page() -> Markup {
     html! {
-        h1 { "Hello, login" }
+        h1 { "Kirjaudu sisään" }
+        form
+            method="post"
+            action="/user/login/"
+            {
+                input
+                    type="text"
+                    id="alias"
+                    name="alias"
+                    required;
+                label
+                    for="alias"
+                    { "Julkinen alias" }
+                input
+                    type="text"
+                    id="token"
+                    name="token"
+                    required;
+                label
+                    for="token"
+                    { "Kirjautumistunnus" }
+                button
+                    type="submit"
+                    { "Äänestämään" }
+            }
     }
 }
 

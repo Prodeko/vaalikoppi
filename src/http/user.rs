@@ -6,8 +6,8 @@ use crate::api_types::InvalidAliasError::*;
 use crate::models::{Token, TokenState};
 use crate::{api_types::ApiResult, http::AppState};
 use axum::error_handling::HandleErrorLayer;
-use axum::BoxError;
 use axum::{extract::State, routing::post, Json, Router};
+use axum::{BoxError, Form};
 use serde::{Deserialize, Serialize};
 use sqlx::error::ErrorKind;
 use sqlx::Postgres;
@@ -47,7 +47,7 @@ pub fn router() -> Router<AppState> {
 async fn user_login(
     state: State<AppState>,
     cookies: Cookies,
-    Json(login_payload): Json<LoginPayload>,
+    Form(login_payload): Form<LoginPayload>,
 ) -> ApiResult<Json<LoginResponse>> {
     let row = sqlx::query_as!(
         Token,
@@ -85,8 +85,8 @@ async fn user_login(
 
             cookies.add(
                 Cookie::build(VOTER_TOKEN, token.token)
-                    .http_only(true)
                     .path("/")
+                    .http_only(true)
                     .secure(true)
                     .max_age(time::Duration::days(VOTER_TOKEN_MAX_AGE_DAYS))
                     .finish(),
