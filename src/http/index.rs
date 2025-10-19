@@ -1,5 +1,6 @@
 use askama::Template;
 use axum::{response::Html, routing::get, Router};
+use maud::{html, Markup};
 
 use crate::{
     ctx::Ctx,
@@ -41,14 +42,16 @@ struct AdminVotingTemplate {
     pub votings_list_template: AdminVotingListTemplate,
 }
 
+async fn login_page() -> Markup {
+    html! {
+        h1 { "Hello, login" }
+    }
+}
+
 async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let template = async {
         match context.login_state() {
-            LoginState::NotLoggedIn => LoginTemplate {
-                login_state: context.login_state(),
-            }
-            .render()
-            .map_err(|_| ApiError::InternalServerError),
+            LoginState::NotLoggedIn => Ok::<String, ApiError>(login_page().await.into_string()),
             LoginState::Voter { .. } => {
                 let votings_list_template =
                     get_votings_list_template(state.db.clone(), context.login_state(), None)

@@ -1,21 +1,10 @@
 {% extends "components/base.html" %}
 {% block body %}
   <div class="flex justify-center">
-    <div class="card mobile-column">
+    <div class="">
       <h1 class="text-center">
         Kirjaudu syöttämällä kirjautumiskoodi ja alias
       </h1>
-      <div class="row">
-        <div class="input-field col s12">
-          <input type="text" id="type-token-field" class="token-input-field" size="50" >
-        <label for="type-token-field">Kirjautumiskoodi</label>
-      </div>
-      {# % csrf_token % #}
-      <div class="card-action center">
-        <button id="invalidate-token-button"
-          class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue"
-          onclick="submitToken()">Kirjaudu</button>
-      </div>
     </div>
   </div>
 </div>

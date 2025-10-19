@@ -22,6 +22,8 @@ pub struct AppState {
 }
 
 pub async fn serve(db: Pool<Postgres>, config: Config) {
+    let port = config.port;
+
     let state = AppState {
         config: Arc::new(config),
         db,
@@ -32,7 +34,7 @@ pub async fn serve(db: Pool<Postgres>, config: Config) {
         .layer(CookieManagerLayer::new())
         .with_state(state);
 
-    let address = &"0.0.0.0:80".parse().unwrap();
+    let address = &format!("0.0.0.0:{port}").parse().unwrap();
 
     axum::Server::bind(address)
         .serve(app.into_make_service())
