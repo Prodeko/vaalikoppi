@@ -1,4 +1,4 @@
-FROM rust:1.81 as build-stage
+FROM rust:1.83 as build-stage
 
 
 WORKDIR /vaalikoppi
@@ -20,10 +20,10 @@ RUN sqlx migrate run
 RUN rsass src/static/scss/main.scss --style compressed > src/static/css/main.css
 
 RUN \
-    --mount=type=cache,target=/usr/local/cargo/registry/index/,from=rust:1.81 \
-    --mount=type=cache,target=/usr/local/cargo/registry/cache/,from=rust:1.81 \
-    --mount=type=cache,target=/usr/local/cargo/git/db/,from=rust:1.81 \
-    --mount=type=cache,target=./target/,from=rust:1.81 \
+    --mount=type=cache,target=/usr/local/cargo/registry/index/,from=rust:1.83 \
+    --mount=type=cache,target=/usr/local/cargo/registry/cache/,from=rust:1.83 \
+    --mount=type=cache,target=/usr/local/cargo/git/db/,from=rust:1.83 \
+    --mount=type=cache,target=./target/,from=rust:1.83 \
     if [ $DEBUG ]; then \
         # Debug for faster build times for running e2e test
         echo "Warning: building DEBUG build with performance inferior to release build"; \

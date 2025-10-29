@@ -4,7 +4,7 @@ services:
   db:
     image: postgres:14
     environment:
-      - POSTGRES_PASSWORD=secret
+      - POSTGRES_PASSWORD=VanhatMaksaa1913
       - POSTGRES_DB=vaalikoppi
       - POSTGRES_USER=vaalikoppi
 
@@ -15,8 +15,8 @@ services:
     ports:
       - 80:80
     environment:
-      - DATABASE_URL=postgres://vaalikoppi:secret@db:5432/vaalikoppi
+      - DATABASE_URL=postgres://vaalikoppi:VanhatMaksaa1913@db:5432/vaalikoppi
       - HMAC_KEY=ThisShouldBeALongStringWithHighEntropy
       - PORT=80
-      - ADMIN_PASSWORD=kettu
+      - ADMIN_PASSWORD=VanhatMaksaa1913
     
