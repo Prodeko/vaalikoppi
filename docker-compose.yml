@@ -11,7 +11,9 @@ services:
   vaalikoppi:
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=postgres://vaalikoppi:VanhatMaksaa1913@db:5432/vaalikoppi
     ports:
       - 80:80
     environment:
