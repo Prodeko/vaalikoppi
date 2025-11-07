@@ -1,16 +1,37 @@
-name: Build and deploy
+name: Reusable deployment workflow
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      environment:
-        description: CI environment
-        type: environment
+      instance_name:
+        description: "Instance name (e.g., vaalikoppi, vaalikoppi-kaplaaki)"
         required: true
-    
+        type: string
+      app_service_name:
+        description: "Azure App Service name"
+        required: true
+        type: string
+      image_tag:
+        description: "Docker image tag/name (e.g., vaalikoppi, vaalikoppi-kaplaaki)"
+        required: true
+        type: string
+      cache_scope:
+        description: "GitHub Actions cache scope"
+        required: false
+        type: string
+        default: "default"
+    secrets:
+      CLIENT_ID:
+        required: true
+      TENANT_ID:
+        required: true
+      SUBSCRIPTION:
+        required: true
+      REGISTRY_NAME:
+        required: true
+      REGISTRY_LOGIN_SERVER:
+        required: true
+
 permissions:
   id-token: write
 
@@ -58,23 +79,21 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/vaalikoppi:${{ github.sha }}
-          # There is intentionally no scope on the cache due to github's cache access restrictions.
-          # Both the release and debug file will now be stored in the same location.
-          cache-from: type=gha 
-          cache-to: type=gha,mode=max 
+          tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/${{ inputs.image_tag }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ inputs.cache_scope }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.cache_scope }}
           build-args: |
             "DATABASE_URL=postgres://vaalikoppi:ci-password@localhost:5432/vaalikoppi"
           allow: |
             network.host
             security.insecure
           network: host
-          
+
       - name: Azure logout
         run: |
           az logout
 
-  e2e: # This step is here for redundancy to protect prod from the inevitable force push to main :D
+  e2e:
     environment: Production
     runs-on: ubuntu-latest
     needs: build
@@ -95,7 +114,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-     
+
       - uses: Azure/login@v2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
@@ -104,13 +123,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
       - name: Docker login to ACR
         run: az acr login --name ${{ secrets.REGISTRY_NAME }}
-    
+
       - name: Run vaalikoppi and tests
         run: |
           docker run \
@@ -121,7 +140,7 @@ jobs:
             --name vaalikoppi \
             --network host \
             -d \
-            ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} && \
+            ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/${{ inputs.image_tag }}:${{ github.sha }} && \
             docker ps && \
             docker container logs vaalikoppi && \
             wget http://localhost:80 || \
@@ -132,29 +151,62 @@ jobs:
   deploy:
     environment: Production
     runs-on: ubuntu-latest
-    needs: e2e 
+    needs: build
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Log in to Azure
-        uses: Azure/login@v1
+      - uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.CLIENT_ID }}
           tenant-id: ${{ secrets.TENANT_ID }}
-          allow-no-subscriptions: true
+          subscription-id: ${{ secrets.SUBSCRIPTION }}
 
-      - name: Docker login to ACR
-        run: az acr login --name ${{ secrets.REGISTRY_NAME }}
-
-      - name: Deploy from ACR
+      - name: Validate prerequisites
+        shell: bash
         run: |
-          az webapp config container set \
-            --container-image-name ${{ secrets.REGISTRY_NAME }}.azurecr.io/vaalikoppi/vaalikoppi:${{ github.sha }} \
-            --container-registry-url https://${{ secrets.REGISTRY_NAME }}.azurecr.io \
-            --subscription ${{ secrets.SUBSCRIPTION }} \
+          set -euo pipefail
+          RG="vaalikoppi_group"
+          APP="${{ inputs.app_service_name }}"
+          PRINCIPAL_ID=$(az webapp identity show -g "$RG" -n "$APP" --query principalId -o tsv || true)
+          if [ -z "$PRINCIPAL_ID" ]; then
+            echo "Error: Web App '$APP' does not have a system-assigned identity enabled."
+            echo "Enable once outside CI: az webapp identity assign -g $RG -n $APP"
+            exit 1
+          fi
+          echo "Web App identity present: $PRINCIPAL_ID"
+
+      - name: Enable ACR via managed identity
+        run: |
+          az webapp config set \
             --resource-group vaalikoppi_group \
-            --name vaalikoppi
+            --name ${{ inputs.app_service_name }} \
+            --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+
+      - name: Point webapp to image
+        shell: bash
+        run: |
+          set -euo pipefail
+          RG="vaalikoppi_group"
+          APP="${{ inputs.app_service_name }}"
+          IMAGE="${{ secrets.REGISTRY_LOGIN_SERVER }}/vaalikoppi/${{ inputs.image_tag }}:${{ github.sha }}"
+          SITE_ID=$(az webapp show -g "$RG" -n "$APP" --query id -o tsv)
+          CONFIG_ID="${SITE_ID}/config/web"
+          az resource update \
+            --ids "$CONFIG_ID" \
+            --set properties.linuxFxVersion="DOCKER|${IMAGE}"
+
+      - name: Show site container config
+        shell: bash
+        run: |
+          RG="vaalikoppi_group"
+          APP="${{ inputs.app_service_name }}"
+          SITE_ID=$(az webapp show -g "$RG" -n "$APP" --query id -o tsv)
+          CONFIG_ID="${SITE_ID}/config/web"
+          az resource show \
+            --ids "$CONFIG_ID" \
+            --query "properties.{linuxFxVersion:linuxFxVersion,acrUseManagedIdentityCreds:acrUseManagedIdentityCreds,acrUserManagedIdentityId:acrUserManagedIdentityId}"
 
       - name: Azure logout
-        run: |
-          az logout
+        run: az logout

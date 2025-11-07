@@ -1,0 +1,30 @@
+name: Build and deploy Raksa
+
+on:
+  push:
+    branches:
+      - prod-raksa
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: CI environment
+        type: environment
+        required: true
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      instance_name: raksa
+      app_service_name: vaalikoppi-raksa
+      image_tag: vaalikoppi-raksa
+      cache_scope: raksa
+    secrets:
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      TENANT_ID: ${{ secrets.TENANT_ID }}
+      SUBSCRIPTION: ${{ secrets.SUBSCRIPTION }}
+      REGISTRY_NAME: ${{ secrets.REGISTRY_NAME }}
+      REGISTRY_LOGIN_SERVER: ${{ secrets.REGISTRY_LOGIN_SERVER }}

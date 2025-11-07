@@ -1,0 +1,30 @@
+name: Build and deploy Kaplaaki
+
+on:
+  push:
+    branches:
+      - prod-kaplaaki
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: CI environment
+        type: environment
+        required: true
+
+permissions:
+  id-token: write
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      instance_name: kaplaaki
+      app_service_name: vaalikoppi-kaplaaki
+      image_tag: vaalikoppi-kaplaaki
+      cache_scope: kaplaaki
+    secrets:
+      CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      TENANT_ID: ${{ secrets.TENANT_ID }}
+      SUBSCRIPTION: ${{ secrets.SUBSCRIPTION }}
+      REGISTRY_NAME: ${{ secrets.REGISTRY_NAME }}
+      REGISTRY_LOGIN_SERVER: ${{ secrets.REGISTRY_LOGIN_SERVER }}
