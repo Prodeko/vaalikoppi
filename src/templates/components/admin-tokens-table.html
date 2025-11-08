@@ -12,7 +12,7 @@
     </thead>
     <tbody data-testid="tokens-table-body">
       {% for token in tokens %}
-      <tr>
+      <tr data-token="{{ token.token }}">
         {% match token.alias %}
         {% when Some with (alias) %}
         <td><span class="token-code">{{ token.token }}</span><br>{{ alias }}</td>

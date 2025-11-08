@@ -7,6 +7,7 @@ export class TokensPage {
 	private readonly printTokensLink: Locator;
 	private readonly invalidateAllTokensButton: Locator;
 	private readonly tokenRows: Locator;
+	private readonly tokensTableBody: Locator;
 
 	constructor(public readonly page: Page) {
 		this.navBar = new AdminNavBar(this.page.getByRole("navigation"));
@@ -19,34 +20,24 @@ export class TokensPage {
 		this.invalidateAllTokensButton = this.page.getByRole("button", {
 			name: "Mitätöi aktiiviset koodit",
 		});
-		this.tokenRows = this.page
-			.getByTestId("tokens-table-body")
-			.getByRole("row");
+		this.tokensTableBody = this.page.getByTestId("tokens-table-body");
+		this.tokenRows = this.tokensTableBody.getByRole("row");
 	}
 
 	public async generateBulkTokens(): Promise<string[]> {
 		const response = this.page.waitForResponse(/.*tokens.*/);
 
-		const [responseBody, _] = await Promise.all([
+		await Promise.all([
 			response,
 			this.generateBulkTokensButton.click(),
 		]);
 
-		const responseBodyWords = new Set(
-			(await responseBody.text()).split(/<\/?td>/),
+		const allTokenRows = (await this.tokenRows.all()).slice(-100);
+		const tokens = await Promise.all(
+			allTokenRows.map((row) => row.getAttribute("data-token")),
 		);
 
-		const allTokenRows = (await this.tokenRows.all()).slice(-100);
-
-		const allTokens = (
-			await Promise.all(
-				allTokenRows.map((row) => row.getByRole("cell").first().textContent()),
-			)
-		)
-			.filter((s) => s != null)
-			.filter((token) => responseBodyWords.has(token));
-
-		return allTokens;
+		return tokens.filter((token): token is string => !!token);
 	}
 
 	public async goToPrint() {
@@ -65,8 +56,12 @@ export class TokensPage {
 		await expect(this.tokenRows.first()).toBeVisible();
 	}
 
+	private getTokenRow(token: string): Locator {
+		return this.tokensTableBody.locator(`tr[data-token="${token}"]`);
+	}
+
 	public async activateToken(token: string) {
-		const tokenRow = this.tokenRows.filter({ hasText: token });
+		const tokenRow = this.getTokenRow(token);
 		await tokenRow.getByRole("button", { name: "Aktivoi" }).click();
 
 		const response = this.page.waitForResponse(/.*\/tokens.*/);
@@ -76,7 +71,7 @@ export class TokensPage {
 	}
 
 	public async voidToken(token: string) {
-		const tokenRow = this.tokenRows.filter({ hasText: token });
+		const tokenRow = this.getTokenRow(token);
 		await tokenRow.getByRole("button", { name: "Mitätöi" }).click();
 
 		const response = this.page.waitForResponse(/.*\/tokens.*/);
