@@ -47,7 +47,7 @@
         <div class="row">
           <div class="col s12">
             <button onclick="addCandidate({{ voting.id }})"
-              class="btn waves-effect waves-light wide-button bold-font prodeko-blue">
+              class="btn waves-effect waves-light wide-button bold-font ik-blue">
               Lisää<i class="material-icons right">add</i>
             </button>
             <button onclick="openVoting({{ voting.id }})"
@@ -100,7 +100,7 @@
 {% when VotingState::Closed with (result) %}
 <div class="row">
   <div class="col s12">
-    <div class="transfer-election closed-voting card prodeko-blue white-text center"
+    <div class="transfer-election closed-voting card ik-blue white-text center"
       data-testid="voting-{{ voting.id }}">
       <div class="card-title-container" onclick="expandResults(this)">
         <div>
