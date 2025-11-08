@@ -76,3 +76,35 @@ input {
     margin-bottom: 0;
   }
 }
+
+footer {
+  margin-top: 20px;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 0.85em;
+  color: #777;
+  margin-top: auto;
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .footer-divider {
+    color: #777;
+  }
+
+  a {
+    color: #777;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #072557;
+      text-decoration: underline;
+    }
+  }
+}
