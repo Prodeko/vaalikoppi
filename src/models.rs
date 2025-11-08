@@ -11,8 +11,8 @@ pub type VotingId = i32;
 pub type TokenId = i32;
 pub type Alias = Option<String>;
 
-static CHARSET: &[u8] = b"0123456789abcdefghijklmnopqrstuvxyz";
-static TOKEN_LENGTH: usize = 9;
+static CHARSET: &[u8] = b"0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+static TOKEN_LENGTH: usize = 8;
 
 pub fn generate_token() -> String {
     let mut rng = rand::thread_rng();

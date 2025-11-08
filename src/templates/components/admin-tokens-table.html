@@ -15,9 +15,9 @@
       <tr>
         {% match token.alias %}
         {% when Some with (alias) %}
-        <td>{{ token.token }}<br>{{ alias }}</td>
+        <td><span class="token-code">{{ token.token }}</span><br>{{ alias }}</td>
         {% when None %}
-        <td>{{ token.token }}</td>
+        <td><span class="token-code">{{ token.token }}</span></td>
         {% endmatch %}
         <td>{{ token.id }}</td>
         {% match token.state %}

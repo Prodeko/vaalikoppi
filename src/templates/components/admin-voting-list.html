@@ -55,7 +55,7 @@
               <tbody>
                 {% for token in voting.tokens_not_voted %}
                 <tr>
-                  <td>{{ token.token }}</td>
+                  <td><span class="token-code">{{ token.token }}</span></td>
                   <td>{{ token.alias }}</td>
                 </tr>
                 {% endfor %}
