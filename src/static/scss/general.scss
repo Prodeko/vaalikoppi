@@ -32,12 +32,33 @@ i {
 }
 
 #logo {
-  width: 220px;
+  width: 320px;
   margin: 10px auto 0px auto;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+
+  span {
+    font-size: 1.2em;
+    color: white;
+    white-space: nowrap;
+    line-height: 1;
+  }
 }
 
 #vaalikoppi-logo {
-  width: 100%;
+  height: 40px;
+  width: auto;
 }
 
 .logos {
