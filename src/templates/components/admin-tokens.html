@@ -19,6 +19,9 @@
       <button id="invalidate-active-tokens-button"
         class="btn waves-effect waves-light darken-1 white-text candidate bold-font prodeko-blue"
         onclick="invalidateActiveTokens()">Mitätöi aktiiviset koodit</button>
+      <button id="delete-all-data-button"
+        class="btn waves-effect waves-light red darken-2 white-text candidate bold-font"
+        onclick="deleteAllData()">Poista kaikki tiedot</button>
     </div>
   </div>
   {% if !tokens.is_empty() %}

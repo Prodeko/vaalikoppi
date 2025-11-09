@@ -621,7 +621,7 @@ function searchFunction() {
 
 function invalidateActiveTokens() {
   const userConfirmed = confirm("Oletko varma, että haluat mitätöidä aktiiviset koodit?");
-  
+
   if (!userConfirmed) return
 
   callApi(`${SITE_ROOT_PATH}tokens/void-active`, "POST")
@@ -630,6 +630,21 @@ function invalidateActiveTokens() {
       showUserNotification(
         USER_NOTIFICATION.WARNING,
         "Koodien mitätöinti epäonnistui!"
+      )
+    );
+}
+
+function deleteAllData() {
+  const userConfirmed = confirm("Tämä poistaa kaikki äänestykset, koodit ja äänet pysyvästi. Jatketaanko?");
+
+  if (!userConfirmed) return
+
+  callApi(`${SITE_ROOT_PATH}votings/deleteall`, "POST")
+    .then(() => location.reload())
+    .catch(() =>
+      showUserNotification(
+        USER_NOTIFICATION.WARNING,
+        "Tietojen poisto epäonnistui!"
       )
     );
 }

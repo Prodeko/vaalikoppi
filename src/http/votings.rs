@@ -37,6 +37,7 @@ pub fn router(state: AppState) -> Router<AppState> {
         .route("/:id", patch(patch_voting))
         .route("/:id", delete(delete_voting))
         .route_layer(from_fn_with_state(state, resolve_voting))
+        .route("/deleteall", post(delete_all_data))
         .route("/", post(post_voting))
         .route_layer(from_fn(require_is_admin))
         .route("/", get(get_votings))
@@ -457,6 +458,7 @@ impl Voting {
     }
 }
 
+#[derive(Serialize)]
 struct DeletedRowsCount {
     count: i64,
 }
@@ -495,6 +497,57 @@ async fn delete_voting(
         0 => Err(ApiError::VotingNotFound),
         1.. => Ok(()),
     }
+}
+
+#[debug_handler]
+async fn delete_all_data(state: State<AppState>) -> ApiResult<Json<DeletedRowsCount>> {
+    let mut tx = state.db.begin().await?;
+
+    sqlx::query!("DELETE FROM passing_candidate_result")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM candidate_result_data")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM voting_round_result")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM has_voted")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM vote")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM candidate")
+        .execute(&mut *tx)
+        .await?;
+
+    sqlx::query!("DELETE FROM voting")
+        .execute(&mut *tx)
+        .await?;
+
+    let result = sqlx::query_as!(
+        DeletedRowsCount,
+        "
+        WITH deleted_rows AS (
+            DELETE FROM token
+            RETURNING *
+        )
+        SELECT COUNT(*) AS \"count!\"
+        FROM deleted_rows
+        "
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+
+    Ok(Json(result))
 }
 
 #[derive(Template)]
