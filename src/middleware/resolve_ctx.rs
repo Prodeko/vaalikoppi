@@ -1,7 +1,5 @@
 use crate::{
-    api_types::{
-        ApiResult,
-    },
+    api_types::ApiResult,
     ctx::Ctx,
     http::{
         login::{JsonWebTokenClaims, AUTH_TOKEN},
@@ -13,8 +11,6 @@ use crate::{
 use axum::{extract::State, http::Request, middleware::Next, response::Response};
 use jsonwebtoken::{decode, DecodingKey, TokenData, Validation};
 use tower_cookies::Cookies;
-
-
 
 pub async fn resolve_ctx<B>(
     cookies: Cookies,
@@ -34,6 +30,7 @@ pub async fn resolve_ctx<B>(
                 "
                 SELECT
                 id,
+                election_id,
                 token,
                 state AS \"state: TokenState\",
                 alias
@@ -54,6 +51,7 @@ pub async fn resolve_ctx<B>(
                 let ctx = Ctx::new(LoginState::Voter {
                     token: token.token,
                     alias,
+                    election_id: token.election_id,
                 });
                 req.extensions_mut().insert(ctx);
                 return Ok(next.run(req).await);
@@ -76,8 +74,10 @@ pub async fn resolve_ctx<B>(
         })
         .flatten();
 
-    if let Some(_token_data) = resolved_admin_token {
-        let ctx = Ctx::new(LoginState::Admin);
+    if let Some(token_data) = resolved_admin_token {
+        let ctx = Ctx::new(LoginState::Admin {
+            election_id: token_data.claims.election_id,
+        });
         req.extensions_mut().insert(ctx);
         return Ok(next.run(req).await);
     }

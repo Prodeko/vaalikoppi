@@ -5,7 +5,7 @@ BEGIN TRANSACTION;
 	CREATE TABLE election (
 		id SERIAL PRIMARY KEY NOT NULL,
 		name text NOT NULL,
-		created_at timestamptz NOT NULL
+		created_at timestamptz DEFAULT now() NOT NULL
 	);
 
 	ALTER TABLE voting

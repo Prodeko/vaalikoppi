@@ -1,5 +1,5 @@
 {% match login_state %}
-{% when LoginState::Admin %}
+{% when LoginState::Admin with { election_id } %}
 <nav id="admin-nav" class="navbar-fixed nav-extended red-darken-1">
   <div class="nav-wrapper">
     <ul class="right">

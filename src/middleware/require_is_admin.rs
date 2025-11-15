@@ -13,7 +13,7 @@ pub async fn require_is_admin<B>(
     let state = context.login_state();
 
     match state {
-        crate::models::LoginState::Admin => Ok(next.run(req).await),
+        crate::models::LoginState::Admin { .. } => Ok(next.run(req).await),
         _ => Err(ApiError::TokenNotFound),
     }
 }

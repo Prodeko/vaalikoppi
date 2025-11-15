@@ -7,7 +7,7 @@ use crate::{
 
 #[derive(Clone, Debug)]
 pub struct Ctx {
-    login_state: LoginState,
+    pub login_state: LoginState,
 }
 
 impl Ctx {

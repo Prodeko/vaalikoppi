@@ -54,6 +54,7 @@ async fn user_login(
         "
         SELECT
             id,
+            election_id,
             token,
             state AS \"state: TokenState\",
             alias
@@ -126,6 +127,7 @@ async fn register_and_validate_alias(
         WHERE token = $2
         RETURNING
             id,
+            election_id,
             token,
             state AS \"state: TokenState\",
             alias

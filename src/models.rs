@@ -220,6 +220,7 @@ pub struct Vote {
 #[derive(Debug, Clone, Serialize)]
 pub struct Token {
     pub id: TokenId,
+    pub election_id: i64,
     pub token: String,
     pub state: TokenState,
     pub alias: Alias,

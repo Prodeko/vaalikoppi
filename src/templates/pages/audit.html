@@ -13,13 +13,13 @@
     <tbody>
       {% for vote in votes %}
       {% match login_state %}
-      {% when LoginState::Admin %}
+	  {% when LoginState::Admin with { election_id } %}
       <tr>
         <td>{{ vote.voting_name }}</td>
         <td>{{ vote.id }}</td>
         <td>{{ vote.vote|join(", ") }}</td>
       </tr>
-      {% when LoginState::Voter with { token, alias } %}
+      {% when LoginState::Voter with { election_id, token, alias } %}
       {% if !vote.hide_vote_counts %}
       <tr>
         <td>{{ vote.voting_name }}</td>

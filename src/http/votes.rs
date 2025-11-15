@@ -48,7 +48,7 @@ async fn post_vote(
             println!("Not logged in");
             Err(ApiError::TokenNotFound)
         }
-        LoginState::Admin => {
+        LoginState::Admin { .. } => {
             println!("Not logged in");
             Err(ApiError::TokenNotFound)
         }

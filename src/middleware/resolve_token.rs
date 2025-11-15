@@ -23,6 +23,7 @@ pub async fn resolve_token<B>(
         "
         SELECT
             id,
+            election_id,
             token,
             state AS \"state: TokenState\",
             alias

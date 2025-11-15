@@ -12,6 +12,7 @@ use sqlx::{Postgres, QueryBuilder, Transaction};
 
 use crate::{
     api_types::{ApiError, ApiResult},
+    ctx::Ctx,
     http::AppState,
     middleware::{require_is_admin::require_is_admin, resolve_token::resolve_token},
     models::{generate_token, LoginState, Token, TokenState, TokenUpdate},
@@ -81,7 +82,7 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
     let tokens = sqlx::query_as!(
         Token,
         "
-        select id, token, alias, state as \"state: TokenState\" from token
+        select id, election_id, token, alias, state as \"state: TokenState\" from token
         where state = 'unactivated'::token_state;
         "
     )
@@ -100,6 +101,7 @@ async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<Token
         "
         SELECT
             id,
+            election_id,
             token,
             state AS \"state: TokenState\",
             alias
@@ -128,13 +130,13 @@ async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<Token
 }
 
 #[debug_handler]
-async fn get_tokens_page(state: State<AppState>) -> ApiResult<Html<String>> {
+async fn get_tokens_page(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let mut tx = state.db.begin().await?;
     let tokens_page_template = get_tokens(&mut tx).await?;
 
     let res = TokensPageTemplate {
         tokens: tokens_page_template,
-        login_state: LoginState::Admin,
+        login_state: ctx.login_state,
     }
     .render()
     .map(|html| Html(html))
@@ -163,6 +165,7 @@ async fn patch_token(
         WHERE id = $1
         RETURNING
             id,
+            election_id,
             token,
             state AS \"state: TokenState\",
             alias

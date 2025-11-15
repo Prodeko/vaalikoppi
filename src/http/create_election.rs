@@ -1,6 +1,6 @@
 use axum::middleware::from_fn;
 use axum::routing::get;
-use axum::Router;
+use axum::{Form, Router};
 use chrono::{DateTime, Utc};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use time::OffsetDateTime;
@@ -16,7 +16,7 @@ use crate::middleware::require_is_logged_out::require_is_logged_out;
 use crate::models::LoginState;
 use crate::{api_types::ApiResult, ctx::Ctx, http::AppState};
 use askama::Template;
-use axum::response::Html;
+use axum::response::{Html, Redirect};
 use axum::{debug_handler, extract::State, routing::post, Json};
 use serde::{Deserialize, Serialize};
 
@@ -59,12 +59,12 @@ async fn post_create_election(
     state: State<AppState>,
     cookies: Cookies,
     context: Ctx,
-    Json(post_vote_payload): Json<PostVotePayload>,
-) -> ApiResult<Html<String>> {
+    Form(post_vote_payload): Form<PostVotePayload>,
+) -> ApiResult<Redirect> {
     // Ensure that user is not logged in
     match context.login_state() {
         LoginState::Voter { .. } => Err(ApiError::AuthFailed(AuthFailedError::TokenNotExpected)),
-        LoginState::Admin => Err(ApiError::AuthFailed(AuthFailedError::TokenNotExpected)),
+        LoginState::Admin { .. } => Err(ApiError::AuthFailed(AuthFailedError::TokenNotExpected)),
         LoginState::NotLoggedIn => Ok(()),
     }?;
 
@@ -111,5 +111,5 @@ async fn post_create_election(
 
     let _txresult = tx.commit().await?;
 
-    get_root(context, state).await
+    Ok(Redirect::to("/"))
 }

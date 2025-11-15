@@ -11,7 +11,7 @@
 <div class="row">
   <div class="col s12">
     {% match self.login_state %}
-    {% when LoginState::Admin %}
+	{% when LoginState::Admin with { election_id } %}
     <div class="card grey lighten-3" data-testid="voting-{{ voting.id }}">
       <div class="card-content blue-grey-text text-lighten-1 center">
         <div class="row">

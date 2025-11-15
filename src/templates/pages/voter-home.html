@@ -7,7 +7,7 @@
       <div id="voting-list-updater" class="card blue-grey lighten-5" data-testid="login-status-box">
         <div class="card-content center-align">
           {% match login_state %}
-          {% when LoginState::Voter with { alias, token } %}
+          {% when LoginState::Voter with { election_id, alias, token } %}
           <p>Olet kirjautunut sisään aliaksella <b>{{ alias }}</b>.</p>
           {% else %}
           {% endmatch %}

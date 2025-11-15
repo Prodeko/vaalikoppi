@@ -1,8 +1,8 @@
 {% extends "components/base.html" %}
 
 {% block body %}
-<form action="/create-election">
-	<input type="text" id="election-title" name="title">
+<form action="/create-election" method="post">
+	<input type="text" id="election-title" name="name">
 	<input type="submit" value="luo">
 </form>
 {% endblock %}

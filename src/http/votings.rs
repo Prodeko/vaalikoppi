@@ -172,11 +172,13 @@ pub async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<Str
                 .map(|html| Html(html))
                 .map_err(|_| ApiError::InternalServerError)
         }
-        LoginState::Admin => get_admin_votings_list_template(state.db.clone(), ctx.login_state())
-            .await?
-            .render()
-            .map(|html| Html(html))
-            .map_err(|_| ApiError::InternalServerError),
+        LoginState::Admin { .. } => {
+            get_admin_votings_list_template(state.db.clone(), ctx.login_state())
+                .await?
+                .render()
+                .map(|html| Html(html))
+                .map_err(|_| ApiError::InternalServerError)
+        }
     }
 }
 
