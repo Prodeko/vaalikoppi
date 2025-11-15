@@ -36,12 +36,12 @@ struct VotingTemplate {
 
 #[derive(Template)]
 #[template(path = "pages/admin-home.html")]
-struct AdminVotingTemplate {
+pub struct AdminVotingTemplate {
     pub login_state: LoginState,
     pub votings_list_template: AdminVotingListTemplate,
 }
 
-async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
+pub async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     let template = async {
         match context.login_state() {
             LoginState::NotLoggedIn => LoginTemplate {
@@ -61,7 +61,7 @@ async fn get_root(context: Ctx, state: State<AppState>) -> ApiResult<Html<String
                 .render()
                 .map_err(|e| e.into())
             }
-            LoginState::Admin => {
+            LoginState::Admin { election_id } => {
                 let votings_list_template =
                     get_admin_votings_list_template(state.db.clone(), context.login_state())
                         .await?;

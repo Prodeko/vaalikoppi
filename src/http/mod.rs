@@ -7,6 +7,7 @@ use tower_cookies::CookieManagerLayer;
 use crate::{config::Config, middleware::resolve_ctx::resolve_ctx};
 
 pub mod audit;
+mod create_election;
 mod index;
 pub mod login;
 mod static_files;
@@ -50,4 +51,5 @@ fn router(state: AppState) -> Router<AppState> {
         .nest("/votings", votings::router(state.clone()))
         .merge(votes::router())
         .nest("/audit", audit::router(state.clone()))
+        .nest("/create-election", create_election::router(state.clone()))
 }

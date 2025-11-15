@@ -519,17 +519,13 @@ async fn delete_all_data(state: State<AppState>) -> ApiResult<Json<DeletedRowsCo
         .execute(&mut *tx)
         .await?;
 
-    sqlx::query!("DELETE FROM vote")
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query!("DELETE FROM vote").execute(&mut *tx).await?;
 
     sqlx::query!("DELETE FROM candidate")
         .execute(&mut *tx)
         .await?;
 
-    sqlx::query!("DELETE FROM voting")
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query!("DELETE FROM voting").execute(&mut *tx).await?;
 
     let result = sqlx::query_as!(
         DeletedRowsCount,

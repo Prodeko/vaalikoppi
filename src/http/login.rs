@@ -22,7 +22,7 @@ use crate::{
 };
 
 pub const AUTH_TOKEN: &str = "admin-token";
-const TOKEN_EXPIRY_DURATION_HOURS: i64 = 24;
+pub const TOKEN_EXPIRY_DURATION_HOURS: i64 = 24;
 
 #[derive(Deserialize)]
 struct LoginPayload {
@@ -31,12 +31,13 @@ struct LoginPayload {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct JsonWebTokenClaims {
-    exp: i64,
-    iat: i64,
+    pub exp: i64,
+    pub iat: i64,
+    pub election_id: i64,
 }
 
 #[derive(Serialize)]
-struct LoginResponse {}
+pub struct LoginResponse {}
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -69,6 +70,7 @@ async fn json_web_token_login(
     let claims = JsonWebTokenClaims {
         exp: expiration_time.timestamp(),
         iat: current_timestamp.timestamp(),
+        election_id: 0,
     };
 
     let token_result = encode(
@@ -93,8 +95,8 @@ async fn json_web_token_login(
 
 #[derive(Template)]
 #[template(path = "pages/admin-login.html")]
-struct AdminLoginTemplate {
-    login_state: LoginState,
+pub struct AdminLoginTemplate {
+    pub login_state: LoginState,
 }
 
 async fn admin_login(context: Ctx) -> ApiResult<Html<String>> {

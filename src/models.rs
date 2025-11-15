@@ -32,8 +32,14 @@ pub enum LoginState {
     // We do not store the whole Token struct because it can represent states that are invalid.
     // TODO it might be better to create a new struct, e.g., "ValidToken",
     // That only contains the data that we want to represent a valid voter login state.
-    Voter { token: String, alias: String },
-    Admin,
+    Voter {
+        election_id: i64,
+        token: String,
+        alias: String,
+    },
+    Admin {
+        election_id: i64,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, Eq, PartialEq, sqlx::Type)]

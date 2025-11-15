@@ -14,6 +14,7 @@ pub enum AuthFailedError {
     TokenUnactivated,
     TokenVoided,
     WrongAdminToken,
+    TokenNotExpected,
 }
 
 #[derive(Serialize, Debug)]
@@ -66,6 +67,11 @@ impl IntoResponse for ApiError {
             ApiError::AuthFailed(AuthFailedError::WrongAdminToken) => {
                 (StatusCode::UNAUTHORIZED, "Wrong admin token").into_response()
             }
+            ApiError::AuthFailed(AuthFailedError::TokenNotExpected) => (
+                StatusCode::UNAUTHORIZED,
+                "Must not have existing token when performing this action. Log out first.",
+            )
+                .into_response(),
             ApiError::VotingNotFound => {
                 (StatusCode::BAD_REQUEST, "Voting is not open").into_response()
             }
