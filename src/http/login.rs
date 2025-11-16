@@ -18,7 +18,7 @@ use crate::{
     api_types::{ApiError, ApiResult, AuthFailedError},
     ctx::Ctx,
     http::AppState,
-    models::LoginState,
+    models::{ElectionId, LoginState},
 };
 
 pub const AUTH_TOKEN: &str = "admin-token";
@@ -33,7 +33,7 @@ struct LoginPayload {
 pub struct JsonWebTokenClaims {
     pub exp: i64,
     pub iat: i64,
-    pub election_id: i64,
+    pub election_id: ElectionId,
 }
 
 #[derive(Serialize)]
@@ -70,7 +70,7 @@ async fn json_web_token_login(
     let claims = JsonWebTokenClaims {
         exp: expiration_time.timestamp(),
         iat: current_timestamp.timestamp(),
-        election_id: 0,
+        election_id: 0.into(),
     };
 
     let token_result = encode(

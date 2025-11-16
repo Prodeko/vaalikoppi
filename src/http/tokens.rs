@@ -15,7 +15,7 @@ use crate::{
     ctx::Ctx,
     http::AppState,
     middleware::{require_is_admin::require_is_admin, resolve_token::resolve_token},
-    models::{generate_token, LoginState, Token, TokenState, TokenUpdate},
+    models::{generate_token, ElectionId, LoginState, Token, TokenState, TokenUpdate},
 };
 
 pub fn router(state: AppState) -> Router<AppState> {
@@ -196,7 +196,10 @@ impl Token {
 }
 
 #[debug_handler]
-async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
+async fn generate_tokens(
+    election_id: ElectionId,
+    state: State<AppState>,
+) -> ApiResult<Html<String>> {
     // This could be passed with some request params if necessary
     let count = 100;
 
@@ -209,10 +212,12 @@ async fn generate_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
     let mut tx = state.db.begin().await?;
 
     let mut query_builder: QueryBuilder<Postgres> =
-        QueryBuilder::new("INSERT INTO token(token, state) ");
+        QueryBuilder::new("INSERT INTO token(token, election_id, state) ");
 
     query_builder.push_values(tokens, |mut b, token| {
-        b.push_bind(token).push_bind(TokenState::Unactivated);
+        b.push_bind(token)
+            .push_bind(election_id)
+            .push_bind(TokenState::Unactivated);
     });
 
     // TODO If tokens collide, the database will throw a duplicate key error which will return error code 500

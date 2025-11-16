@@ -8,6 +8,19 @@ use validator::Validate;
 
 pub type CandidateId = String;
 pub type VotingId = i32;
+
+#[derive(
+    sqlx::Type, sqlx::FromRow, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize,
+)]
+#[sqlx(transparent)]
+pub struct ElectionId(i32);
+
+impl From<i32> for ElectionId {
+    fn from(i: i32) -> Self {
+        return ElectionId(i);
+    }
+}
+
 pub type TokenId = i32;
 pub type Alias = Option<String>;
 
@@ -33,12 +46,12 @@ pub enum LoginState {
     // TODO it might be better to create a new struct, e.g., "ValidToken",
     // That only contains the data that we want to represent a valid voter login state.
     Voter {
-        election_id: i64,
+        election_id: ElectionId,
         token: String,
         alias: String,
     },
     Admin {
-        election_id: i64,
+        election_id: ElectionId,
     },
 }
 
@@ -111,6 +124,7 @@ impl PartialEq<VotingStateWithoutResults> for VotingState {
 #[serde(rename_all = "camelCase")]
 pub struct Voting {
     pub id: VotingId,
+    pub election_id: ElectionId,
     #[validate(length(min = 1, max = 128))]
     pub name: String,
     #[validate(length(min = 0, max = 128))]
@@ -126,6 +140,7 @@ pub struct Voting {
 #[serde(rename_all = "camelCase")]
 pub struct VotingForVoterTemplate {
     pub id: VotingId,
+    pub election_id: ElectionId,
     pub name: String,
     pub description: String,
     pub state: VotingState,
@@ -140,6 +155,7 @@ impl From<VotingForVoterTemplate> for Voting {
     fn from(value: VotingForVoterTemplate) -> Self {
         Voting {
             id: value.id,
+            election_id: value.election_id,
             name: value.name,
             description: value.description,
             state: value.state,
@@ -220,7 +236,7 @@ pub struct Vote {
 #[derive(Debug, Clone, Serialize)]
 pub struct Token {
     pub id: TokenId,
-    pub election_id: i64,
+    pub election_id: ElectionId,
     pub token: String,
     pub state: TokenState,
     pub alias: Alias,

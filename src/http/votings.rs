@@ -24,8 +24,8 @@ use crate::{
     helpers::calculate_stv_result,
     middleware::{require_is_admin::require_is_admin, resolve_voting::resolve_voting},
     models::{
-        Alias, CandidateId, CandidateResultData, LoginState, PassingCandidateResult, Voting,
-        VotingCreate, VotingForVoterTemplate, VotingId, VotingResult, VotingRoundResult,
+        Alias, CandidateId, CandidateResultData, ElectionId, LoginState, PassingCandidateResult,
+        Voting, VotingCreate, VotingForVoterTemplate, VotingId, VotingResult, VotingRoundResult,
         VotingState, VotingStateWithoutResults, VotingUpdate,
     },
 };
@@ -45,6 +45,7 @@ pub fn router(state: AppState) -> Router<AppState> {
 
 #[debug_handler]
 async fn post_voting(
+    election_id: ElectionId,
     state: State<AppState>,
     Json(voting_create): Json<VotingCreate>,
 ) -> ApiResult<Json<Voting>> {
@@ -73,10 +74,11 @@ async fn post_voting(
 
     let mut voting = sqlx::query!(
         "
-        INSERT INTO voting (name, description, state, created_at, hide_vote_counts, number_of_winners)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO voting (election_id, name, description, state, created_at, hide_vote_counts, number_of_winners)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING
             id,
+            election_id AS \"election_id: ElectionId\",
             name,
             description,
             state AS \"state: VotingStateWithoutResults\",
@@ -84,6 +86,7 @@ async fn post_voting(
             hide_vote_counts,
             number_of_winners;
         ",
+        election_id as ElectionId,
         voting_create.name,
         voting_create.description,
         voting_state as VotingStateWithoutResults,
@@ -93,6 +96,7 @@ async fn post_voting(
     )
     .map(|row| Voting {
         id: row.id,
+        election_id: row.election_id,
         name: row.name,
         description: row.description,
         state: VotingState::from(row.state),
@@ -164,7 +168,8 @@ async fn patch_voting(
 #[debug_handler]
 pub async fn get_votings(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
     match ctx.login_state() {
-        LoginState::NotLoggedIn => todo!(),
+        LoginState::NotLoggedIn => todo!(), // TODO: WTH is this? Will crash the server if
+        // unauthenticated client hits this endpoint
         LoginState::Voter { .. } => {
             get_votings_list_template(state.db.clone(), ctx.login_state(), None)
                 .await?
@@ -427,6 +432,7 @@ impl Voting {
             WHERE id = $1
             RETURNING
                 id,
+                election_id AS \"election_id: ElectionId\",
                 name,
                 description,
                 state AS \"state: VotingStateWithoutResults\",
@@ -443,6 +449,7 @@ impl Voting {
         )
         .map(|row| Voting {
             id: row.id,
+            election_id: row.election_id,
             name: row.name,
             description: row.description,
             state: VotingState::from(row.state),
@@ -568,9 +575,11 @@ async fn get_voting_data(
     db: Pool<Postgres>,
     login_state: &LoginState,
 ) -> Result<VotingData, ApiError> {
-    let token = match &login_state {
-        LoginState::Voter { token, .. } => token.clone(),
-        _ => "".to_string(), // TODO bad practices, this is used to ignore token when using this function for admin voting template
+    let (token, election_id): (String, ElectionId) = match &login_state {
+        LoginState::Voter {
+            token, election_id, ..
+        } => (token.clone(), election_id.clone()),
+        _ => ("".to_string(), (-1).into()), // TODO bad practices, this is used to ignore token when using this function for admin voting template
     };
     let rows = sqlx::query!(
         "
@@ -616,12 +625,14 @@ async fn get_voting_data(
         voting_with_candidates AS (
             SELECT v.*, COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') as candidates
             FROM voting AS v LEFT JOIN candidate AS c ON v.id = c.voting_id
+            WHERE v.election_id = $2
             GROUP BY v.id
         )
 
         --- The return type of ARRAY_AGG has to be mangled so it returns an empty list. This is not exactly type safe.
         SELECT
             v.id as \"id!: VotingId\",
+            v.election_id as \"election_id!: ElectionId\",
             v.state as \"state!: VotingStateWithoutResults\",
             v.name as \"name!: String\", 
             v.description as \"description!: String\",
@@ -643,7 +654,7 @@ async fn get_voting_data(
             LEFT JOIN round_results AS r ON v.id = r.voting_id
             LEFT JOIN has_voted hv on v.id = hv.voting_id and hv.token_token = $1
         ORDER BY round ASC, candidate_vote_count DESC, v.created_at ASC;
-        ", token
+        ", token, election_id as ElectionId
         ).fetch_all(&db);
 
     let mut votings: HashMap<VotingId, VotingForVoterTemplate> = HashMap::new();
@@ -737,6 +748,7 @@ async fn get_voting_data(
 
                 let voting = VotingForVoterTemplate {
                     id: rec.id,
+                    election_id: rec.election_id,
                     candidates: rec.candidates,
                     name: rec.name,
                     description: rec.description,
@@ -795,12 +807,13 @@ pub async fn get_votings_list_template(
 #[derive(Validate, Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminOpenVoting {
-    pub id: VotingId,           // voting
-    pub name: String,           // voting
-    pub description: String,    // voting
-    pub state: VotingState,     // voting
-    pub hide_vote_counts: bool, // voting
-    pub number_of_winners: i32, // voting
+    pub id: VotingId,            // voting
+    pub election_id: ElectionId, // voting
+    pub name: String,            // voting
+    pub description: String,     // voting
+    pub state: VotingState,      // voting
+    pub hide_vote_counts: bool,  // voting
+    pub number_of_winners: i32,  // voting
 
     pub total_votes: i32,                         // has_voted
     pub eligible_token_count: i32,                // live count of activated tokens
@@ -812,6 +825,7 @@ pub struct AdminOpenVoting {
 #[serde(rename_all = "camelCase")]
 pub struct AdminDraftVoting {
     pub id: VotingId,
+    pub election_id: ElectionId,
     pub name: String,
     pub description: String,
     pub state: VotingState,
@@ -839,6 +853,11 @@ pub async fn get_admin_votings_list_template(
     db: Pool<Postgres>,
     login_state: LoginState,
 ) -> ApiResult<AdminVotingListTemplate> {
+    let election_id = match &login_state {
+        LoginState::Admin { election_id, .. } => election_id.clone(),
+        _ => (-1).into(), // TODO bad practices, this is used to ignore token when using this function for admin voting template
+    };
+
     let rows = sqlx::query!(
         "
         with u_t as ( -- unused tokens for each voting
@@ -865,6 +884,7 @@ pub async fn get_admin_votings_list_template(
         v_c as ( -- votings and their corresponding candidates
             select
                 v.id,
+                v.election_id,
                 v.name,
                 v.description,
                 v.state,
@@ -877,6 +897,7 @@ pub async fn get_admin_votings_list_template(
         )
         select 
             v_c.id,
+            v_c.election_id AS \"election_id: ElectionId\",
             v_c.name,
             v_c.description,
             v_c.state as \"voting_state!: VotingStateWithoutResults\",
@@ -886,8 +907,9 @@ pub async fn get_admin_votings_list_template(
             COALESCE(u_t.unused_tokens, '{}') as \"unused_tokens!: Vec<(String, Alias)>\",
             t_v.total_votes
         from v_c natural join t_v left join u_t
-            on v_c.id = u_t.id;
-        "
+            on v_c.id = u_t.id
+        where v_c.election_id = $1;
+        ", election_id as ElectionId
     )
     .fetch_all(&db)
     .await?;
@@ -897,8 +919,10 @@ pub async fn get_admin_votings_list_template(
         select
             count(*)
         from token 
-        WHERE state = 'activated'::token_state;
+        WHERE election_id = $1
+            AND state = 'activated'::token_state;
         ",
+        election_id as ElectionId
     )
     .fetch_one(&db)
     .await?
@@ -915,6 +939,7 @@ pub async fn get_admin_votings_list_template(
         VotingStateWithoutResults::Closed => (),
         VotingStateWithoutResults::Draft => draft_votings.push(AdminDraftVoting {
             id: row.id,
+            election_id: row.election_id,
             name: row.name.clone(),
             description: row.description.clone(),
             state: row.voting_state.into(),
@@ -924,6 +949,7 @@ pub async fn get_admin_votings_list_template(
         }),
         VotingStateWithoutResults::Open => open_votings.push(AdminOpenVoting {
             id: row.id,
+            election_id: row.election_id,
             description: row.description.clone(),
             name: row.name.clone(),
             state: row.voting_state.into(),

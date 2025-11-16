@@ -12,10 +12,11 @@ use crate::{
         ApiResult,
     },
     http::AppState,
-    models::{CandidateId, Voting, VotingId, VotingStateWithoutResults},
+    models::{CandidateId, ElectionId, Voting, VotingId, VotingStateWithoutResults},
 };
 
 pub async fn resolve_voting<B>(
+    election_id: ElectionId,
     Path(id): Path<VotingId>,
     state: State<AppState>,
     mut req: Request<B>,
@@ -26,6 +27,7 @@ pub async fn resolve_voting<B>(
         "
         SELECT
             v.id,
+            v.election_id,
             v.name,
             v.description,
             v.state AS \"state: VotingStateWithoutResults\",
@@ -35,10 +37,11 @@ pub async fn resolve_voting<B>(
             COALESCE(NULLIF(ARRAY_AGG(c.name), '{NULL}'), '{}') AS \"candidates!: Vec<CandidateId>\"
         FROM voting as v LEFT JOIN candidate as c
             ON v.id = c.voting_id
-        WHERE v.id = $1
+        WHERE v.id = $1 and v.election_id = $2
         GROUP BY v.id;
         ",
-        id
+        id,
+        election_id as ElectionId
     )
     .fetch_optional(&state.db)
     .await?;

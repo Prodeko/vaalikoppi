@@ -9,10 +9,11 @@ use axum::{
 use crate::{
     api_types::{ApiError, ApiResult},
     http::AppState,
-    models::{Token, TokenState, VotingId},
+    models::{ElectionId, Token, TokenState, VotingId},
 };
 
 pub async fn resolve_token<B>(
+    Path(election_id): Path<ElectionId>,
     Path(id): Path<VotingId>,
     state: State<AppState>,
     mut req: Request<B>,
@@ -28,9 +29,10 @@ pub async fn resolve_token<B>(
             state AS \"state: TokenState\",
             alias
         FROM token
-        WHERE id = $1
+        WHERE id = $1 and election_id = $2
         ",
-        id
+        id,
+        election_id as ElectionId
     )
     .fetch_optional(&state.db)
     .await?;
