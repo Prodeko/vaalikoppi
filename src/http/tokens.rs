@@ -82,8 +82,15 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
     let tokens = sqlx::query_as!(
         Token,
         "
-        select id, election_id, token, alias, state as \"state: TokenState\" from token
-        where state = 'unactivated'::token_state;
+        SELECT
+            id,
+            election_id as \"election_id: ElectionId\",
+            token,
+            alias,
+            state as \"state: TokenState\"
+        FROM token
+        WHERE
+            state = 'unactivated'::token_state;
         "
     )
     .fetch_all(&state.db)
@@ -95,18 +102,24 @@ async fn get_print_tokens(state: State<AppState>) -> ApiResult<Html<String>> {
         .map_err(|_| ApiError::InternalServerError)
 }
 
-async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<TokensTemplate> {
+async fn get_tokens<'a>(
+    election_id: ElectionId,
+    conn: &mut Transaction<'a, Postgres>,
+) -> ApiResult<TokensTemplate> {
     let tokens = sqlx::query_as!(
         Token,
         "
         SELECT
             id,
-            election_id,
             token,
+            election_id as \"election_id: ElectionId\",
             state AS \"state: TokenState\",
             alias
         FROM token
-        "
+        WHERE
+            election_id = $1;
+        ",
+        election_id as ElectionId
     )
     .fetch_all(&mut **conn)
     .await?;
@@ -130,9 +143,13 @@ async fn get_tokens<'a>(conn: &mut Transaction<'a, Postgres>) -> ApiResult<Token
 }
 
 #[debug_handler]
-async fn get_tokens_page(ctx: Ctx, state: State<AppState>) -> ApiResult<Html<String>> {
+async fn get_tokens_page(
+    election_id: ElectionId,
+    ctx: Ctx,
+    state: State<AppState>,
+) -> ApiResult<Html<String>> {
     let mut tx = state.db.begin().await?;
-    let tokens_page_template = get_tokens(&mut tx).await?;
+    let tokens_page_template = get_tokens(election_id, &mut tx).await?;
 
     let res = TokensPageTemplate {
         tokens: tokens_page_template,
@@ -165,7 +182,7 @@ async fn patch_token(
         WHERE id = $1
         RETURNING
             id,
-            election_id,
+            election_id AS \"election_id: ElectionId\",
             token,
             state AS \"state: TokenState\",
             alias
@@ -224,7 +241,10 @@ async fn generate_tokens(
     // to the admin's browser. This shouldn't break the application but the admin UX is bad.
     query_builder.build().execute(&mut *tx).await?;
 
-    let res = get_tokens(&mut tx).await?.render().map(|html| Html(html))?;
+    let res = get_tokens(election_id, &mut tx)
+        .await?
+        .render()
+        .map(|html| Html(html))?;
 
     tx.commit().await?;
 

@@ -21,6 +21,12 @@ impl From<i32> for ElectionId {
     }
 }
 
+impl From<ElectionId> for i32 {
+    fn from(i: ElectionId) -> i32 {
+        return i.0;
+    }
+}
+
 pub type TokenId = i32;
 pub type Alias = Option<String>;
 

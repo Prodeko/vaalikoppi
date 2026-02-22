@@ -509,43 +509,35 @@ async fn delete_voting(
 }
 
 #[debug_handler]
-async fn delete_all_data(state: State<AppState>) -> ApiResult<Json<DeletedRowsCount>> {
+async fn delete_all_data(
+    election_id: ElectionId,
+    state: State<AppState>,
+) -> ApiResult<Json<DeletedRowsCount>> {
     let mut tx = state.db.begin().await?;
 
-    sqlx::query!("DELETE FROM passing_candidate_result")
-        .execute(&mut *tx)
-        .await?;
+    sqlx::query!(
+        "
+        DELETE FROM voting
+        WHERE election_id = $1;
 
-    sqlx::query!("DELETE FROM candidate_result_data")
-        .execute(&mut *tx)
-        .await?;
-
-    sqlx::query!("DELETE FROM voting_round_result")
-        .execute(&mut *tx)
-        .await?;
-
-    sqlx::query!("DELETE FROM has_voted")
-        .execute(&mut *tx)
-        .await?;
-
-    sqlx::query!("DELETE FROM vote").execute(&mut *tx).await?;
-
-    sqlx::query!("DELETE FROM candidate")
-        .execute(&mut *tx)
-        .await?;
-
-    sqlx::query!("DELETE FROM voting").execute(&mut *tx).await?;
+    ",
+        election_id as ElectionId
+    )
+    .execute(&mut *tx)
+    .await?;
 
     let result = sqlx::query_as!(
         DeletedRowsCount,
         "
         WITH deleted_rows AS (
             DELETE FROM token
+            WHERE election_id = $1
             RETURNING *
         )
         SELECT COUNT(*) AS \"count!\"
         FROM deleted_rows
-        "
+        ",
+        election_id as ElectionId
     )
     .fetch_one(&mut *tx)
     .await?;
@@ -653,6 +645,8 @@ async fn get_voting_data(
             voting_with_candidates AS v            
             LEFT JOIN round_results AS r ON v.id = r.voting_id
             LEFT JOIN has_voted hv on v.id = hv.voting_id and hv.token_token = $1
+        WHERE
+            election_id = $2
         ORDER BY round ASC, candidate_vote_count DESC, v.created_at ASC;
         ", token, election_id as ElectionId
         ).fetch_all(&db);

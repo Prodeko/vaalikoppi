@@ -8,9 +8,8 @@ use tower_cookies::{Cookie, Cookies};
 
 use crate::api_types::{ApiError, AuthFailedError};
 
-use crate::http::index::get_root;
 use crate::http::login::{
-    AdminLoginTemplate, JsonWebTokenClaims, LoginResponse, AUTH_TOKEN, TOKEN_EXPIRY_DURATION_HOURS,
+    JsonWebTokenClaims, LoginResponse, AUTH_TOKEN, TOKEN_EXPIRY_DURATION_HOURS,
 };
 use crate::middleware::require_is_logged_out::require_is_logged_out;
 use crate::models::LoginState;
